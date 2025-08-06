@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlateTraits - Review your peers.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="js/app.js" defer></script>
+    <link rel="icon" href="/images/favicon.ico" sizes="any">
+<style>
+    /* --- 1. General & Typography --- */
+    body { 
+        font-family: 'Inter', sans-serif; 
+    }
+
+    @font-face { 
+        font-family: 'LicensePlate'; 
+        src: url('/assets/fonts/LicensePlate-j9eO.ttf') format('truetype'); 
+    }
+
+    .font-license-plate { 
+        font-family: 'LicensePlate', sans-serif; 
+    }
+
+    /* --- 2. Theme Definitions --- */
+    /* Dark Theme (Default) */
+    .bg-dark-primary { background-color: #121212; }
+    .bg-dark-secondary { background-color: #1e1e1e; }
+    .bg-dark-tertiary { background-color: #2a2a2a; }
+    .border-dark { border-color: #3a3a3a; }
+    .text-light-primary { color: #ffffff; }
+    .text-light-secondary { color: #b3b3b3; }
+    .text-light-tertiary { color: #808080; }
+
+    /* --- 3. Component Styles --- */
+    /* Utility */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Trait Chips */
+    .trait-chip {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border: 1px solid transparent;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    .trait-chip.positive {
+        background-color: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+        border-color: #34d399;
+    }
+    .trait-chip.negative {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        border-color: #f87171;
+    }
+    .trait-chip.positive.active {
+        background-color: #10b981;
+        color: #ffffff;
+        border-color: #34d399;
+    }
+    .trait-chip.negative.active {
+        background-color: #ef4444;
+        color: #ffffff;
+        border-color: #f87171;
+    }
+
+    /* Star Rating */
+    .modal-star-rating { 
+        display: flex; 
+        flex-direction: row-reverse; 
+        justify-content: center; 
+    }
+    .modal-star-rating input[type="radio"] { 
+        display: none; 
+    }
+    .modal-star-rating label { 
+        font-size: 2.5rem; 
+        color: #4b5563; 
+        cursor: pointer; 
+        transition: color 0.2s; 
+    }
+    .modal-star-rating input[type="radio"]:checked ~ label,
+    .modal-star-rating label:hover,
+    .modal-star-rating label:hover ~ label { 
+        color: #f59e0b; 
+    }
+    .detail-star-rating { 
+        display: flex; 
+        direction: rtl; 
+        justify-content: center; 
+    }
+    .detail-star-rating .star { 
+        font-size: 2.5rem; 
+        color: #d1d5db; 
+    }
+    .detail-star-rating .star.filled { 
+        color: #f59e0b; 
+    }
+
+    /* Plate Display */
+    .plate-display { 
+        position: relative; 
+        width: 100%; 
+        max-width: 250px; 
+        margin: 0 auto; 
+        overflow: hidden; 
+        border-radius: 0.5rem; 
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+        height: 120px; 
+        padding: 0.5rem 1rem; 
+    }
+    .plate-display img { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover; 
+        object-position: center; 
+    }
+    .plate-display .plate-number-overlay { 
+        position: absolute; 
+        top: 50%; 
+        left: 50%; 
+        transform: translate(-50%, -50%); 
+        font-size: 2.2rem; 
+        font-weight: bold; 
+        color: #2a2a2a; 
+        text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5); 
+        letter-spacing: 0.1em; 
+        font-family: 'LicensePlate', sans-serif; 
+        white-space: nowrap;
+    }
+
+    /* Vote Buttons */
+    .vote-btn { 
+        transition: transform 0.1s ease, color 0.2s ease; 
+    }
+    .vote-btn:hover { 
+        transform: scale(1.1); 
+    }
+    .vote-btn.active-up { 
+        color: #22c55e; /* Green */ 
+    }
+    .vote-btn.active-down { 
+        color: #ef4444; /* Red */ 
+    }
+
+    /* Badge Styles */
+    .badge-container {
+        position: relative;
+        display: inline-block;
+    }
+    .badge-locked {
+        filter: grayscale(100%) blur(1.5px);
+        opacity: 0.6;
+    }
+    .lock-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: rgba(255, 255, 255, 0.8);
+        width: 32px;
+        height: 32px;
+        pointer-events: none; /* So it doesn't interfere with clicks */
+        stroke-width: 2.5;
+    }
+    #allBadgesModal .badge-container {
+        flex-basis: calc(25% - 1rem); /* 4 per row with gap */
+    }
+
+    /* Auth Modal Input Autofill Override */
+    #authModal input:-webkit-autofill,
+    #authModal input:-webkit-autofill:hover,
+    #authModal input:-webkit-autofill:focus,
+    #authModal input:-webkit-autofill:active {
+        transition: background-color 5000s ease-in-out 0s;
+        -webkit-box-shadow: 0 0 0 30px #2a2a2a inset !important; /* bg-dark-tertiary */
+        -webkit-text-fill-color: #ffffff !important; /* text-light-primary */
+        caret-color: #ffffff;
+        border-radius: 0.375rem; /* rounded-md */
+    }
+
+</style>
+</head>
+<body class="bg-dark-primary">
+
+    <div class="max-w-md mx-auto bg-dark-secondary shadow-2xl min-h-screen flex flex-col">
+        <header class="p-4 flex justify-between items-center">
+            <img src="/images/pt_logo.png" alt="PlateTraits Logo" class="h-10 w-auto">
+            
+            <div class="flex items-center space-x-4">
+                <button id="loginBtn" class="text-light-secondary hover:text-white font-semibold">Login/Register</button>
+                <div id="userInfo" class="hidden items-center space-x-3">
+                    <span id="usernameDisplay" class="text-light-primary font-semibold"></span>
+                    <button id="profileBtn" class="text-sm text-blue-400 hover:underline font-semibold">Profile</button>
+                    <button id="logoutBtn" class="text-sm text-red-500 hover:underline">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="px-4 pb-4 space-y-3">
+            <div class="relative">
+                <input type="search" id="searchPlate" placeholder="Search plate, e.g., '2FAST4U'" class="w-full bg-dark-tertiary text-light-primary placeholder-light-tertiary rounded-lg p-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-light-tertiary"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <select id="filterState" class="w-full bg-dark-tertiary text-light-primary placeholder-light-tertiary rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+                <select id="filterMake" class="w-full bg-dark-tertiary text-light-primary placeholder-light-tertiary rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+                <select id="filterType" class="w-full bg-dark-tertiary text-light-primary placeholder-light-tertiary rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+                <select id="filterSubtype" class="w-full bg-dark-tertiary text-light-primary placeholder-light-tertiary rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+		<select id="filterTrait" class="w-full bg-dark-tertiary text-light-primary placeholder-light-tertiary rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+	    </div>
+        </div>
+
+        <main class="flex-grow overflow-y-auto no-scrollbar px-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-light-primary font-license-plate">Recent Reviews</h2>
+            </div>
+            <div id="reviewsContainer" class="space-y-3">
+                <div id="loadingReviews" class="text-center py-10"><p class="text-light-secondary">Loading reviews...</p></div>
+            </div>
+        </main>
+
+        <button id="addReviewBtn" class="fixed bottom-6 right-1/2 translate-x-[calc(224px-28px)] md:translate-x-[calc(50vw-28px)] md:max-w-md bg-blue-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+    </div>
+
+    <div id="authModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-dark-secondary text-light-primary rounded-2xl shadow-xl w-full max-w-sm p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="authTitle" class="text-2xl font-bold font-license-plate">Login</h2>
+                <button id="closeAuthModalBtn" class="text-light-secondary hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <form id="authForm" class="space-y-4">
+                <div id="first-name-field-container" class="hidden">
+                    <label for="first_name" class="block text-sm font-medium text-light-secondary">First Name</label>
+                    <input type="text" id="first_name" name="first_name" class="w-full mt-1 px-3 py-2 bg-dark-tertiary text-light-primary placeholder-light-tertiary border border-dark rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="username" class="block text-sm font-medium text-light-secondary">Username</label>
+                    <input type="text" id="username" name="username" required class="w-full mt-1 px-3 py-2 bg-dark-tertiary text-light-primary placeholder-light-tertiary border border-dark rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div id="email-field-container" class="hidden">
+                    <label for="email" class="block text-sm font-medium text-light-secondary">Email</label>
+                    <input type="email" id="email" name="email" class="w-full mt-1 px-3 py-2 bg-dark-tertiary text-light-primary placeholder-light-tertiary border border-dark rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-light-secondary">Password</label>
+                    <input type="password" id="password" name="password" required class="w-full mt-1 px-3 py-2 bg-dark-tertiary text-light-primary placeholder-light-tertiary border border-dark rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div id="confirm-password-container" class="hidden">
+                    <label for="confirmPassword" class="block text-sm font-medium text-light-secondary">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="w-full mt-1 px-3 py-2 bg-dark-tertiary text-light-primary placeholder-light-tertiary border border-dark rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="pt-2 flex items-center">
+                    <input type="checkbox" id="showPasswordToggle" class="h-4 w-4 text-blue-600 bg-dark-tertiary border-dark rounded focus:ring-blue-500">
+                    <label for="showPasswordToggle" class="ml-2 block text-sm text-light-secondary">Show Password</label>
+                </div>
+                <div id="authMessage" class="text-center text-red-400"></div>
+                <button type="submit" class="w-full !mt-6 bg-blue-600 text-white font-bold px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-300">Submit</button>
+            </form>
+            <p class="text-center text-sm text-light-secondary mt-4">
+                <span id="authPrompt">Don't have an account?</span>
+                <button id="switchAuthModeBtn" class="text-blue-400 hover:underline font-semibold">Register</button>
+            </p>
+        </div>
+    </div>
+
+    <div id="reviewDetailModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-dark-secondary text-light-primary rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-dark">
+                <div class="plate-display">
+                    <img id="detailPlateImage" src="" alt="License Plate" onerror="this.onerror=null;this.src='https://placehold.co/300x150/e0e0e0/555555?text=Plate+Image+Not+Found';" />
+                    <div id="detailPlateNumberOverlay" class="plate-number-overlay"></div>
+                </div>
+                <button id="closeDetailModalBtn" class="text-light-secondary hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto no-scrollbar">
+                <div class="mb-4">
+                    <h3 class="font-semibold text-light-secondary">Review Rating:</h3>
+                    <div id="detailRatingStars" class="detail-star-rating"></div>
+                </div>
+                <div class="mb-4 text-center">
+                    <p id="detailIncidentLocation" class="text-xl font-semibold text-light-secondary"></p>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <h3 class="font-semibold text-light-secondary">Vehicle Make:</h3>
+                        <p id="detailVehicleMake" class="text-lg"></p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-light-secondary">Vehicle Model:</h3>
+                        <p id="detailVehicleModel" class="text-lg"></p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-light-secondary">Vehicle Color:</h3>
+                        <p id="detailVehicleColor" class="text-lg"></p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-light-secondary">Vehicle Subtype:</h3>
+                        <p id="detailVehicleType" class="text-lg"></p>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-light-secondary">Traits:</h3>
+                    <div id="detailTraits" class="flex flex-wrap gap-2"></div>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-light-secondary">Comment:</h3>
+                    <p id="detailComment" class="text-lg italic bg-dark-tertiary p-3 rounded-lg"></p>
+                </div>
+                <div class="flex justify-end items-center space-x-4 mt-4">
+                    <span class="text-sm font-semibold text-light-secondary">Do you like this</span>
+                    <div class="flex items-center space-x-1">
+                        <button id="upvoteBtn" class="text-light-tertiary hover:text-green-500 vote-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-thumbs-up"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                        </button>
+                        <span id="upvotesCount" class="font-semibold text-light-primary">0</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button id="downvoteBtn" class="text-light-tertiary hover:text-red-500 vote-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-thumbs-down"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>
+                        </button>
+                        <span id="downvotesCount" class="font-semibold text-light-primary">0</span>
+                    </div>
+                </div>
+                <div class="text-sm text-light-tertiary mt-6">
+                    <p>Reviewed by: <span id="detailUserId"></span></p>
+                </div>
+            </div>
+            <div class="p-4 bg-dark-tertiary border-t border-dark rounded-b-2xl flex justify-between items-center">
+                <div id="detailNavFeed" class="w-full flex justify-between items-center">
+                    <button id="prevReviewBtn" class="bg-dark-tertiary text-light-primary font-bold px-4 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50">Previous</button>
+                    <span id="detailReviewCount" class="text-light-secondary text-sm"></span>
+                    <button id="nextReviewBtn" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50">Next</button>
+                </div>
+                <div id="detailNavProfile" class="w-full hidden">
+                     <button id="backToProfileBtn" class="bg-gray-500 text-white font-bold px-4 py-2 rounded-lg hover:bg-gray-600">Back to Profile</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="profileModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-dark-secondary text-light-primary rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-dark">
+                <h2 class="text-xl font-bold font-license-plate">My Profile</h2>
+                <button id="closeProfileModalBtn" class="text-2xl text-light-secondary hover:text-white">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto no-scrollbar">
+                <div class="bg-dark-tertiary p-4 rounded-lg mb-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-semibold text-light-primary">Account Details</h3>
+                        <button id="editProfileBtn" class="text-sm text-blue-400 hover:underline font-semibold">Edit</button>
+                    </div>
+                    <div id="profile-display-view">
+                        <div class="space-y-2">
+                            <div>
+                                <span class="text-sm font-medium text-light-secondary">First Name:</span>
+                                <p id="profileFirstName" class="text-lg"></p>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-light-secondary">Username:</span>
+                                <p id="profileUsername" class="text-lg"></p>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-light-secondary">Email:</span>
+                                <p id="profileEmail" class="text-lg"></p>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-light-secondary">Member Since:</span>
+                                <p id="profileJoinDate" class="text-lg"></p>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-light-secondary">Currently Driving:</span>
+                                <p id="profileVehicle" class="text-lg"></p>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-light-secondary">Bio:</span>
+                                <p id="profileBio" class="text-lg italic"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="profile-edit-view" class="hidden">
+                        <div class="space-y-4">
+                             <h4 class="font-semibold text-light-primary border-b border-dark pb-2">Edit Details</h4>
+                             <div><label for="profile_first_name" class="text-sm font-medium text-light-secondary">First Name</label><input type="text" id="profile_first_name" name="profile_first_name" class="w-full mt-1 px-3 py-2 bg-dark-tertiary text-light-primary border border-dark rounded-md focus:ring-blue-500 focus:border-blue-500"></div>
+                        </div>
+                        <div class="space-y-4 mt-6">
+                             <h4 class="font-semibold text-light-primary border-b border-dark pb-2">Edit Vehicle</h4>
+                             <div><label for="profile_vehicle_year" class="text-sm font-medium text-light-secondary">Year</label><select id="profile_vehicle_year" name="profile_vehicle_year" class="w-full mt-1 px-3 py-2 bg-dark-tertiary text-light-primary border border-dark rounded-md focus:ring-blue-500 focus:border-blue-500"></select></div>
+                             <div><label for="profile_vehicle_make" class="text-sm font-medium text-light-secondary">Make</label><select id="profile_vehicle_make" name="profile_vehicle_make" class="w-full mt-1 px-3 py-2 bg-dark-tertiary text-light-primary border border-dark rounded-md focus:ring-blue-500 focus:border-blue-500"></select></div>
+                             <div><label for="profile_vehicle_model" class="text-sm font-medium text-light-secondary">Model</label><select id="profile_vehicle_model" name="profile_vehicle_model" class="w-full mt-1 px-3 py-2 bg-dark-tertiary text-light-primary border border-dark rounded-md focus:ring-blue-500 focus:border-blue-500" disabled><option value="">Select Model</option></select></div>
+                             <div><label for="profile_vehicle_color" class="text-sm font-medium text-light-secondary">Color</label><select id="profile_vehicle_color" name="profile_vehicle_color" class="w-full mt-1 px-3 py-2 bg-dark-tertiary text-light-primary border border-dark rounded-md focus:ring-blue-500 focus:border-blue-500"></select></div>
+                        </div>
+                        <div class="space-y-4 mt-6">
+                            <h4 class="font-semibold text-light-primary border-b border-dark pb-2">Edit Bio</h4>
+                            <div>
+                                <label for="bio-template" class="text-sm font-medium text-light-secondary">Template</label>
+                                <select id="bio-template" name="bio_template" class="w-full mt-1 px-3 py-2 bg-dark-tertiary text-light-primary border border-dark rounded-md focus:ring-blue-500 focus:border-blue-500"></select>
+                            </div>
+                            <div id="bio-words-container" class="space-y-3"></div>
+                        </div>
+                        <div id="profileEditMessage" class="text-center text-sm mt-4"></div>
+                        <div class="flex justify-end space-x-2 mt-4">
+                            <button id="cancelEditProfileBtn" class="bg-gray-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-gray-700">Cancel</button>
+                            <button id="saveProfileBtn" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-blue-700">Save</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-semibold text-light-primary">Achievements</h4>
+                        <button id="showAllBadgesBtn" class="text-sm text-blue-400 hover:underline font-semibold">Show All</button>
+                    </div>
+                    <div id="profileBadgesContainer" class="flex flex-wrap gap-4">
+                        <p class="text-light-secondary text-sm">Loading achievements...</p>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <h3 id="profileReviewsHeading" class="font-semibold mb-3 text-light-primary">My Submitted Reviews</h3>
+                    <div id="profileReviewsContainer" class="space-y-3">
+                        <p class="text-light-secondary">Loading your reviews...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="badgeDetailModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-dark-secondary text-light-primary rounded-2xl shadow-xl w-full max-w-sm p-6 text-center flex flex-col">
+            <div class="w-full flex justify-end items-center mb-2">
+                <button id="closeBadgeDetailModalBtn" class="text-light-secondary hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="flex-grow flex flex-col items-center justify-center px-4 pb-4">
+                <img id="badgeDetailImage" src="" alt="Badge" class="w-32 h-32 mx-auto mb-4">
+                <h2 id="badgeDetailName" class="text-2xl font-bold font-license-plate mb-2"></h2>
+                <p id="badgeDetailDescription" class="text-light-secondary"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="allBadgesModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-dark-secondary text-light-primary rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-dark">
+                <h2 class="text-xl font-bold font-license-plate">All Achievements</h2>
+                <button id="closeAllBadgesModalBtn" class="text-light-secondary hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto no-scrollbar">
+                <div id="allBadgesContainer" class="flex flex-wrap gap-4 justify-center">
+                    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

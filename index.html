@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF--8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlateTraits - Welcome</title>
+    <meta name="description" content="PlateTraits is a user-powered platform for sharing quick notes about driver behavior using public license plates. Submit basic info and choose from fun, preset messages to describe what you saw on the road.">
+ 
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/images/favicon.ico" sizes="any">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212; /* Dark Primary Background */
+        }
+        @font-face {
+            font-family: 'LicensePlate';
+            src: url('/assets/fonts/LicensePlate-j9eO.ttf') format('truetype');
+        }
+        .font-license-plate {
+            font-family: 'LicensePlate', sans-serif;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="max-w-md w-full bg-gray-900 rounded-2xl shadow-xl p-8 text-center flex flex-col space-y-6">
+        
+        <div class="mx-auto text-yellow-400">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+        </div>
+        
+        <img src="/images/pt_logo.png" alt="PlateTraits Logo" class="h-24 w-auto mx-auto">
+
+        <div>
+            <h2 class="text-2xl font-bold text-white mb-2">Safety First</h2>
+            <p class="text-gray-300">
+                This app is for informational purposes only. 
+                <strong class="text-red-500 font-semibold">Never use this application while driving.</strong>
+                Always prioritize safety on the road.
+            </p>
+        </div>
+
+        <div class="text-left pt-4">
+            <label for="agreeCheckbox" class="flex items-center cursor-pointer text-gray-400">
+                <input type="checkbox" id="agreeCheckbox" class="h-5 w-5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900">
+                <span class="ml-3">
+                    I understand and agree to the 
+                    <a href="terms-of-service.html" class="text-blue-400 hover:underline font-semibold" target="_blank" rel="noopener noreferrer">Terms of Service</a>.
+                </span>
+            </label>
+        </div>
+        
+        <button id="continueBtn" class="w-full bg-blue-600 text-white font-bold px-8 py-3 rounded-lg hover:bg-blue-700 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed">
+            Continue
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const agreeCheckbox = document.getElementById('agreeCheckbox');
+            const continueBtn = document.getElementById('continueBtn');
+
+            // Disable the button initially
+            continueBtn.disabled = true;
+
+            // Event listener for the checkbox
+            agreeCheckbox.addEventListener('input', () => {
+                // Enable/disable the button based on whether the box is checked
+                continueBtn.disabled = !agreeCheckbox.checked;
+            });
+
+            // Event listener for the "Continue" button
+            continueBtn.addEventListener('click', () => {
+                if (!continueBtn.disabled) {
+                    // Redirect to home.html when the button is clicked and enabled
+                    window.location.href = 'home.html';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
