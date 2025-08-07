@@ -1682,25 +1682,25 @@ const injectReviewModal = () => {
                             <div class="space-y-4">
                                 <div>
                                     <h4 class="font-medium text-sm text-secondary mb-2">Very Good</h4>
-                                    <div class="flex flex-wrap gap-2">
+                                    <div class="flex flex-wrap gap-2 justify-center">
                                         ${veryGoodChipsHtml}
                                     </div>
                                 </div>
                                 <div>
                                     <h4 class="font-medium text-sm text-secondary mb-2">Good</h4>
-                                    <div class="flex flex-wrap gap-2">
+                                    <div class="flex flex-wrap gap-2 justify-center">
                                         ${goodChipsHtml}
                                     </div>
                                 </div>
                                 <div>
                                     <h4 class="font-medium text-sm text-secondary mb-2">Bad</h4>
-                                    <div class="flex flex-wrap gap-2">
+                                    <div class="flex flex-wrap gap-2 justify-center">
                                         ${badChipsHtml}
                                     </div>
                                 </div>
                                 <div>
                                     <h4 class="font-medium text-sm text-secondary mb-2">Very Bad</h4>
-                                    <div class="flex flex-wrap gap-2">
+                                    <div class="flex flex-wrap gap-2 justify-center">
                                         ${veryBadChipsHtml}
                                     </div>
                                 </div>
