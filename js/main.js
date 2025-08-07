@@ -1628,10 +1628,10 @@ const injectReviewModal = () => {
     const templateOptions = commentBuilderData.templates.map((template, index) => `<option value="${index}" ${index === 0 ? 'selected' : ''}>${template}</option>`).join('');
     
     // Dynamically create trait chips HTML from the arrays
-    const veryGoodChipsHtml = veryGoodTraits.map(trait => `<span class="trait-chip bg-sky-500 text-white" data-value="${trait}">${trait}</span>`).join('');
-    const goodChipsHtml = goodTraits.map(trait => `<span class="trait-chip bg-green-500 text-white" data-value="${trait}">${trait}</span>`).join('');
-    const badChipsHtml = badTraits.map(trait => `<span class="trait-chip bg-orange-500 text-white" data-value="${trait}">${trait}</span>`).join('');
-    const veryBadChipsHtml = veryBadTraits.map(trait => `<span class="trait-chip bg-red-500 text-white" data-value="${trait}">${trait}</span>`).join('');
+    const veryGoodChipsHtml = veryGoodTraits.map(trait => `<span class="trait-chip trait-very-good" data-value="${trait}">${trait}</span>`).join('');
+    const goodChipsHtml = goodTraits.map(trait => `<span class="trait-chip trait-good" data-value="${trait}">${trait}</span>`).join('');
+    const badChipsHtml = badTraits.map(trait => `<span class="trait-chip trait-bad" data-value="${trait}">${trait}</span>`).join('');
+    const veryBadChipsHtml = veryBadTraits.map(trait => `<span class="trait-chip trait-very-bad" data-value="${trait}">${trait}</span>`).join('');
 
     const modalHtml = `
         <div id="reviewModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
