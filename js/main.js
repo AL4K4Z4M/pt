@@ -1556,11 +1556,52 @@ const vehicleColors = ["Beige", "Black", "Blue", "Brown", "Burgundy", "Charcoal"
 
 const usStates = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"].sort();
 
-const positiveTraits = ["Used Turn Signals", "Proper Speed", "Yielded Correctly", "Allowed Merge", "Smooth Braking", "Excellent Parking", "Stopped Fully", "Respectful Distance", "Followed Signs", "Big Dick Energy"];
+const veryGoodTraits = [
+  "Alert & Aware",
+  "Big Dick Energy",
+  "Defensive Driving",
+  "Patient with Pedestrians"
+];
 
-const negativeTraits = ["No Turn Signals", "Speeding", "Tailgating", "Small Dick Energy", "Cut Off Others", "Sudden Braking", "Poor Parking", "Rolling Stops", "Distracted Driving", "Ignoring Signs", "Lane Weaving", "Blocking Traffic"];
+const goodTraits = [
+  "Allowed Merge",
+  "Excellent Parking",
+  "Followed Signs",
+  "Kept Right to Pass",
+  "Proper Speed",
+  "Respectful Distance",
+  "Smooth Braking",
+  "Stopped Fully",
+  "Used Turn Signals",
+  "Yielded Correctly"
+];
 
-const allTraits = [...new Set([...positiveTraits, ...negativeTraits])].sort();
+const badTraits = [
+  "Blocking Traffic",
+  "Driving Too Slow",
+  "Excessive Honking",
+  "Ignoring Signs",
+  "Improper U-Turn",
+  "Lane Weaving",
+  "No Turn Signals",
+  "Poor Parking",
+  "Rolling Stops",
+  "Speeding",
+  "Sudden Braking"
+];
+
+const veryBadTraits = [
+  "Aggressive Driving",
+  "Brake Checking",
+  "Cut Off Others",
+  "Distracted Driving",
+  "Road Rage",
+  "Running Red Light",
+  "Small Dick Energy",
+  "Tailgating"
+];
+
+const allTraits = [...new Set([...veryGoodTraits, ...goodTraits, ...badTraits, ...veryBadTraits])].sort();
 
 
 // Text normalization and profanity filtering
@@ -1587,8 +1628,10 @@ const injectReviewModal = () => {
     const templateOptions = commentBuilderData.templates.map((template, index) => `<option value="${index}" ${index === 0 ? 'selected' : ''}>${template}</option>`).join('');
     
     // Dynamically create trait chips HTML from the arrays
-    const positiveChipsHtml = positiveTraits.map(trait => `<span class="trait-chip positive" data-value="${trait}">${trait}</span>`).join('');
-    const negativeChipsHtml = negativeTraits.map(trait => `<span class="trait-chip negative" data-value="${trait}">${trait}</span>`).join('');
+    const veryGoodChipsHtml = veryGoodTraits.map(trait => `<span class="trait-chip trait-very-good" data-value="${trait}">${trait}</span>`).join('');
+    const goodChipsHtml = goodTraits.map(trait => `<span class="trait-chip trait-good" data-value="${trait}">${trait}</span>`).join('');
+    const badChipsHtml = badTraits.map(trait => `<span class="trait-chip trait-bad" data-value="${trait}">${trait}</span>`).join('');
+    const veryBadChipsHtml = veryBadTraits.map(trait => `<span class="trait-chip trait-very-bad" data-value="${trait}">${trait}</span>`).join('');
 
     const modalHtml = `
         <div id="reviewModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
@@ -1636,9 +1679,31 @@ const injectReviewModal = () => {
                         </div>
                         <div class="mb-6">
                             <h3 class="font-semibold mb-2 text-primary">Select Traits</h3>
-                            <div class="flex flex-wrap gap-2">
-                                ${positiveChipsHtml}
-                                ${negativeChipsHtml}
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="font-medium text-sm text-secondary mb-2">Very Good</h4>
+                                    <div class="flex flex-wrap gap-2 justify-center">
+                                        ${veryGoodChipsHtml}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-sm text-secondary mb-2">Good</h4>
+                                    <div class="flex flex-wrap gap-2 justify-center">
+                                        ${goodChipsHtml}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-sm text-secondary mb-2">Bad</h4>
+                                    <div class="flex flex-wrap gap-2 justify-center">
+                                        ${badChipsHtml}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-sm text-secondary mb-2">Very Bad</h4>
+                                    <div class="flex flex-wrap gap-2 justify-center">
+                                        ${veryBadChipsHtml}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <input type="hidden" id="tags" name="tags">
@@ -1836,33 +1901,31 @@ const updateReviewDetailModalContent = (review) => {
 
 
     // Render traits
-
     const detailTraitsContainer = document.getElementById('detailTraits');
-
     detailTraitsContainer.innerHTML = '';
-
     if (review.tags) {
-
         const tagsArray = review.tags.split(',').map(tag => tag.trim()).filter(Boolean);
-
         tagsArray.forEach(tag => {
-
             const traitSpan = document.createElement('span');
-
             traitSpan.className = 'px-3 py-1 rounded-full text-sm font-medium text-white';
 
-            traitSpan.style.backgroundColor = positiveTraits.includes(tag) ? '#10b981' : '#ef4444';
+            let color = '#6b7280'; // Default gray
+            if (veryGoodTraits.includes(tag)) {
+                color = '#0ea5e9'; // sky-500
+            } else if (goodTraits.includes(tag)) {
+                color = '#22c55e'; // green-500
+            } else if (badTraits.includes(tag)) {
+                color = '#f97316'; // orange-500
+            } else if (veryBadTraits.includes(tag)) {
+                color = '#ef4444'; // red-500
+            }
 
+            traitSpan.style.backgroundColor = color;
             traitSpan.textContent = tag;
-
             detailTraitsContainer.appendChild(traitSpan);
-
         });
-
     } else {
-
         detailTraitsContainer.innerHTML = '<span class="text-light-secondary text-sm">No traits.</span>';
-
     }
 
 
