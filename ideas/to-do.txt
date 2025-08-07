@@ -1,0 +1,48 @@
+I want to change positive and negative traits in my code to these instead
+I need to change all the code referencing the old traits and replace them with these
+
+
+const veryGoodTraits = [
+  "Alert & Aware",
+  "Big Dick Energy",
+  "Defensive Driving",
+  "Patient with Pedestrians"
+];
+
+const goodTraits = [
+  "Allowed Merge",
+  "Excellent Parking",
+  "Followed Signs",
+  "Kept Right to Pass",
+  "Proper Speed",
+  "Respectful Distance",
+  "Smooth Braking",
+  "Stopped Fully",
+  "Used Turn Signals",
+  "Yielded Correctly"
+];
+
+const badTraits = [
+  "Blocking Traffic",
+  "Driving Too Slow",
+  "Excessive Honking",
+  "Ignoring Signs",
+  "Improper U-Turn",
+  "Lane Weaving",
+  "No Turn Signals",
+  "Poor Parking",
+  "Rolling Stops",
+  "Speeding",
+  "Sudden Braking"
+];
+
+const veryBadTraits = [
+  "Aggressive Driving",
+  "Brake Checking",
+  "Cut Off Others",
+  "Distracted Driving",
+  "Road Rage",
+  "Running Red Light",
+  "Small Dick Energy",
+  "Tailgating"
+];
