@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlateTraits - Review your peers.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="js/main.js" defer></script>
+    <link rel="icon" href="/images/favicon.ico" sizes="any">
+    <script>
+        // This script is placed in the head to prevent a flash of unstyled content.
+        (function() {
+            const theme = localStorage.getItem('theme') || 'system';
+            if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark-theme');
+                document.documentElement.classList.remove('light-theme');
+            } else {
+                document.documentElement.classList.add('light-theme');
+                document.documentElement.classList.remove('dark-theme');
+            }
+        })();
+    </script>
+<style>
+    /* --- 1. General & Typography --- */
+    body {
+        font-family: 'Inter', sans-serif;
+        transition: background-color 0.5s ease, color 0.5s ease;
+    }
+
+    @font-face {
+        font-family: 'LicensePlate';
+        src: url('/assets/fonts/LicensePlate-j9eO.ttf') format('truetype');
+    }
+
+    .font-license-plate {
+        font-family: 'LicensePlate', sans-serif;
+    }
+
+    /* --- 2. Theme Definitions --- */
+    /* Light Theme */
+    .light-theme .bg-primary { background-color: #e5e7eb; } /* gray-200 */
+    .light-theme .bg-secondary { background-color: #f9fafb; } /* gray-50 */
+    .light-theme .bg-tertiary { background-color: #f3f4f6; } /* gray-100 */
+    .light-theme .border-color { border-color: #d1d5db; } /* gray-300 */
+    .light-theme .text-primary { color: #1f2937; } /* gray-800 */
+    .light-theme .text-secondary { color: #4b5563; } /* gray-600 */
+    .light-theme .text-tertiary { color: #6b7280; } /* gray-500 */
+    .light-theme .shadow-color { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
+    .light-theme .text-link { color: #2563eb; } /* blue-600 */
+    .light-theme .text-destructive { color: #dc2626; } /* red-600 */
+    .light-theme .btn-primary { background-color: #4f46e5; color: #ffffff; } /* indigo-600 */
+    .light-theme .btn-primary:hover { background-color: #4338ca; } /* indigo-700 */
+    .light-theme .btn-secondary { background-color: #d1d5db; color: #1f2937; } /* gray-300, gray-800 */
+    .light-theme .btn-secondary:hover { background-color: #9ca3af; } /* gray-400 */
+    .light-theme .form-input:focus, .light-theme .form-select:focus { --tw-ring-color: #4f46e5; border-color: #4f46e5; }
+    .light-theme .form-checkbox { color: #4f46e5; } /* indigo-600 */
+    .light-theme .theme-btn.active { background-color: #4f46e5; color: #ffffff; border-color: #4f46e5; }
+    .light-theme .theme-btn:not(.active) { background-color: #e5e7eb; color: #4b5563; }
+
+    /* Dark Theme (Default) */
+    .dark-theme .bg-primary { background-color: #121212; }
+    .dark-theme .bg-secondary { background-color: #1e1e1e; }
+    .dark-theme .bg-tertiary { background-color: #2a2a2a; }
+    .dark-theme .border-color { border-color: #3a3a3a; }
+    .dark-theme .text-primary { color: #ffffff; }
+    .dark-theme .text-secondary { color: #b3b3b3; }
+    .dark-theme .text-tertiary { color: #808080; }
+    .dark-theme .shadow-color { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+    .dark-theme .text-link { color: #60a5fa; } /* blue-400 */
+    .dark-theme .text-destructive { color: #f87171; } /* red-400 */
+    .dark-theme .btn-primary { background-color: #6366f1; color: #ffffff; } /* indigo-500 */
+    .dark-theme .btn-primary:hover { background-color: #4f46e5; } /* indigo-600 */
+    .dark-theme .btn-secondary { background-color: #3a3a3a; color: #e5e7eb; } /* custom gray, gray-200 */
+    .dark-theme .btn-secondary:hover { background-color: #4b5563; } /* gray-600 */
+    .dark-theme .form-input:focus, .dark-theme .form-select:focus { --tw-ring-color: #6366f1; border-color: #6366f1; }
+    .dark-theme .form-checkbox { color: #6366f1; } /* indigo-500 */
+    .dark-theme .theme-btn.active { background-color: #6366f1; color: #ffffff; border-color: #6366f1; }
+    .dark-theme .theme-btn:not(.active) { background-color: #2a2a2a; color: #b3b3b3; }
+
+
+    /* --- 3. Component Styles --- */
+    /* Utility */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .btn { font-weight: 700; padding: 0.75rem 1rem; border-radius: 0.5rem; transition: all 0.5s ease; }
+
+    /* Form Elements */
+    .form-input, .form-select {
+        width: 100%;
+        margin-top: 0.25rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        transition: all 0.5s ease;
+    }
+    .form-input, .form-select {
+        background-color: var(--bg-tertiary, #f3f4f6);
+        color: var(--text-primary, #1f2937);
+        border: 1px solid var(--border-color, #d1d5db);
+    }
+    .form-input::placeholder { color: var(--text-tertiary, #6b7280); }
+    .form-input:focus, .form-select:focus {
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+        box-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+    }
+
+    /* Interactive Element States */
+    .light-theme .hover-bg-highlight:hover { background-color: #e5e7eb; } /* gray-200 */
+    .dark-theme .hover-bg-highlight:hover { background-color: #3a3a3a; }   /* Slightly lighter than tertiary */
+
+    /* Theme Toggle */
+    .theme-btn {
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.375rem;
+        border: 1px solid transparent;
+        transition: all 0.5s ease;
+        font-weight: 500;
+    }
+
+    /* Review Card */
+    .review-card { height: 6rem; transition: background-color 0.5s ease; }
+    @media (min-width: 768px) { .review-card { height: 7rem; } }
+    @media (min-width: 1024px) { .review-card { height: 8rem; } }
+
+    /* Trait Chips */
+    .trait-chip { cursor: pointer; transition: all 0.2s ease-in-out; border: 1px solid transparent; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; }
+    .trait-chip.positive { background-color: rgba(16, 185, 129, 0.2); color: #34d399; border-color: #34d399; }
+    .trait-chip.negative { background-color: rgba(239, 68, 68, 0.2); color: #f87171; border-color: #f87171; }
+    .trait-chip.positive.active { background-color: #10b981; color: #ffffff; border-color: #34d399; }
+    .trait-chip.negative.active { background-color: #ef4444; color: #ffffff; border-color: #f87171; }
+
+    /* Star Rating */
+    .modal-star-rating { display: flex; flex-direction: row-reverse; justify-content: center; }
+    .modal-star-rating input[type="radio"] { display: none; }
+    .modal-star-rating label { font-size: 2.5rem; color: #4b5563; cursor: pointer; transition: color 0.2s; }
+    .modal-star-rating input[type="radio"]:checked ~ label, .modal-star-rating label:hover, .modal-star-rating label:hover ~ label { color: #f59e0b; }
+    .detail-star-rating { display: flex; direction: rtl; justify-content: center; }
+    .detail-star-rating .star { font-size: 2.5rem; color: #d1d5db; }
+    .detail-star-rating .star.filled { color: #f59e0b; }
+
+    /* Plate Display */
+    .plate-display { position: relative; width: 100%; max-width: 250px; margin: 0 auto; overflow: hidden; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); height: 120px; padding: 0.5rem 1rem; background-size: contain; background-repeat: no-repeat; background-position: center; }
+    .plate-display .plate-number-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.2rem; font-weight: bold; color: #2a2a2a; text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5); letter-spacing: 0.1em; font-family: 'LicensePlate', sans-serif; white-space: nowrap; }
+    .review-card .plate-display { width: 7.5rem; height: 6rem; max-width: none; box-shadow: none; flex-shrink: 0; }
+    .review-card .plate-number-overlay { font-size: 1.5rem; }
+    @media (max-width: 359px) {
+        .review-card .plate-display { width: 8rem; height: 4.5rem; }
+        .review-card .plate-number-overlay { font-size: 0.9rem; }
+    }
+
+    /* Vote Buttons */
+    .vote-btn { transition: transform 0.1s ease, color 0.2s ease; }
+    .vote-btn:hover { transform: scale(1.1); }
+    .vote-btn.active-up { color: #22c55e; } /* Green */
+    .vote-btn.active-down { color: #ef4444; } /* Red */
+
+    /* Badge Styles */
+    #allBadgesContainer, #profileBadgesContainer {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr); /* Creates a 4-column grid */
+        gap: 1.5rem 1rem; /* Sets vertical and horizontal spacing */
+        align-items: start;
+    }
+
+    #allBadgesContainer > div, #profileBadgesContainer > div { /* Style for each item in the grid */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .badge-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        aspect-ratio: 1 / 1; /* Enforces a square shape for perfect alignment */
+        margin-bottom: 0.25rem;
+    }
+    
+    .badge-container img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain; /* Ensures image fits without distortion */
+    }
+
+    .badge-locked {
+        filter: grayscale(100%) blur(1.5px);
+        opacity: 0.6;
+    }
+
+    .lock-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 50%;
+        height: auto;
+        max-width: 32px;
+        pointer-events: none;
+        stroke-width: 2;
+    }
+
+    .light-theme .lock-icon {
+        color: rgba(31, 41, 55, 0.8); /* Dark lock for light mode */
+    }
+
+    .dark-theme .lock-icon {
+        color: rgba(255, 255, 255, 0.8); /* Light lock for dark mode */
+    }
+
+    /* Auth Modal Input Autofill Override */
+    .light-theme #authModal input:-webkit-autofill, .light-theme #authModal input:-webkit-autofill:hover, .light-theme #authModal input:-webkit-autofill:focus, .light-theme #authModal input:-webkit-autofill:active { transition: background-color 5000s ease-in-out 0s; -webkit-box-shadow: 0 0 0 30px #f3f4f6 inset !important; -webkit-text-fill-color: #1f2937 !important; caret-color: #1f2937; border-radius: 0.375rem; }
+    .dark-theme #authModal input:-webkit-autofill, .dark-theme #authModal input:-webkit-autofill:hover, .dark-theme #authModal input:-webkit-autofill:focus, .dark-theme #authModal input:-webkit-autofill:active { transition: background-color 5000s ease-in-out 0s; -webkit-box-shadow: 0 0 0 30px #2a2a2a inset !important; -webkit-text-fill-color: #ffffff !important; caret-color: #ffffff; border-radius: 0.375rem; }
+
+    /* FIX: Ensure dynamically added inputs/selects in profile edit view are themed */
+    #profile-edit-view #bio-words-container input,
+    #profile-edit-view #bio-words-container select {
+        width: 100%;
+        margin-top: 0.25rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        transition: all 0.5s ease;
+    }
+    .dark-theme #profile-edit-view #bio-words-container input,
+    .dark-theme #profile-edit-view #bio-words-container select {
+        background-color: #2a2a2a; /* bg-dark-tertiary */
+        color: #ffffff; /* text-dark-primary */
+        border: 1px solid #3a3a3a; /* border-dark-color */
+    }
+    .dark-theme #profile-edit-view #bio-words-container input::placeholder {
+        color: #808080; /* text-dark-tertiary */
+    }
+    .light-theme #profile-edit-view #bio-words-container input,
+    .light-theme #profile-edit-view #bio-words-container select {
+        background-color: #f3f4f6; /* bg-light-tertiary */
+        color: #1f2937; /* text-light-primary */
+        border: 1px solid #d1d5db; /* border-light-color */
+    }
+    .light-theme #profile-edit-view #bio-words-container input::placeholder {
+        color: #6b7280; /* text-light-tertiary */
+    }
+
+    /* Apply transitions to main containers */
+    .bg-secondary, .bg-tertiary {
+        transition: background-color 0.5s ease, color 0.5s ease;
+    }
+</style>
+</head>
+
+<body class="bg-primary text-primary">
+
+    <div class="relative min-h-screen">
+        
+        <aside id="side-menu" class="bg-secondary text-primary w-72 h-full flex flex-col fixed inset-y-0 left-0 transform -translate-x-full transition-transform duration-300 ease-in-out z-40 shadow-2xl">
+            
+            <div class="p-4 border-b border-color">
+                 <img src="/images/pt_logo.png" alt="PlateTraits Logo" class="h-10 w-auto">
+            </div>
+
+            <div class="flex-grow p-4 space-y-4">
+                <div id="user-section" class="space-y-2">
+                     <div id="userInfo" class="hidden flex-col space-y-2">
+                        <div class="flex items-center space-x-3 px-2">
+                            <svg class="w-10 h-10 text-tertiary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10ZM7 14a7 7 0 0 0-7 7v1h14v-1a7 7 0 0 0-7-7Z"/></svg>
+                            <div>
+                                <span id="usernameDisplay" class="text-primary font-bold text-lg"></span>
+                                <p class="text-xs text-tertiary">Welcome back</p>
+                            </div>
+                        </div>
+                        <button id="profileBtn" class="w-full flex items-center space-x-3 text-secondary hover:text-primary hover:bg-tertiary rounded-md p-2 transition-colors duration-200">
+                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <span>Profile</span>
+                        </button>
+                         <button id="logoutBtn" class="w-full flex items-center space-x-3 text-destructive hover:bg-red-500/10 rounded-md p-2 transition-colors duration-200">
+                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                    <button id="loginBtn" class="w-full btn btn-primary">Login/Register</button>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-color">
+                 <span class="text-sm font-medium text-secondary mb-2 block text-center">Theme</span> 
+                 <div id="theme-selector" class="flex space-x-1 bg-tertiary p-1 rounded-lg">
+                    <button data-theme="light" class="theme-btn w-full">Light</button>
+                    <button data-theme="dark" class="theme-btn w-full">Dark</button>
+                    <button data-theme="system" class="theme-btn w-full">System</button>
+                </div>
+            </div>
+        </aside>
+
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 hidden"></div>
+
+        <div class="flex-1 flex flex-col bg-secondary shadow-color">
+             <div class="bg-secondary text-primary flex items-center justify-between p-2 shadow-md">
+                <button id="menu-toggle-btn" class="p-2 focus:outline-none rounded-md hover:bg-tertiary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                <div class="text-2xl font-bold font-license-plate tracking-wider">
+                    PlateTraits
+                </div>
+                 <div class="w-8"></div>
+            </div>
+        
+            <div class="px-4 py-4 space-y-3">
+                 <div class="lg:flex lg:items-center lg:gap-4">
+
+                    <div class="relative lg:w-1/3">
+                        <input type="search" id="searchPlate" placeholder="Search plate, e.g., '2FAST4U'" class="form-input bg-tertiary text-primary placeholder-tertiary border-color pl-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </div>
+
+                    <button id="toggleFiltersBtn" class="w-full form-input bg-tertiary text-primary placeholder-tertiary lg:hidden mt-3">Filters</button>
+
+                    <div id="filtersContainer" class="hidden grid grid-cols-2 gap-2 mt-2 lg:mt-0 lg:grid lg:grid-cols-5 lg:flex-grow">
+                        <select id="filterState" class="form-select bg-tertiary text-primary placeholder-tertiary border-color"></select>
+                        <select id="filterMake" class="form-select bg-tertiary text-primary placeholder-tertiary border-color"></select>
+                        <select id="filterType" class="form-select bg-tertiary text-primary placeholder-tertiary border-color"></select>
+                        <select id="filterSubtype" class="form-select bg-tertiary text-primary placeholder-tertiary border-color"></select>
+                        <select id="filterTrait" class="form-select bg-tertiary text-primary placeholder-tertiary border-color"></select>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="flex-grow overflow-y-auto no-scrollbar px-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="reviewsHeading" class="text-lg font-bold text-primary font-license-plate">Recent Reviews</h2>
+                    <select id="sortReviews" class="form-select bg-tertiary text-primary border-color mt-2 !w-auto"></select>
+                </div>
+                <div id="reviewsContainer" class="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4">
+                    <div id="loadingReviews" class="text-center py-10"><p class="text-secondary">Loading reviews...</p></div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <div id="authModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-secondary text-primary rounded-2xl shadow-xl w-11/12 lg:w-1/2 max-w-2xl p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="authTitle" class="text-2xl font-bold font-license-plate">Login</h2>
+                <button id="closeAuthModalBtn" class="text-secondary hover:text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <form id="authForm" class="space-y-4">
+                <div id="first-name-field-container" class="hidden">
+                    <label for="first_name" class="block text-sm font-medium text-secondary">First Name</label>
+                    <input type="text" id="first_name" name="first_name" class="form-input bg-tertiary text-primary placeholder-tertiary border-color">
+                </div>
+                <div>
+                    <label for="username" class="block text-sm font-medium text-secondary">Username</label>
+                    <input type="text" id="username" name="username" required class="form-input bg-tertiary text-primary placeholder-tertiary border-color">
+                </div>
+                <div id="email-field-container" class="hidden">
+                    <label for="email" class="block text-sm font-medium text-secondary">Email</label>
+                    <input type="email" id="email" name="email" class="form-input bg-tertiary text-primary placeholder-tertiary border-color">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-secondary">Password</label>
+                    <input type="password" id="password" name="password" required class="form-input bg-tertiary text-primary placeholder-tertiary border-color">
+                </div>
+                <div id="confirm-password-container" class="hidden">
+                    <label for="confirmPassword" class="block text-sm font-medium text-secondary">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-input bg-tertiary text-primary placeholder-tertiary border-color">
+                </div>
+                <div class="pt-2 flex items-center">
+                    <input type="checkbox" id="showPasswordToggle" class="h-4 w-4 form-checkbox bg-tertiary border-color rounded focus:ring-offset-0">
+                    <label for="showPasswordToggle" class="ml-2 block text-sm text-secondary">Show Password</label>
+                </div>
+                <div id="authMessage" class="text-center text-destructive"></div>
+                <button type="submit" class="w-full !mt-6 btn btn-primary">Submit</button>
+            </form>
+            <p class="text-center text-sm text-secondary mt-4">
+                <span id="authPrompt">Don't have an account?</span>
+                <button id="switchAuthModeBtn" class="text-link hover:underline font-semibold">Register</button>
+            </p>
+        </div>
+    </div>
+
+    <div id="reviewDetailModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-secondary text-primary rounded-2xl shadow-xl w-11/12 lg:w-2/3 max-w-5xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-color">
+                <div class="plate-display">
+                    <img id="detailPlateImage" src="" alt="License Plate" onerror="this.onerror=null;this.src='https://placehold.co/300x150/e0e0e0/555555?text=Plate+Image+Not+Found';" />
+                    <div id="detailPlateNumberOverlay" class="plate-number-overlay"></div>
+                </div>
+                <button id="closeDetailModalBtn" class="text-secondary hover:text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto no-scrollbar">
+                <div class="mb-4">
+                    <h3 class="font-semibold text-secondary">Review Rating:</h3>
+                    <div id="detailRatingStars" class="detail-star-rating"></div>
+                </div>
+                <div class="mb-4 text-center">
+                    <p id="detailIncidentLocation" class="text-xl font-semibold text-secondary"></p>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="flex flex-col justify-center">
+                        <h3 class="font-semibold text-secondary">Vehicle Make:</h3>
+                        <p id="detailVehicleMake" class="text-lg"></p>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <h3 class="font-semibold text-secondary">Vehicle Model:</h3>
+                        <p id="detailVehicleModel" class="text-lg"></p>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <h3 class="font-semibold text-secondary">Vehicle Color:</h3>
+                        <p id="detailVehicleColor" class="text-lg"></p>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <h3 class="font-semibold text-secondary">Vehicle Subtype:</h3>
+                        <p id="detailVehicleType" class="text-lg"></p>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-secondary">Traits:</h3>
+                    <div id="detailTraits" class="flex flex-wrap gap-2"></div>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-secondary">Comment:</h3>
+                    <p id="detailComment" class="text-lg italic bg-tertiary p-3 rounded-lg"></p>
+                </div>
+                <div class="flex justify-end items-center space-x-4 mt-4">
+                    <span class="text-sm font-semibold text-secondary">Do you like this</span>
+                    <div class="flex items-center space-x-1">
+                        <button id="upvoteBtn" class="text-tertiary hover:text-green-500 vote-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-thumbs-up"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                        </button>
+                        <span id="upvotesCount" class="font-semibold text-primary">0</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button id="downvoteBtn" class="text-tertiary hover:text-red-500 vote-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-thumbs-down"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>
+                        </button>
+                        <span id="downvotesCount" class="font-semibold text-primary">0</span>
+                    </div>
+                </div>
+                <div class="text-sm text-tertiary mt-6">
+                    <p>Reviewed by: <span id="detailUserId"></span></p>
+                </div>
+            </div>
+            <div class="p-4 bg-tertiary border-t border-color rounded-b-2xl flex justify-between items-center">
+                <div id="detailNavFeed" class="w-full flex justify-between items-center">
+                    <button id="prevReviewBtn" class="btn btn-secondary !px-4 !py-2 disabled:opacity-50">Previous</button>
+                    <span id="detailReviewCount" class="text-secondary text-sm"></span>
+                    <button id="nextReviewBtn" class="btn btn-primary !px-4 !py-2 disabled:opacity-50">Next</button>
+                </div>
+                <div id="detailNavProfile" class="w-full hidden">
+                        <button id="backToProfileBtn" class="btn btn-secondary !px-4 !py-2">Back to Profile</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="profileModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-secondary text-primary rounded-2xl shadow-xl w-11/12 lg:w-2/3 max-w-5xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-color">
+                <h2 class="text-xl font-bold font-license-plate">My Profile</h2>
+                <button id="closeProfileModalBtn" class="text-2xl text-secondary hover:text-primary">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto no-scrollbar">
+                <div class="bg-tertiary p-4 rounded-lg mb-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-semibold text-primary">Account Details</h3>
+                        <div class="flex items-center space-x-4">
+                            <button id="editProfileBtn" class="text-sm text-link hover:underline font-semibold">Edit</button>
+                        </div>
+                    </div>
+                    <div id="profile-display-view">
+                        <div class="space-y-2">
+                            <div><span class="text-sm font-medium text-secondary">First Name:</span><p id="profileFirstName" class="text-lg"></p></div>
+                            <div><span class="text-sm font-medium text-secondary">Username:</span><p id="profileUsername" class="text-lg"></p></div>
+                            <div><span class="text-sm font-medium text-secondary">Email:</span><p id="profileEmail" class="text-lg"></p></div>
+                            <div><span class="text-sm font-medium text-secondary">Member Since:</span><p id="profileJoinDate" class="text-lg"></p></div>
+                            <div><span class="text-sm font-medium text-secondary">Currently Driving:</span><p id="profileVehicle" class="text-lg"></p></div>
+                            <div><span class="text-sm font-medium text-secondary">Bio:</span><p id="profileBio" class="text-lg italic"></p></div>
+                        </div>
+                    </div>
+                    <div id="profile-edit-view" class="hidden">
+                        <div class="space-y-4">
+                             <h4 class="font-semibold text-primary border-b border-color pb-2">Edit Details</h4>
+                             <div><label for="profile_first_name" class="text-sm font-medium text-secondary">First Name</label><input type="text" id="profile_first_name" name="profile_first_name" class="form-input bg-tertiary text-primary border-color"></div>
+                        </div>
+                        <div class="space-y-4 mt-6">
+                             <h4 class="font-semibold text-primary border-b border-color pb-2">Edit Vehicle</h4>
+                             <div><label for="profile_vehicle_year" class="text-sm font-medium text-secondary">Year</label><select id="profile_vehicle_year" name="profile_vehicle_year" class="form-select bg-tertiary text-primary border-color"></select></div>
+                             <div><label for="profile_vehicle_make" class="text-sm font-medium text-secondary">Make</label><select id="profile_vehicle_make" name="profile_vehicle_make" class="form-select bg-tertiary text-primary border-color"></select></div>
+                             <div><label for="profile_vehicle_model" class="text-sm font-medium text-secondary">Model</label><select id="profile_vehicle_model" name="profile_vehicle_model" class="form-select bg-tertiary text-primary border-color" disabled><option value="">Select Model</option></select></div>
+                             <div><label for="profile_vehicle_color" class="text-sm font-medium text-secondary">Color</label><select id="profile_vehicle_color" name="profile_vehicle_color" class="form-select bg-tertiary text-primary border-color"></select></div>
+                        </div>
+                        <div class="space-y-4 mt-6">
+                            <h4 class="font-semibold text-primary border-b border-color pb-2">Edit Bio</h4>
+                            <div>
+                                <label for="bio-template" class="text-sm font-medium text-secondary">Template</label>
+                                <select id="bio-template" name="bio_template" class="form-select bg-tertiary text-primary border-color"></select>
+                            </div>
+                            <div id="bio-words-container" class="space-y-3"></div>
+                        </div>
+                        <div id="profileEditMessage" class="text-center text-sm mt-4 text-destructive"></div>
+                        <div class="flex justify-end space-x-2 mt-4">
+                            <button id="cancelEditProfileBtn" class="btn btn-secondary !px-4 !py-2">Cancel</button>
+                            <button id="saveProfileBtn" class="btn btn-primary !px-4 !py-2">Save</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-semibold text-primary">Achievements</h4>
+                        <button id="showAllBadgesBtn" class="text-sm text-link hover:underline font-semibold">Show All</button>
+                    </div>
+                    <div id="profileBadgesContainer">
+                        <p class="text-secondary text-sm">Loading achievements...</p>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <h3 id="profileReviewsHeading" class="font-semibold mb-3 text-primary">My Submitted Reviews</h3>
+                    <div id="profileReviewsContainer" class="space-y-3">
+                        <p class="text-secondary">Loading your reviews...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="badgeDetailModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-secondary text-primary rounded-2xl shadow-xl w-11/12 lg:w-1/2 max-w-2xl p-6 text-center flex flex-col">
+            <div class="w-full flex justify-end items-center mb-2">
+                <button id="closeBadgeDetailModalBtn" class="text-secondary hover:text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="flex-grow flex flex-col items-center justify-center px-4 pb-4">
+                <img id="badgeDetailImage" src="" alt="Badge" class="w-32 h-32 lg:w-48 lg:h-48 mx-auto mb-4">
+                <h2 id="badgeDetailName" class="text-2xl font-bold font-license-plate mb-2"></h2>
+                <p id="badgeDetailDescription" class="text-secondary"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="allBadgesModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-secondary text-primary rounded-2xl shadow-xl w-11/12 lg:w-2/3 max-w-5xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-color">
+                <h2 class="text-xl font-bold font-license-plate">All Achievements</h2>
+                <button id="closeAllBadgesModalBtn" class="text-secondary hover:text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto no-scrollbar">
+                <div id="allBadgesContainer">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed bottom-6 w-full pointer-events-none flex justify-center z-20">
+        <div class="w-full relative h-14 px-4">
+            <button id="addReviewBtn" class="absolute right-4 pointer-events-auto btn-primary text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // This script block contains the logic for the responsive off-canvas sidebar.
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggleBtn = document.getElementById('menu-toggle-btn');
+            const sideMenu = document.getElementById('side-menu');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            const openMenu = () => {
+                if (sideMenu && sidebarOverlay) {
+                    sideMenu.classList.remove('-translate-x-full');
+                    sidebarOverlay.classList.remove('hidden');
+                }
+            };
+
+            const closeMenu = () => {
+                 if (sideMenu && sidebarOverlay) {
+                    sideMenu.classList.add('-translate-x-full');
+                    sidebarOverlay.classList.add('hidden');
+                }
+            };
+
+            if (menuToggleBtn && sideMenu && sidebarOverlay) {
+                // Toggle menu with hamburger button
+                menuToggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (sideMenu.classList.contains('-translate-x-full')) {
+                        openMenu();
+                    } else {
+                        closeMenu();
+                    }
+                });
+
+                // Close menu by clicking on the overlay
+                sidebarOverlay.addEventListener('click', closeMenu);
+            }
+
+            // --- Swipe Gesture Logic ---
+            let touchstartX = 0;
+            let touchendX = 0;
+            const swipeThreshold = 50; // Minimum distance for a swipe
+            const swipeZoneWidth = 100; // How far from the edge the swipe must start (Increased from 50)
+
+            function handleGesture() {
+                // Check for a right swipe to open the menu
+                if (touchendX > touchstartX + swipeThreshold && touchstartX < swipeZoneWidth) {
+                    openMenu();
+                }
+                // Check for a left swipe to close the menu
+                if (touchstartX > touchendX + swipeThreshold) {
+                    closeMenu();
+                }
+            }
+
+            document.addEventListener('touchstart', e => {
+                touchstartX = e.changedTouches[0].screenX;
+            });
+
+            document.addEventListener('touchend', e => {
+                touchendX = e.changedTouches[0].screenX;
+                handleGesture();
+            });
+        });
+    </script>
+</body>
+</html>
