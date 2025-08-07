@@ -126,11 +126,20 @@
     @media (min-width: 1024px) { .review-card { height: 8rem; } }
 
     /* Trait Chips */
-    .trait-chip { cursor: pointer; transition: all 0.2s ease-in-out; border: 1px solid transparent; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; }
-    .trait-chip.positive { background-color: rgba(16, 185, 129, 0.2); color: #34d399; border-color: #34d399; }
-    .trait-chip.negative { background-color: rgba(239, 68, 68, 0.2); color: #f87171; border-color: #f87171; }
-    .trait-chip.positive.active { background-color: #10b981; color: #ffffff; border-color: #34d399; }
-    .trait-chip.negative.active { background-color: #ef4444; color: #ffffff; border-color: #f87171; }
+    .trait-chip {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border: 1px solid transparent;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        opacity: 0.6; /* Faded by default */
+    }
+    .trait-chip:hover,
+    .trait-chip.active {
+        opacity: 1; /* Full opacity on hover or when active */
+    }
 
     /* Star Rating */
     .modal-star-rating { display: flex; flex-direction: row-reverse; justify-content: center; }
