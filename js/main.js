@@ -3387,6 +3387,7 @@ function initApp() {
         e.preventDefault();
         const authMessage = document.getElementById('authMessage');
         authMessage.textContent = 'Processing...';
+        authMessage.className = 'text-center text-secondary';
         const formData = new FormData(authForm);
         const data = Object.fromEntries(formData.entries());
         if (!isAuthModalInLoginMode && data.password !== data.confirmPassword) {
