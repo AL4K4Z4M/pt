@@ -25,6 +25,8 @@ let authToken = localStorage.getItem('token');
 
 let currentUsername = localStorage.getItem('username');
 
+let isAdmin = localStorage.getItem('isAdmin') === 'true';
+
 let isAuthModalInLoginMode = true;
 
 
@@ -2869,25 +2871,24 @@ const updateAuthUI = () => {
     const usernameDisplay = document.getElementById('usernameDisplay');
 
     const addReviewBtn = document.getElementById('addReviewBtn');
+    const adminDashboardBtn = document.getElementById('adminDashboardBtn');
 
     if (authToken) {
-
         loginBtn.classList.add('hidden');
-
         userInfo.classList.remove('hidden');
-
         usernameDisplay.textContent = currentUsername;
-
         addReviewBtn.disabled = false;
 
+        if (adminDashboardBtn) {
+            adminDashboardBtn.style.display = isAdmin ? 'flex' : 'none';
+        }
     } else {
-
         loginBtn.classList.remove('hidden');
-
         userInfo.classList.add('hidden');
-
         addReviewBtn.disabled = true;
-
+        if (adminDashboardBtn) {
+            adminDashboardBtn.style.display = 'none';
+        }
     }
 
 };
@@ -2905,9 +2906,13 @@ const handleLogout = () => {
 
     localStorage.removeItem('username');
 
+    localStorage.removeItem('isAdmin');
+
     authToken = null;
 
     currentUsername = null;
+
+    isAdmin = false;
 
     userVotes = {};
 
@@ -3411,6 +3416,12 @@ function initApp() {
                 currentUsername = result.username;
                 localStorage.setItem('token', authToken);
                 localStorage.setItem('username', currentUsername);
+
+                if (result.username === 'admin') {
+                    isAdmin = true;
+                    localStorage.setItem('isAdmin', 'true');
+                }
+
                 authMessage.textContent = 'Login successful!';
                 authMessage.className = 'text-center text-green-500';
                 await fetchUserVotes();
