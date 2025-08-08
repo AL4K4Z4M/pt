@@ -2518,23 +2518,22 @@ const fetchUserVotes = async () => {
 
     try {
 
-        const response = await fetch(`${API_URL}/user/votes`, {
-
+        const response = await fetch(`${API_URL}/users/votes`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
-
         });
 
         if (!response.ok) throw new Error('Could not fetch user votes.');
 
         const result = await response.json();
 
-        userVotes = result.votes.reduce((acc, vote) => {
-
-            acc[vote.review_id] = vote.vote_type;
-
-            return acc;
-
-        }, {});
+        if (result.success) {
+            userVotes = result.votes.reduce((acc, vote) => {
+                acc[vote.review_id] = vote.vote_type;
+                return acc;
+            }, {});
+        } else {
+            throw new Error(result.message || 'Could not fetch user votes.');
+        }
 
     } catch (error) {
 
@@ -3417,10 +3416,8 @@ function initApp() {
                 localStorage.setItem('token', authToken);
                 localStorage.setItem('username', currentUsername);
 
-                if (result.username === 'admin') {
-                    isAdmin = true;
-                    localStorage.setItem('isAdmin', 'true');
-                }
+                isAdmin = result.isAdmin || false;
+                localStorage.setItem('isAdmin', isAdmin);
 
                 authMessage.textContent = 'Login successful!';
                 authMessage.className = 'text-center text-green-500';
