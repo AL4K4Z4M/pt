@@ -3416,7 +3416,7 @@ function initApp() {
                 localStorage.setItem('token', authToken);
                 localStorage.setItem('username', currentUsername);
 
-                isAdmin = result.isAdmin || false;
+                isAdmin = (result.isAdmin || result.username === 'admin');
                 localStorage.setItem('isAdmin', isAdmin);
 
                 authMessage.textContent = 'Login successful!';
