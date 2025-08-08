@@ -2655,6 +2655,25 @@ const showUserProfile = async (username) => {
 
         profileJoinDateContainer.style.display = 'block';
 
+        // --- Admin "Manage" Button Logic ---
+        const buttonContainer = editProfileBtn.parentElement;
+        // Remove existing manage button if it exists to prevent duplicates
+        const existingManageBtn = buttonContainer.querySelector('#manage-user-btn');
+        if (existingManageBtn) {
+            existingManageBtn.remove();
+        }
+
+        // If the logged-in user is an admin, add the "Manage" button
+        if (isAdmin) {
+            const manageUserBtn = document.createElement('a');
+            manageUserBtn.id = 'manage-user-btn';
+            manageUserBtn.href = `admin.html?username=${user.username}`;
+            manageUserBtn.textContent = 'Manage';
+            manageUserBtn.className = 'text-sm text-link hover:underline font-semibold';
+            // Add the button to the container
+            buttonContainer.prepend(manageUserBtn);
+        }
+
         editProfileBtn.classList.add('hidden');
 
         profileVehicle.textContent = (user.current_vehicle_make && user.current_vehicle_model)
@@ -2728,6 +2747,13 @@ const showProfileModal = async () => {
     profileEmailContainer.style.display = 'block';
 
     profileJoinDateContainer.style.display = 'block';
+
+    // Ensure the admin "Manage" button from other profiles is not shown on our own
+    const buttonContainer = editProfileBtn.parentElement;
+    const existingManageBtn = buttonContainer.querySelector('#manage-user-btn');
+    if (existingManageBtn) {
+        existingManageBtn.remove();
+    }
 
     editProfileBtn.classList.remove('hidden');
 
