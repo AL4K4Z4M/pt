@@ -224,7 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-
     // --- MODAL LOGIC ---
     const openManageUserModal = (userId) => {
         const modal = document.getElementById('manage-user-modal');
