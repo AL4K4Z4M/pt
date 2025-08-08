@@ -17,6 +17,7 @@
 - **Custom Avatars:** Allow users to upload their own profile picture/avatar instead of the default SVG icon.
 - **Clickable Admin Links:** In the admin dashboard tables, make user IDs/usernames clickable links that open that user's profile on the main site in a new tab.
 - **Comment Flexibility:** While the comment builder is unique, consider allowing users to write a free-text comment as an alternative. This would be passed through a profanity filter.
+- **Public User Statistics:** Display a live counter on the homepage showing "Total Users" and "Currently Active Users" to add social proof and a sense of community.
 
 
 ### Section 3: Major Improvement Ideas ###
