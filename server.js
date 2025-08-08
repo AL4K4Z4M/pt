@@ -243,7 +243,7 @@ app.get('/api/users/profile/:username', async (req, res) => {
 // NEW: Endpoint to get a list of all users for the admin dashboard
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
     try {
-        const [users] = await db.query('SELECT id, username, first_name, email, created_at, is_admin FROM users');
+        const [users] = await db.query('SELECT * FROM users');
         res.json(users);
     } catch (err) {
         console.error('❌ Failed to fetch users for admin dashboard:', err);

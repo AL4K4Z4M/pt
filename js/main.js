@@ -2641,7 +2641,6 @@ const showUserProfile = async (username) => {
 
 
         // Populate public profile view
-
         profileTitle.textContent = `${user.username}'s Profile`;
 
         reviewsHeading.textContent = `${user.username}'s Submitted Reviews`;

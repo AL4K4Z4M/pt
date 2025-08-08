@@ -628,6 +628,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Initial render
         render();
+
+        // Handle username from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const usernameFromUrl = urlParams.get('username');
+        if (usernameFromUrl) {
+            userFilterInput.value = usernameFromUrl;
+            state.filters.username = usernameFromUrl;
+            render();
+        }
     };
 
     init();
