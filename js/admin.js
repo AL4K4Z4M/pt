@@ -133,6 +133,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.first_name || 'N/A'}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.email}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(user.created_at).toLocaleDateString()}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button class="text-blue-600 hover:text-blue-900 manage-user-btn" data-user-id="${user.id}">Manage</button>
+            </td>
         `;
         renderTable('users-table-body', users, userRowRenderer);
     };
@@ -239,10 +242,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Add event listeners
         const userFilterInput = document.getElementById('user-filter');
-        userFilterInput.addEventListener('input', debounce((e) => {
-            state.filters.username = e.target.value.trim();
-            render();
-        }, 300));
+        const suggestionsContainer = document.getElementById('autocomplete-suggestions');
+
+        const renderAutocomplete = () => {
+            const value = userFilterInput.value.toLowerCase();
+            suggestionsContainer.innerHTML = '';
+            if (!value) {
+                suggestionsContainer.classList.add('hidden');
+                return;
+            }
+
+            const suggestions = state.users
+                .filter(user => user.username.toLowerCase().includes(value))
+                .slice(0, 10); // Limit to 10 suggestions
+
+            if (suggestions.length > 0) {
+                suggestions.forEach(user => {
+                    const item = document.createElement('div');
+                    item.className = 'p-2 hover:bg-gray-100 cursor-pointer';
+                    item.textContent = user.username;
+                    item.addEventListener('click', () => {
+                        userFilterInput.value = user.username;
+                        state.filters.username = user.username;
+                        suggestionsContainer.classList.add('hidden');
+                        render();
+                    });
+                    suggestionsContainer.appendChild(item);
+                });
+                suggestionsContainer.classList.remove('hidden');
+            } else {
+                suggestionsContainer.classList.add('hidden');
+            }
+        };
+
+        userFilterInput.addEventListener('input', debounce(renderAutocomplete, 300));
+
+        userFilterInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                state.filters.username = e.target.value.trim();
+                suggestionsContainer.classList.add('hidden');
+                render();
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!userFilterInput.contains(e.target)) {
+                suggestionsContainer.classList.add('hidden');
+            }
+        });
 
         document.querySelectorAll('.sortable').forEach(header => {
             header.addEventListener('click', () => {
@@ -259,6 +307,242 @@ document.addEventListener('DOMContentLoaded', () => {
                 render();
             });
         });
+
+        // Initial render
+        render();
+    };
+
+    // --- MODAL LOGIC ---
+    const openManageUserModal = (userId) => {
+        const modal = document.getElementById('manage-user-modal');
+        const user = state.users.find(u => u.id === userId);
+        if (!user) return;
+
+        // Store current user for other modal functions
+        modal.dataset.userId = userId;
+
+        // Populate user info
+        document.getElementById('modal-username').textContent = user.username;
+        document.getElementById('modal-first-name').value = user.first_name || '';
+        document.getElementById('modal-email').value = user.email || '';
+
+        // Populate badge dropdown
+        const badgeSelect = document.getElementById('modal-badge-select');
+        badgeSelect.innerHTML = '<option value="">Select a badge to award...</option>';
+        state.badges.forEach(badge => {
+            const option = document.createElement('option');
+            option.value = badge.badge_id;
+            option.textContent = `${badge.name} (${badge.badge_id})`;
+            badgeSelect.appendChild(option);
+        });
+
+        // Populate current badges
+        const userBadgesContainer = document.getElementById('modal-user-badges');
+        userBadgesContainer.innerHTML = '';
+        const usersBadges = state.userBadges.filter(ub => ub.user_id === userId);
+        if (usersBadges.length > 0) {
+            usersBadges.forEach(userBadge => {
+                const badgeData = state.badges.find(b => b.badge_id === userBadge.badge_id);
+                const badgeEl = document.createElement('span');
+                badgeEl.className = 'px-2 py-1 bg-gray-200 text-gray-800 rounded-full text-sm';
+                badgeEl.textContent = badgeData ? badgeData.name : userBadge.badge_id;
+                userBadgesContainer.appendChild(badgeEl);
+            });
+        } else {
+            userBadgesContainer.innerHTML = '<p class="text-sm text-gray-500">This user has no badges.</p>';
+        }
+
+        // Clear any previous messages
+        document.getElementById('edit-user-message').textContent = '';
+        document.getElementById('award-badge-message').textContent = '';
+
+        modal.classList.remove('hidden');
+    };
+
+    const closeModal = () => {
+        document.getElementById('manage-user-modal').classList.add('hidden');
+    };
+
+    const handleSaveUser = async () => {
+        const modal = document.getElementById('manage-user-modal');
+        const userId = modal.dataset.userId;
+        const messageEl = document.getElementById('edit-user-message');
+        const firstName = document.getElementById('modal-first-name').value;
+        const email = document.getElementById('modal-email').value;
+
+        messageEl.textContent = 'Saving...';
+        messageEl.className = 'text-sm mt-2 text-gray-500';
+
+        try {
+            const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${state.authToken}`
+                },
+                body: JSON.stringify({ first_name: firstName, email })
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to save user.');
+            }
+
+            messageEl.textContent = 'User saved successfully!';
+            messageEl.className = 'text-sm mt-2 text-green-600';
+
+            // Update state and re-render
+            const userIndex = state.users.findIndex(u => u.id == userId);
+            if (userIndex > -1) {
+                state.users[userIndex].first_name = firstName;
+                state.users[userIndex].email = email;
+            }
+            render();
+
+        } catch (error) {
+            messageEl.textContent = `Error: ${error.message}`;
+            messageEl.className = 'text-sm mt-2 text-red-600';
+        }
+    };
+
+    const handleAwardBadge = async () => {
+        const modal = document.getElementById('manage-user-modal');
+        const userId = modal.dataset.userId;
+        const messageEl = document.getElementById('award-badge-message');
+        const badgeSelect = document.getElementById('modal-badge-select');
+        const badgeId = badgeSelect.value;
+
+        if (!badgeId) {
+            messageEl.textContent = 'Please select a badge.';
+            messageEl.className = 'text-sm mt-2 text-red-600';
+            return;
+        }
+
+        messageEl.textContent = 'Awarding...';
+        messageEl.className = 'text-sm mt-2 text-gray-500';
+
+        try {
+            const response = await fetch(`${API_URL}/admin/users/${userId}/badges`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${state.authToken}`
+                },
+                body: JSON.stringify({ badge_id: badgeId })
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to award badge.');
+            }
+
+            messageEl.textContent = 'Badge awarded successfully!';
+            messageEl.className = 'text-sm mt-2 text-green-600';
+
+            // Re-fetch user badges and re-render the modal content to show the new badge
+            await fetchData('/user_badges', 'userBadges');
+            openManageUserModal(parseInt(userId, 10));
+
+        } catch (error) {
+            messageEl.textContent = `Error: ${error.message}`;
+            messageEl.className = 'text-sm mt-2 text-red-600';
+        }
+    };
+
+    // --- INITIALIZATION ---
+    const init = async () => {
+        // Fetch all data in parallel
+        await Promise.all([
+            fetchData('/users', 'users'),
+            fetchData('/admin/reviews', 'reviews'),
+            fetchData('/badges', 'badges'),
+            fetchData('/user_badges', 'userBadges'),
+            fetchData('/review_votes', 'reviewVotes')
+        ]);
+
+        // Create a map of user IDs to usernames
+        state.users.forEach(user => {
+            state.usernameMap[user.id] = user.username;
+        });
+
+        // Add event listeners
+        const userFilterInput = document.getElementById('user-filter');
+        const suggestionsContainer = document.getElementById('autocomplete-suggestions');
+
+        const renderAutocomplete = () => {
+            const value = userFilterInput.value.toLowerCase();
+            suggestionsContainer.innerHTML = '';
+            if (!value) {
+                suggestionsContainer.classList.add('hidden');
+                return;
+            }
+
+            const suggestions = state.users
+                .filter(user => user.username.toLowerCase().includes(value))
+                .slice(0, 10); // Limit to 10 suggestions
+
+            if (suggestions.length > 0) {
+                suggestions.forEach(user => {
+                    const item = document.createElement('div');
+                    item.className = 'p-2 hover:bg-gray-100 cursor-pointer';
+                    item.textContent = user.username;
+                    item.addEventListener('click', () => {
+                        userFilterInput.value = user.username;
+                        state.filters.username = user.username;
+                        suggestionsContainer.classList.add('hidden');
+                        render();
+                    });
+                    suggestionsContainer.appendChild(item);
+                });
+                suggestionsContainer.classList.remove('hidden');
+            } else {
+                suggestionsContainer.classList.add('hidden');
+            }
+        };
+
+        userFilterInput.addEventListener('input', debounce(renderAutocomplete, 300));
+
+        userFilterInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                state.filters.username = e.target.value.trim();
+                suggestionsContainer.classList.add('hidden');
+                render();
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!userFilterInput.contains(e.target)) {
+                suggestionsContainer.classList.add('hidden');
+            }
+        });
+
+        document.querySelectorAll('.sortable').forEach(header => {
+            header.addEventListener('click', () => {
+                const tableKey = header.dataset.table;
+                const sortKey = header.dataset.sortKey;
+                const currentSort = state.sort[tableKey];
+
+                if (currentSort.key === sortKey) {
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.key = sortKey;
+                    currentSort.direction = 'asc';
+                }
+                render();
+            });
+        });
+
+        // Modal Listeners
+        document.getElementById('users-table-body').addEventListener('click', (e) => {
+            if (e.target.classList.contains('manage-user-btn')) {
+                const userId = parseInt(e.target.dataset.userId, 10);
+                openManageUserModal(userId);
+            }
+        });
+        document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+        document.getElementById('save-user-btn').addEventListener('click', handleSaveUser);
+        document.getElementById('award-badge-btn').addEventListener('click', handleAwardBadge);
 
         // Initial render
         render();

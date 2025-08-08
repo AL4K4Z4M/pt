@@ -243,11 +243,59 @@ app.get('/api/users/profile/:username', async (req, res) => {
 // NEW: Endpoint to get a list of all users for the admin dashboard
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
     try {
-        const [users] = await db.query('SELECT id, username, first_name, email, created_at FROM users');
+        const [users] = await db.query('SELECT id, username, first_name, email, created_at, is_admin FROM users');
         res.json(users);
     } catch (err) {
         console.error('❌ Failed to fetch users for admin dashboard:', err);
         res.status(500).json({ success: false, message: 'Database error while fetching users.' });
+    }
+});
+
+// NEW: Endpoint for an admin to update a user's information
+app.put('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { first_name, email } = req.body;
+
+    if (!first_name || !email) {
+        return res.status(400).json({ success: false, message: 'First name and email are required.' });
+    }
+
+    try {
+        await db.query(
+            'UPDATE users SET first_name = ?, email = ? WHERE id = ?',
+            [first_name, email, id]
+        );
+        res.json({ success: true, message: 'User updated successfully.' });
+    } catch (err) {
+        console.error(`❌ Failed to update user ${id}:`, err);
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ success: false, message: 'Email address is already registered.' });
+        }
+        res.status(500).json({ success: false, message: 'Database error while updating user.', details: err.message });
+    }
+});
+
+// NEW: Endpoint for an admin to award a badge to a user
+app.post('/api/admin/users/:id/badges', authenticateToken, requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { badge_id } = req.body;
+
+    if (!badge_id) {
+        return res.status(400).json({ success: false, message: 'Badge ID is required.' });
+    }
+
+    try {
+        await db.query(
+            'INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)',
+            [id, badge_id]
+        );
+        res.status(201).json({ success: true, message: 'Badge awarded successfully.' });
+    } catch (err) {
+        console.error(`❌ Failed to award badge ${badge_id} to user ${id}:`, err);
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ success: false, message: 'User already has this badge.' });
+        }
+        res.status(500).json({ success: false, message: 'Database error while awarding badge.', details: err.message });
     }
 });
 
