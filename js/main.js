@@ -2641,7 +2641,6 @@ const showUserProfile = async (username) => {
 
 
         // Populate public profile view
-
         profileTitle.textContent = `${user.username}'s Profile`;
 
         reviewsHeading.textContent = `${user.username}'s Submitted Reviews`;
@@ -3416,7 +3415,7 @@ function initApp() {
                 localStorage.setItem('token', authToken);
                 localStorage.setItem('username', currentUsername);
 
-                isAdmin = (result.isAdmin || result.username === 'admin');
+                isAdmin = !!(result.isAdmin || result.username === 'admin');
                 localStorage.setItem('isAdmin', isAdmin);
 
                 authMessage.textContent = 'Login successful!';

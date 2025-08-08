@@ -243,11 +243,123 @@ app.get('/api/users/profile/:username', async (req, res) => {
 // NEW: Endpoint to get a list of all users for the admin dashboard
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
     try {
-        const [users] = await db.query('SELECT id, username, first_name, email, created_at FROM users');
+        const [users] = await db.query('SELECT * FROM users');
         res.json(users);
     } catch (err) {
         console.error('❌ Failed to fetch users for admin dashboard:', err);
         res.status(500).json({ success: false, message: 'Database error while fetching users.' });
+    }
+});
+
+// NEW: Endpoint for an admin to update a user's information
+app.put('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { first_name, email, password, is_admin, current_vehicle_make, current_vehicle_model, current_vehicle_year, current_vehicle_color, bio } = req.body;
+
+    let updateFields = [];
+    let queryParams = [];
+
+    if (first_name) {
+        updateFields.push('first_name = ?');
+        queryParams.push(first_name);
+    }
+    if (email) {
+        updateFields.push('email = ?');
+        queryParams.push(email);
+    }
+    if (is_admin !== undefined) {
+        updateFields.push('is_admin = ?');
+        queryParams.push(is_admin ? 1 : 0);
+    }
+    if (password) {
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        updateFields.push('password = ?');
+        queryParams.push(hashedPassword);
+    }
+    // Allow setting vehicle info to null/empty
+    if (current_vehicle_make !== undefined) {
+        updateFields.push('current_vehicle_make = ?');
+        queryParams.push(current_vehicle_make);
+    }
+    if (current_vehicle_model !== undefined) {
+        updateFields.push('current_vehicle_model = ?');
+        queryParams.push(current_vehicle_model);
+    }
+    if (current_vehicle_year !== undefined) {
+        updateFields.push('current_vehicle_year = ?');
+        queryParams.push(current_vehicle_year);
+    }
+    if (current_vehicle_color !== undefined) {
+        updateFields.push('current_vehicle_color = ?');
+        queryParams.push(current_vehicle_color);
+    }
+    if (bio !== undefined) {
+        const bioJSON = bio ? JSON.stringify(bio) : null;
+        updateFields.push('bio = ?');
+        queryParams.push(bioJSON);
+    }
+
+    if (updateFields.length === 0) {
+        return res.status(400).json({ success: false, message: 'No fields to update.' });
+    }
+
+    queryParams.push(id);
+    const queryString = `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`;
+
+    try {
+        await db.query(queryString, queryParams);
+        res.json({ success: true, message: 'User updated successfully.' });
+    } catch (err) {
+        console.error(`❌ Failed to update user ${id}:`, err);
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ success: false, message: 'Email address is already registered.' });
+        }
+        res.status(500).json({ success: false, message: 'Database error while updating user.', details: err.message });
+    }
+});
+
+// NEW: Endpoint for an admin to award a badge to a user
+app.post('/api/admin/users/:id/badges', authenticateToken, requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { badge_id } = req.body;
+
+    if (!badge_id) {
+        return res.status(400).json({ success: false, message: 'Badge ID is required.' });
+    }
+
+    try {
+        await db.query(
+            'INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)',
+            [id, badge_id]
+        );
+        res.status(201).json({ success: true, message: 'Badge awarded successfully.' });
+    } catch (err) {
+        console.error(`❌ Failed to award badge ${badge_id} to user ${id}:`, err);
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ success: false, message: 'User already has this badge.' });
+        }
+        res.status(500).json({ success: false, message: 'Database error while awarding badge.', details: err.message });
+    }
+});
+
+// NEW: Endpoint for an admin to remove a badge from a user
+app.delete('/api/admin/users/:userId/badges/:badgeId', authenticateToken, requireAdmin, async (req, res) => {
+    const { userId, badgeId } = req.params;
+
+    try {
+        const [result] = await db.query(
+            'DELETE FROM user_badges WHERE user_id = ? AND badge_id = ?',
+            [userId, badgeId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Badge not found for this user.' });
+        }
+
+        res.json({ success: true, message: 'Badge removed successfully.' });
+    } catch (err) {
+        console.error(`❌ Failed to remove badge ${badgeId} from user ${userId}:`, err);
+        res.status(500).json({ success: false, message: 'Database error while removing badge.', details: err.message });
     }
 });
 
