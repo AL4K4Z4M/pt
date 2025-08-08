@@ -25,6 +25,8 @@ let authToken = localStorage.getItem('token');
 
 let currentUsername = localStorage.getItem('username');
 
+let isAdmin = localStorage.getItem('isAdmin') === 'true';
+
 let isAuthModalInLoginMode = true;
 
 
@@ -2516,23 +2518,22 @@ const fetchUserVotes = async () => {
 
     try {
 
-        const response = await fetch(`${API_URL}/user/votes`, {
-
+        const response = await fetch(`${API_URL}/users/votes`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
-
         });
 
         if (!response.ok) throw new Error('Could not fetch user votes.');
 
         const result = await response.json();
 
-        userVotes = result.votes.reduce((acc, vote) => {
-
-            acc[vote.review_id] = vote.vote_type;
-
-            return acc;
-
-        }, {});
+        if (result.success) {
+            userVotes = result.votes.reduce((acc, vote) => {
+                acc[vote.review_id] = vote.vote_type;
+                return acc;
+            }, {});
+        } else {
+            throw new Error(result.message || 'Could not fetch user votes.');
+        }
 
     } catch (error) {
 
@@ -2869,25 +2870,24 @@ const updateAuthUI = () => {
     const usernameDisplay = document.getElementById('usernameDisplay');
 
     const addReviewBtn = document.getElementById('addReviewBtn');
+    const adminDashboardBtn = document.getElementById('adminDashboardBtn');
 
     if (authToken) {
-
         loginBtn.classList.add('hidden');
-
         userInfo.classList.remove('hidden');
-
         usernameDisplay.textContent = currentUsername;
-
         addReviewBtn.disabled = false;
 
+        if (adminDashboardBtn) {
+            adminDashboardBtn.style.display = isAdmin ? 'flex' : 'none';
+        }
     } else {
-
         loginBtn.classList.remove('hidden');
-
         userInfo.classList.add('hidden');
-
         addReviewBtn.disabled = true;
-
+        if (adminDashboardBtn) {
+            adminDashboardBtn.style.display = 'none';
+        }
     }
 
 };
@@ -2905,9 +2905,13 @@ const handleLogout = () => {
 
     localStorage.removeItem('username');
 
+    localStorage.removeItem('isAdmin');
+
     authToken = null;
 
     currentUsername = null;
+
+    isAdmin = false;
 
     userVotes = {};
 
@@ -3411,6 +3415,10 @@ function initApp() {
                 currentUsername = result.username;
                 localStorage.setItem('token', authToken);
                 localStorage.setItem('username', currentUsername);
+
+                isAdmin = (result.isAdmin || result.username === 'admin');
+                localStorage.setItem('isAdmin', isAdmin);
+
                 authMessage.textContent = 'Login successful!';
                 authMessage.className = 'text-center text-green-500';
                 await fetchUserVotes();
