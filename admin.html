@@ -177,7 +177,7 @@
 
     <!-- Manage User Modal -->
     <div id="manage-user-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center p-4 border-b">
                 <h2 class="text-xl font-bold">Manage User: <span id="modal-username"></span></h2>
                 <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
@@ -185,36 +185,68 @@
             <div class="p-6 overflow-y-auto space-y-6">
                 <!-- Edit User Section -->
                 <div id="edit-user-section">
-                    <h3 class="text-lg font-semibold mb-2">Edit User Information</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="modal-first-name" class="block text-sm font-medium text-gray-700">First Name</label>
-                            <input type="text" id="modal-first-name" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    <h3 class="text-lg font-semibold mb-4">Edit User Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Left Column -->
+                        <div class="space-y-4">
+                            <div>
+                                <label for="modal-first-name" class="block text-sm font-medium text-gray-700">First Name</label>
+                                <input type="text" id="modal-first-name" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                            </div>
+                            <div>
+                                <label for="modal-email" class="block text-sm font-medium text-gray-700">Email</label>
+                                <input type="email" id="modal-email" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                            </div>
+                            <div>
+                                <label for="modal-new-password" class="block text-sm font-medium text-gray-700">Set New Password</label>
+                                <input type="password" id="modal-new-password" placeholder="Leave blank to keep current password" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="modal-is-admin" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                <label for="modal-is-admin" class="ml-2 block text-sm text-gray-900">Is Admin</label>
+                            </div>
                         </div>
-                        <div>
-                            <label for="modal-email" class="block text-sm font-medium text-gray-700">Email</label>
-                            <input type="email" id="modal-email" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        <!-- Right Column -->
+                        <div class="space-y-4">
+                            <div>
+                                <label for="modal-vehicle-make" class="block text-sm font-medium text-gray-700">Vehicle Make</label>
+                                <input type="text" id="modal-vehicle-make" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                            </div>
+                            <div>
+                                <label for="modal-vehicle-model" class="block text-sm font-medium text-gray-700">Vehicle Model</label>
+                                <input type="text" id="modal-vehicle-model" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                            </div>
+                             <div>
+                                <label for="modal-vehicle-year" class="block text-sm font-medium text-gray-700">Vehicle Year</label>
+                                <input type="number" id="modal-vehicle-year" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                            </div>
+                            <div>
+                                <label for="modal-vehicle-color" class="block text-sm font-medium text-gray-700">Vehicle Color</label>
+                                <input type="text" id="modal-vehicle-color" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                            </div>
                         </div>
+                    </div>
+                     <div class="mt-4">
+                        <label for="modal-bio" class="block text-sm font-medium text-gray-700">Bio (JSON)</label>
+                        <textarea id="modal-bio" rows="3" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder='e.g., {"template":"1","words":["word1","word2"]}'></textarea>
                     </div>
                     <button id="save-user-btn" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Changes</button>
                     <p id="edit-user-message" class="text-sm mt-2"></p>
                 </div>
 
-                <!-- Award Badge Section -->
+                <!-- Award/Remove Badge Section -->
                 <div id="award-badge-section">
-                    <h3 class="text-lg font-semibold mb-2">Award a Badge</h3>
-                    <div class="flex items-center gap-4">
+                    <h3 class="text-lg font-semibold mb-2">Manage Badges</h3>
+                    <div class="flex items-center gap-4 mb-4">
                         <select id="modal-badge-select" class="flex-grow mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"></select>
-                        <button id="award-badge-btn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Award Badge</button>
+                        <button id="award-badge-btn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 whitespace-nowrap">Award Badge</button>
                     </div>
                     <p id="award-badge-message" class="text-sm mt-2"></p>
-                </div>
-
-                <!-- User's Current Badges -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-2">Current Badges</h3>
-                    <div id="modal-user-badges" class="flex flex-wrap gap-2">
-                        <!-- Badges will be populated here -->
+                    <div>
+                        <h4 class="text-md font-semibold mb-2">Current Badges</h4>
+                        <div id="modal-user-badges" class="flex flex-wrap gap-2">
+                            <!-- Badges will be populated here -->
+                        </div>
                     </div>
                 </div>
             </div>

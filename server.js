@@ -254,17 +254,60 @@ app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
 // NEW: Endpoint for an admin to update a user's information
 app.put('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res) => {
     const { id } = req.params;
-    const { first_name, email } = req.body;
+    const { first_name, email, password, is_admin, current_vehicle_make, current_vehicle_model, current_vehicle_year, current_vehicle_color, bio } = req.body;
 
-    if (!first_name || !email) {
-        return res.status(400).json({ success: false, message: 'First name and email are required.' });
+    let updateFields = [];
+    let queryParams = [];
+
+    if (first_name) {
+        updateFields.push('first_name = ?');
+        queryParams.push(first_name);
+    }
+    if (email) {
+        updateFields.push('email = ?');
+        queryParams.push(email);
+    }
+    if (is_admin !== undefined) {
+        updateFields.push('is_admin = ?');
+        queryParams.push(is_admin ? 1 : 0);
+    }
+    if (password) {
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        updateFields.push('password = ?');
+        queryParams.push(hashedPassword);
+    }
+    // Allow setting vehicle info to null/empty
+    if (current_vehicle_make !== undefined) {
+        updateFields.push('current_vehicle_make = ?');
+        queryParams.push(current_vehicle_make);
+    }
+    if (current_vehicle_model !== undefined) {
+        updateFields.push('current_vehicle_model = ?');
+        queryParams.push(current_vehicle_model);
+    }
+    if (current_vehicle_year !== undefined) {
+        updateFields.push('current_vehicle_year = ?');
+        queryParams.push(current_vehicle_year);
+    }
+    if (current_vehicle_color !== undefined) {
+        updateFields.push('current_vehicle_color = ?');
+        queryParams.push(current_vehicle_color);
+    }
+    if (bio !== undefined) {
+        const bioJSON = bio ? JSON.stringify(bio) : null;
+        updateFields.push('bio = ?');
+        queryParams.push(bioJSON);
     }
 
+    if (updateFields.length === 0) {
+        return res.status(400).json({ success: false, message: 'No fields to update.' });
+    }
+
+    queryParams.push(id);
+    const queryString = `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`;
+
     try {
-        await db.query(
-            'UPDATE users SET first_name = ?, email = ? WHERE id = ?',
-            [first_name, email, id]
-        );
+        await db.query(queryString, queryParams);
         res.json({ success: true, message: 'User updated successfully.' });
     } catch (err) {
         console.error(`❌ Failed to update user ${id}:`, err);
@@ -296,6 +339,27 @@ app.post('/api/admin/users/:id/badges', authenticateToken, requireAdmin, async (
             return res.status(409).json({ success: false, message: 'User already has this badge.' });
         }
         res.status(500).json({ success: false, message: 'Database error while awarding badge.', details: err.message });
+    }
+});
+
+// NEW: Endpoint for an admin to remove a badge from a user
+app.delete('/api/admin/users/:userId/badges/:badgeId', authenticateToken, requireAdmin, async (req, res) => {
+    const { userId, badgeId } = req.params;
+
+    try {
+        const [result] = await db.query(
+            'DELETE FROM user_badges WHERE user_id = ? AND badge_id = ?',
+            [userId, badgeId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Badge not found for this user.' });
+        }
+
+        res.json({ success: true, message: 'Badge removed successfully.' });
+    } catch (err) {
+        console.error(`❌ Failed to remove badge ${badgeId} from user ${userId}:`, err);
+        res.status(500).json({ success: false, message: 'Database error while removing badge.', details: err.message });
     }
 });
 

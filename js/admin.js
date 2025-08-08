@@ -237,6 +237,17 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-username').textContent = user.username;
         document.getElementById('modal-first-name').value = user.first_name || '';
         document.getElementById('modal-email').value = user.email || '';
+        document.getElementById('modal-is-admin').checked = user.is_admin;
+        document.getElementById('modal-new-password').value = ''; // Always clear password field
+
+        // Populate vehicle info
+        document.getElementById('modal-vehicle-make').value = user.current_vehicle_make || '';
+        document.getElementById('modal-vehicle-model').value = user.current_vehicle_model || '';
+        document.getElementById('modal-vehicle-year').value = user.current_vehicle_year || '';
+        document.getElementById('modal-vehicle-color').value = user.current_vehicle_color || '';
+
+        // Populate bio
+        document.getElementById('modal-bio').value = user.bio ? JSON.stringify(user.bio) : '';
 
         // Populate badge dropdown
         const badgeSelect = document.getElementById('modal-badge-select');
@@ -255,9 +266,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (usersBadges.length > 0) {
             usersBadges.forEach(userBadge => {
                 const badgeData = state.badges.find(b => b.badge_id === userBadge.badge_id);
-                const badgeEl = document.createElement('span');
-                badgeEl.className = 'px-2 py-1 bg-gray-200 text-gray-800 rounded-full text-sm';
-                badgeEl.textContent = badgeData ? badgeData.name : userBadge.badge_id;
+                const badgeEl = document.createElement('div');
+                badgeEl.className = 'flex items-center px-2 py-1 bg-gray-200 text-gray-800 rounded-full text-sm';
+                badgeEl.innerHTML = `
+                    <span>${badgeData ? badgeData.name : userBadge.badge_id}</span>
+                    <button class="ml-2 text-red-500 hover:text-red-800 remove-badge-btn" data-user-id="${userId}" data-badge-id="${userBadge.badge_id}">&times;</button>
+                `;
                 userBadgesContainer.appendChild(badgeEl);
             });
         } else {
@@ -279,8 +293,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const modal = document.getElementById('manage-user-modal');
         const userId = modal.dataset.userId;
         const messageEl = document.getElementById('edit-user-message');
-        const firstName = document.getElementById('modal-first-name').value;
-        const email = document.getElementById('modal-email').value;
+
+        const updatedUser = {
+            first_name: document.getElementById('modal-first-name').value,
+            email: document.getElementById('modal-email').value,
+            is_admin: document.getElementById('modal-is-admin').checked,
+            current_vehicle_make: document.getElementById('modal-vehicle-make').value,
+            current_vehicle_model: document.getElementById('modal-vehicle-model').value,
+            current_vehicle_year: document.getElementById('modal-vehicle-year').value,
+            current_vehicle_color: document.getElementById('modal-vehicle-color').value,
+        };
+
+        const newPassword = document.getElementById('modal-new-password').value;
+        if (newPassword) {
+            updatedUser.password = newPassword;
+        }
+
+        const bioString = document.getElementById('modal-bio').value;
+        if (bioString) {
+            try {
+                updatedUser.bio = JSON.parse(bioString);
+            } catch (e) {
+                messageEl.textContent = 'Error: Bio is not valid JSON.';
+                messageEl.className = 'text-sm mt-2 text-red-600';
+                return;
+            }
+        } else {
+            updatedUser.bio = null;
+        }
 
         messageEl.textContent = 'Saving...';
         messageEl.className = 'text-sm mt-2 text-gray-500';
@@ -292,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${state.authToken}`
                 },
-                body: JSON.stringify({ first_name: firstName, email })
+                body: JSON.stringify(updatedUser)
             });
 
             const result = await response.json();
@@ -303,13 +343,48 @@ document.addEventListener('DOMContentLoaded', () => {
             messageEl.textContent = 'User saved successfully!';
             messageEl.className = 'text-sm mt-2 text-green-600';
 
-            // Update state and re-render
-            const userIndex = state.users.findIndex(u => u.id == userId);
-            if (userIndex > -1) {
-                state.users[userIndex].first_name = firstName;
-                state.users[userIndex].email = email;
-            }
+            // Re-fetch users data to get the most up-to-date info and re-render everything
+            await fetchData('/users', 'users');
             render();
+
+        } catch (error) {
+            messageEl.textContent = `Error: ${error.message}`;
+            messageEl.className = 'text-sm mt-2 text-red-600';
+        }
+    };
+
+    const handleRemoveBadge = async (e) => {
+        const button = e.target;
+        const userId = button.dataset.userId;
+        const badgeId = button.dataset.badgeId;
+        const messageEl = document.getElementById('award-badge-message');
+
+        if (!confirm(`Are you sure you want to remove badge ${badgeId} from user ${userId}?`)) {
+            return;
+        }
+
+        messageEl.textContent = 'Removing...';
+        messageEl.className = 'text-sm mt-2 text-gray-500';
+
+        try {
+            const response = await fetch(`${API_URL}/admin/users/${userId}/badges/${badgeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${state.authToken}`
+                }
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to remove badge.');
+            }
+
+            messageEl.textContent = 'Badge removed successfully!';
+            messageEl.className = 'text-sm mt-2 text-green-600';
+
+            // Re-fetch user badges and re-render the modal content
+            await fetchData('/user_badges', 'userBadges');
+            openManageUserModal(parseInt(userId, 10));
 
         } catch (error) {
             messageEl.textContent = `Error: ${error.message}`;
@@ -455,6 +530,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('close-modal-btn').addEventListener('click', closeModal);
         document.getElementById('save-user-btn').addEventListener('click', handleSaveUser);
         document.getElementById('award-badge-btn').addEventListener('click', handleAwardBadge);
+        document.getElementById('modal-user-badges').addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-badge-btn')) {
+                handleRemoveBadge(e);
+            }
+        });
 
         // Initial render
         render();
