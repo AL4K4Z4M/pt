@@ -1,0 +1,72 @@
+# Performance & Scalability Assessment for PlateTraits
+
+## 1. Executive Summary
+
+This report assesses the capacity of the PlateTraits website to handle a significant, sudden increase in traffic. The analysis is based on a review of the backend Node.js code (`server.js`) and its dependencies.
+
+Overall, the application is well-built for small to medium levels of traffic, employing good practices such as database connection pooling and asynchronous operations. However, like any application, it has potential bottlenecks that could surface under a high-load scenario, such as 1,000 new users signing up and posting reviews in a very short period.
+
+The primary bottlenecks identified are:
+- **CPU-intensive operations** (password hashing) during user registration.
+- **Database write-heavy operations** during review submission.
+
+The site would likely remain operational during a traffic spike, but users would probably experience noticeable slowdowns and increased response times. This report details these scenarios and provides recommendations for improvement.
+
+## 2. Scenario 1: 1,000 New User Signups
+
+This scenario assumes 1,000 users attempt to register on the site. The performance impact depends heavily on the time frame over which these signups occur.
+
+- **If spread out (e.g., over 8 hours):** This equates to roughly two signups per minute. The current system can **easily handle this** with no noticeable impact on performance.
+
+- **If in a sudden burst (e.g., over 1-2 minutes):** This would create a high-concurrency situation that could strain the server.
+
+### Analysis of Bottlenecks:
+
+- **Primary Bottleneck: CPU Load from Password Hashing**
+  - The application uses `bcrypt` for password hashing, which is a deliberately slow, CPU-intensive algorithm to enhance security.
+  - A `saltRounds` value of 10 is used, which is a reasonable default. On typical hardware, a single hash can take between 50ms and 200ms of CPU time.
+  - Since Node.js is single-threaded, a sudden burst of signups would cause a queue of hashing operations. If 20 users sign up in the same second, it could block the server's main thread for 1-4 seconds, making the entire site unresponsive for that duration.
+
+- **Secondary Bottleneck: Database Writes**
+  - Each registration involves a transaction with multiple queries: checking the user count, inserting the new user, and inserting badges.
+  - The use of a database connection pool (`mysql.createPool`) is a major advantage here, as it mitigates the overhead of establishing new connections.
+  - A modern, well-configured MySQL database can handle hundreds of simple inserts per second, so it is less likely to be the primary bottleneck compared to the CPU, but it would still be under significant load.
+
+### Conclusion for Scenario 1:
+
+The site would likely survive a sudden burst of 1,000 signups, but performance would be **noticeably degraded**. Users would experience slow registration times, and other parts of the site would feel sluggish due to the CPU being occupied by `bcrypt`.
+
+## 3. Scenario 2: 1,000 Users Post One Review Each
+
+This scenario is more demanding on the database than the signup process.
+
+### Analysis of Bottlenecks:
+
+- **Primary Bottleneck: Database Write-Load**
+  - Each review submission results in an `INSERT` into the `reviews` table. A sudden burst of 1,000 reviews means 1,000 `INSERT` operations. This is a significant write load that will heavily tax the database's I/O (Input/Output) capacity.
+  - Unlike the signup process, there isn't a significant CPU-bound operation here. The main limiting factor is how quickly the database can commit these new records to disk.
+
+- **Secondary Bottleneck: Post-Submission Badge Logic**
+  - After a review is submitted, the server kicks off an asynchronous process to check for and award new badges.
+  - This process involves a `SELECT` query to get all of a user's past reviews. For new users, this is a fast query.
+  - While this logic runs in the background and doesn't block the user's response, running 1,000 of these background jobs simultaneously will add further load to the database.
+
+### Conclusion for Scenario 2:
+
+A sudden burst of 1,000 review submissions would **severely hurt site performance**. The database would be the main bottleneck.
+- **High Latency:** All database-dependent actions (logging in, fetching profiles, loading review feeds) would become very slow.
+- **Potential for Errors:** If the database is overwhelmed, queries could start to time out, leading to errors for users.
+
+## 4. Recommendations for Improved Scalability
+
+To prepare for high-traffic events, consider the following improvements:
+
+1.  **Load Testing:** The most important step is to **quantify** your site's limits. Use tools like `k6`, `JMeter`, or `Artillery` to simulate these high-traffic scenarios. This will tell you exactly how your system performs under pressure and at what point it breaks.
+
+2.  **Run Node.js in Cluster Mode:** To address the CPU bottleneck from `bcrypt`, run your Node.js application using the built-in `cluster` module. This will fork your application across multiple CPU cores, allowing you to process multiple password hashes in parallel instead of being limited by a single thread.
+
+3.  **Database Optimization:**
+    - **Ensure Proper Indexing:** Verify that all foreign keys (like `user_id` in the `reviews` table) and frequently queried columns are indexed. This is crucial for keeping `SELECT` queries fast as tables grow.
+    - **Hardware:** If you anticipate high write loads, ensure your database is running on a server with fast storage (SSDs) and sufficient RAM.
+
+4.  **Offload Background Jobs:** For non-critical, post-action tasks like awarding badges, consider using a dedicated job queue (e.g., `BullMQ`, `RabbitMQ`). This would move that work from your web server to a separate background worker process, further protecting your main API from load spikes.
