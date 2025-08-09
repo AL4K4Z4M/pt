@@ -35,7 +35,28 @@
             transition: background-color 0.2s ease-in-out;
         }
         tbody tr:hover {
-            background-color: #f3f4f6; /* A slightly darker gray for a more noticeable hover */
+            background-color: #f3f4f6;
+        }
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease-in-out;
+            font-weight: 500;
+            color: #4b5563; /* gray-600 */
+        }
+        .tab-button.active {
+            color: #1d4ed8; /* blue-700 */
+            border-color: #1d4ed8;
+        }
+        .tab-button:hover {
+            background-color: #f3f4f6; /* gray-100 */
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
         }
     </style>
 </head>
@@ -73,9 +94,18 @@
             </div>
         </section>
 
-        <!-- Data Tables Section -->
-        <div class="space-y-8">
+        <!-- Tab Navigation -->
+        <div class="mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-4" aria-label="Tabs">
+                    <button class="tab-button active" data-tab="user-management">User Management</button>
+                    <button class="tab-button" data-tab="content-management">Content Management</button>
+                </nav>
+            </div>
+        </div>
 
+        <!-- Tab Content -->
+        <div id="user-management" class="tab-content active space-y-8">
             <!-- Users Table -->
             <div class="bg-white shadow-md rounded-lg overflow-hidden">
                 <div class="px-6 py-4 border-b"><h2 class="text-xl font-semibold">Users</h2></div>
@@ -91,44 +121,9 @@
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="users-table-body" class="bg-white divide-y divide-gray-200"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Reviews Table -->
-            <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <div class="px-6 py-4 border-b"><h2 class="text-xl font-semibold">Reviews</h2></div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full" id="reviews-table">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="id" data-table="reviews">ID<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="plate_number" data-table="reviews">Plate Number<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="user_id" data-table="reviews">User<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="rating" data-table="reviews">Rating<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="status" data-table="reviews">Status<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="created_at" data-table="reviews">Created At<span class="sort-indicator"></span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="reviews-table-body" class="bg-white divide-y divide-gray-200"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Badges Table -->
-            <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <div class="px-6 py-4 border-b"><h2 class="text-xl font-semibold">Badges</h2></div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full" id="badges-table">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="badge_id" data-table="badges">ID<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="name" data-table="badges">Name<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                            </tr>
-                        </thead>
-                        <tbody id="badges-table-body" class="bg-white divide-y divide-gray-200"></tbody>
+                        <tbody id="users-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- User rows will be inserted here by admin.js -->
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -151,6 +146,48 @@
                 </div>
             </div>
 
+             <!-- Badges Table -->
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                <div class="px-6 py-4 border-b"><h2 class="text-xl font-semibold">Badges</h2></div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full" id="badges-table">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="badge_id" data-table="badges">ID<span class="sort-indicator"></span></th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="name" data-table="badges">Name<span class="sort-indicator"></span></th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody id="badges-table-body" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="content-management" class="tab-content space-y-8">
+            <!-- Reviews Table -->
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                <div class="px-6 py-4 border-b"><h2 class="text-xl font-semibold">Reviews</h2></div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full" id="reviews-table">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="id" data-table="reviews">ID<span class="sort-indicator"></span></th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="plate_number" data-table="reviews">Plate Number<span class="sort-indicator"></span></th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="user_id" data-table="reviews">User<span class="sort-indicator"></span></th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="rating" data-table="reviews">Rating<span class="sort-indicator"></span></th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="status" data-table="reviews">Status<span class="sort-indicator"></span></th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="created_at" data-table="reviews">Created At<span class="sort-indicator"></span></th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviews-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Review rows will be inserted here by admin.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Review Votes Table -->
             <div class="bg-white shadow-md rounded-lg overflow-hidden">
                 <div class="px-6 py-4 border-b"><h2 class="text-xl font-semibold">Review Votes</h2></div>
@@ -169,7 +206,6 @@
                     </table>
                 </div>
             </div>
-
         </div>
     </main>
 
@@ -266,6 +302,32 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete User Confirmation Modal -->
+    <div id="delete-user-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-xl font-bold">Confirm Deletion</h2>
+                <button id="cancel-delete-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p>To confirm, please enter your password. This action is permanent and cannot be undone.</p>
+                <div>
+                    <label for="admin-password-input" class="block text-sm font-medium text-gray-700">Your Password</label>
+                    <input type="password" id="admin-password-input" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="confirm-delete-checkbox" class="h-4 w-4 text-red-600 border-gray-300 rounded">
+                    <label for="confirm-delete-checkbox" class="ml-2 block text-sm text-gray-900">I understand this will permanently delete the user and all their data.</label>
+                </div>
+                <p id="delete-user-error-message" class="text-sm text-red-600"></p>
+            </div>
+            <div class="flex justify-end p-4 bg-gray-50 border-t">
+                <button id="cancel-delete-action-btn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 mr-2">Cancel</button>
+                <button id="confirm-delete-action-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-300" disabled>Delete User</button>
             </div>
         </div>
     </div>
