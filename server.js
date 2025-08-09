@@ -259,9 +259,10 @@ app.put('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res
     let updateFields = [];
     let queryParams = [];
 
-    if (first_name) {
+    // Use `!== undefined` to allow clearing the field by sending an empty string
+    if (first_name !== undefined) {
         updateFields.push('first_name = ?');
-        queryParams.push(first_name);
+        queryParams.push(first_name || null); // Use null if string is empty
     }
     if (email) {
         updateFields.push('email = ?');
@@ -276,22 +277,22 @@ app.put('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res
         updateFields.push('password = ?');
         queryParams.push(hashedPassword);
     }
-    // Allow setting vehicle info to null/empty
+    // Allow setting vehicle info to null/empty by converting empty strings to null
     if (current_vehicle_make !== undefined) {
         updateFields.push('current_vehicle_make = ?');
-        queryParams.push(current_vehicle_make);
+        queryParams.push(current_vehicle_make || null);
     }
     if (current_vehicle_model !== undefined) {
         updateFields.push('current_vehicle_model = ?');
-        queryParams.push(current_vehicle_model);
+        queryParams.push(current_vehicle_model || null);
     }
     if (current_vehicle_year !== undefined) {
         updateFields.push('current_vehicle_year = ?');
-        queryParams.push(current_vehicle_year);
+        queryParams.push(current_vehicle_year || null);
     }
     if (current_vehicle_color !== undefined) {
         updateFields.push('current_vehicle_color = ?');
-        queryParams.push(current_vehicle_color);
+        queryParams.push(current_vehicle_color || null);
     }
     if (bio !== undefined) {
         const bioJSON = bio ? JSON.stringify(bio) : null;
