@@ -70,3 +70,63 @@ To prepare for high-traffic events, consider the following improvements:
     - **Hardware:** If you anticipate high write loads, ensure your database is running on a server with fast storage (SSDs) and sufficient RAM.
 
 4.  **Offload Background Jobs:** For non-critical, post-action tasks like awarding badges, consider using a dedicated job queue (e.g., `BullMQ`, `RabbitMQ`). This would move that work from your web server to a separate background worker process, further protecting your main API from load spikes.
+
+## 5. Hardware Recommendations
+
+Hardware choices depend heavily on your budget, expected traffic, and desired reliability. For a Node.js and MySQL application, it's beneficial to think about the **Application Server** (running Node.js) and the **Database Server** (running MySQL) as separate components, even if you initially run them on the same machine.
+
+---
+
+### Option 1: Minimal Viable Setup (Consumer-Grade Gear)
+
+This setup is suitable for a hobby project, development/testing, or a site with very low initial traffic. The goal is to get it running for the lowest possible cost.
+
+- **Hardware:** A single, older desktop PC or a powerful single-board computer.
+- **Example:** An old Dell OptiPlex with a 4th-gen Intel Core i5, a Raspberry Pi 4 (8GB model), or a similar machine.
+
+- **Application Server (Node.js):**
+  - **CPU:** A dual-core CPU is the absolute minimum. A quad-core CPU (like in an older i5 or a Raspberry Pi 4) is much better. While your Node.js app runs on a single thread, having extra cores is essential for the operating system, the database, and other background processes without slowing down your app.
+  - **RAM:** 4GB is a workable minimum. 8GB would provide a much more comfortable buffer.
+
+- **Database Server (MySQL):**
+  - **Storage:** **Do not run a database on a MicroSD card for a live website.** The slow speeds and low reliability will cause data corruption. A consumer-grade SATA SSD (Solid State Drive) is the minimum requirement for acceptable database performance.
+
+- **Combined Role:** On one machine (e.g., a quad-core PC with 8GB RAM and a 256GB SSD), you can comfortably run both the Node.js application and the MySQL database for a small community.
+
+---
+
+### Option 2: Budget Production Setup (Entry-Level Server / VPS)
+
+This is the recommended starting point for a live website that you expect to grow. It prioritizes reliability and performance over the absolute lowest cost.
+
+- **Provider:** A Virtual Private Server (VPS) from a reputable provider (e.g., DigitalOcean, Linode, Vultr, Hetzner).
+- **Architecture:** For optimal scaling, the Application Server and Database Server should be on **separate** VPS instances.
+
+- **Application Server (Node.js):**
+  - **Instance Type:** A "General Purpose" or "Shared CPU" instance is fine to start.
+  - **CPU:** 2 vCPUs. This provides one core for your Node app and another for the OS, which is a stable configuration.
+  - **RAM:** 2 GB.
+  - **Cost:** ~$10-15/month.
+
+- **Database Server (MySQL):**
+  - **Instance Type:** A "Storage Optimized" or "Memory Optimized" instance if available, otherwise "General Purpose".
+  - **CPU:** 2 vCPUs.
+  - **RAM:** 4 GB. MySQL performance is heavily dependent on RAM, as it uses it to cache data and indexes for faster access.
+  - **Storage:** NVMe SSD storage is highly preferred for databases.
+  - **Cost:** ~$20-30/month.
+
+- **Alternative (Managed Database):** Most cloud providers offer a "Managed Database" service. This is **highly recommended** as it automates backups, security patches, and scaling. It costs more than a self-managed VPS (e.g., starting at $15-20/month for a basic instance) but saves a huge amount of time and prevents common mistakes.
+
+---
+
+### Option 3: Ideal (but still budget-conscious) Production Setup
+
+This setup builds on Option 2 and is designed to handle the traffic spikes discussed in this report more gracefully.
+
+- **Application Server (Node.js):**
+  - **CPU:** 4+ vCPUs. This is the key upgrade. It allows you to run your Node.js app in "Cluster Mode," which can take full advantage of multiple cores to handle concurrent CPU-intensive tasks like password hashing.
+  - **RAM:** 4 GB.
+
+- **Database Server (Managed Service):**
+  - **CPU:** 2-4 vCPUs.
+  - **RAM:** 8 GB or more. The more RAM the database has, the more of your data it can hold in memory, leading to significantly faster response times for users browsing the site.
