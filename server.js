@@ -364,6 +364,76 @@ app.delete('/api/admin/users/:userId/badges/:badgeId', authenticateToken, requir
     }
 });
 
+// NEW: Endpoint for an admin to delete a user
+app.delete('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const connection = await db.getConnection();
+
+    try {
+        await connection.beginTransaction();
+
+        // Note: The order of deletion matters due to foreign key constraints.
+        // If reviews have votes, you might need to delete votes first, then reviews.
+        // Assuming ON DELETE CASCADE is set up in the DB schema for review_votes.
+        // If not, you would delete review_votes belonging to the user's reviews first.
+
+        // Delete user's badges
+        await connection.query('DELETE FROM user_badges WHERE user_id = ?', [id]);
+        // Delete user's votes
+        await connection.query('DELETE FROM review_votes WHERE user_id = ?', [id]);
+        // Delete user's reviews
+        await connection.query('DELETE FROM reviews WHERE user_id = ?', [id]);
+        // Finally, delete the user
+        const [result] = await connection.query('DELETE FROM users WHERE id = ?', [id]);
+
+        if (result.affectedRows === 0) {
+            await connection.rollback();
+            return res.status(404).json({ success: false, message: 'User not found.' });
+        }
+
+        await connection.commit();
+        res.json({ success: true, message: 'User and all their associated data have been deleted successfully.' });
+
+    } catch (err) {
+        await connection.rollback();
+        console.error(`❌ Failed to delete user ${id}:`, err);
+        res.status(500).json({ success: false, message: 'Database error during user deletion.', details: err.message });
+    } finally {
+        connection.release();
+    }
+});
+
+// NEW: Endpoint for an admin to verify their password before a sensitive action
+app.post('/api/admin/verify-password', authenticateToken, requireAdmin, async (req, res) => {
+    const { password } = req.body;
+    const adminUserId = req.user.userId;
+
+    if (!password) {
+        return res.status(400).json({ success: false, message: 'Password is required for verification.' });
+    }
+
+    try {
+        const [rows] = await db.query('SELECT password FROM users WHERE id = ?', [adminUserId]);
+        const user = rows[0];
+
+        if (!user) {
+            // This should theoretically not happen if the token is valid
+            return res.status(404).json({ success: false, message: 'Admin user not found.' });
+        }
+
+        const match = await bcrypt.compare(password, user.password);
+
+        if (match) {
+            res.json({ success: true, message: 'Password verified successfully.' });
+        } else {
+            res.status(401).json({ success: false, message: 'Incorrect password.' });
+        }
+    } catch (err) {
+        console.error(`❌ Failed to verify password for admin ${adminUserId}:`, err);
+        res.status(500).json({ success: false, message: 'Database error during password verification.', details: err.message });
+    }
+});
+
 // Endpoint to get all votes for the logged-in user
 app.get('/api/users/votes', authenticateToken, async (req, res) => {
     const userId = req.user.userId;
@@ -438,6 +508,37 @@ app.get('/api/admin/reviews', authenticateToken, requireAdmin, async (req, res) 
     } catch (err) {
         console.error('❌ Failed to fetch reviews for admin dashboard:', err);
         res.status(500).json({ success: false, message: 'Database error while fetching reviews.' });
+    }
+});
+
+// NEW: Endpoint for an admin to delete a review
+app.delete('/api/admin/reviews/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const connection = await db.getConnection();
+
+    try {
+        await connection.beginTransaction();
+
+        // First, delete associated votes to maintain referential integrity
+        await connection.query('DELETE FROM review_votes WHERE review_id = ?', [id]);
+
+        // Then, delete the review itself
+        const [result] = await connection.query('DELETE FROM reviews WHERE id = ?', [id]);
+
+        if (result.affectedRows === 0) {
+            await connection.rollback();
+            return res.status(404).json({ success: false, message: 'Review not found.' });
+        }
+
+        await connection.commit();
+        res.json({ success: true, message: 'Review and its associated votes have been deleted successfully.' });
+
+    } catch (err) {
+        await connection.rollback();
+        console.error(`❌ Failed to delete review ${id}:`, err);
+        res.status(500).json({ success: false, message: 'Database error during review deletion.', details: err.message });
+    } finally {
+        connection.release();
     }
 });
 

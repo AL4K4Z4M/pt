@@ -158,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(user.created_at).toLocaleDateString()}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button class="text-blue-600 hover:text-blue-900 manage-user-btn" data-user-id="${user.id}">Manage</button>
+                <button class="text-red-600 hover:text-red-900 ml-4 delete-user-btn" data-user-id="${user.id}" data-username="${user.username}">Delete</button>
             </td>
         `;
         renderTable('users-table-body', users, userRowRenderer);
@@ -171,6 +172,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${review.rating}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${review.status}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(review.created_at).toLocaleString()}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button class="text-red-600 hover:text-red-900 delete-review-btn" data-review-id="${review.id}">Delete</button>
+            </td>
         `;
         renderTable('reviews-table-body', reviews, reviewRowRenderer);
     };
@@ -387,6 +391,124 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const closeModal = () => {
         document.getElementById('manage-user-modal').classList.add('hidden');
+    };
+
+    const handleApiError = async (response, element) => {
+        let message = `HTTP Error: ${response.status}`;
+        try {
+            const data = await response.json();
+            message = data.message || data.error || message;
+        } catch (e) {
+            // Not a JSON response
+        }
+        if(element) {
+            element.textContent = `Error: ${message}`;
+            element.className = 'text-sm mt-2 text-red-600';
+        }
+        console.error("API Error:", message);
+    };
+
+    const openDeleteUserModal = (userId, username) => {
+        const modal = document.getElementById('delete-user-modal');
+        modal.dataset.userId = userId;
+        modal.dataset.username = username;
+        document.getElementById('admin-password-input').value = '';
+        document.getElementById('confirm-delete-checkbox').checked = false;
+        document.getElementById('confirm-delete-action-btn').disabled = true;
+        document.getElementById('delete-user-error-message').textContent = '';
+        modal.classList.remove('hidden');
+    };
+
+    const closeDeleteUserModal = () => {
+        const modal = document.getElementById('delete-user-modal');
+        modal.classList.add('hidden');
+    };
+
+    const handleDeleteUser = (userId, username) => {
+        openDeleteUserModal(userId, username);
+    };
+
+    const confirmAndDeleteUser = async () => {
+        const modal = document.getElementById('delete-user-modal');
+        const userId = modal.dataset.userId;
+        const username = modal.dataset.username;
+        const password = document.getElementById('admin-password-input').value;
+        const errorMessageEl = document.getElementById('delete-user-error-message');
+
+        errorMessageEl.textContent = ''; // Clear previous errors
+
+        // 1. Verify Password
+        try {
+            const verifyResponse = await fetch(`${API_URL}/admin/verify-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${state.authToken}`
+                },
+                body: JSON.stringify({ password })
+            });
+
+            if (!verifyResponse.ok) {
+                const errorData = await verifyResponse.json();
+                errorMessageEl.textContent = errorData.message || 'An error occurred during password verification.';
+                return;
+            }
+        } catch (error) {
+            console.error('A critical error occurred during password verification:', error);
+            errorMessageEl.textContent = 'A network error occurred. Please try again.';
+            return;
+        }
+
+        // 2. Delete User (if password is correct)
+        try {
+            const deleteResponse = await fetch(`${API_URL}/admin/users/${userId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${state.authToken}` }
+            });
+
+            if (!deleteResponse.ok) {
+                const errorData = await deleteResponse.json();
+                errorMessageEl.textContent = errorData.message || 'Failed to delete user.';
+                return;
+            }
+
+            closeDeleteUserModal();
+            await init(); // Re-fetch all data and re-render
+            alert(`User ${username} was successfully deleted.`);
+
+        } catch (error) {
+            console.error(`A critical error occurred while deleting user ${userId}:`, error);
+            errorMessageEl.textContent = 'A network error occurred during deletion. Please try again.';
+        }
+    };
+
+    const handleDeleteReview = async (reviewId) => {
+        if (!confirm(`Are you sure you want to permanently delete review ID ${reviewId}? This action is irreversible.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/admin/reviews/${reviewId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${state.authToken}`
+                }
+            });
+
+            if (!response.ok) {
+                alert(`Failed to delete review ${reviewId}. See console for details.`);
+                return;
+            }
+
+            // Re-fetch review data and re-render
+            await fetchData('/admin/reviews', 'reviews');
+            render();
+            alert(`Review ${reviewId} deleted successfully.`);
+
+        } catch (error) {
+            console.error(`A critical error occurred while deleting review ${reviewId}:`, error);
+            alert(`A critical error occurred while deleting the review. Please check the console.`);
+        }
     };
 
     const handleSaveUser = async () => {
@@ -633,6 +755,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const userId = parseInt(e.target.dataset.userId, 10);
                 openManageUserModal(userId);
             }
+            if (e.target.classList.contains('delete-user-btn')) {
+                const userId = parseInt(e.target.dataset.userId, 10);
+                const username = e.target.dataset.username;
+                handleDeleteUser(userId, username);
+            }
         });
         document.getElementById('close-modal-btn').addEventListener('click', closeModal);
         document.getElementById('save-user-btn').addEventListener('click', handleSaveUser);
@@ -641,6 +768,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.classList.contains('remove-badge-btn')) {
                 handleRemoveBadge(e);
             }
+        });
+
+        document.getElementById('reviews-table-body').addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-review-btn')) {
+                const reviewId = parseInt(e.target.dataset.reviewId, 10);
+                handleDeleteReview(reviewId);
+            }
+        });
+
+        // Delete User Modal Listeners
+        document.getElementById('cancel-delete-btn').addEventListener('click', closeDeleteUserModal);
+        document.getElementById('cancel-delete-action-btn').addEventListener('click', closeDeleteUserModal);
+        document.getElementById('confirm-delete-action-btn').addEventListener('click', confirmAndDeleteUser);
+        document.getElementById('confirm-delete-checkbox').addEventListener('change', (e) => {
+            document.getElementById('confirm-delete-action-btn').disabled = !e.target.checked;
         });
 
         // Initial render
@@ -654,6 +796,27 @@ document.addEventListener('DOMContentLoaded', () => {
             state.filters.username = usernameFromUrl;
             render();
         }
+
+        // Tab switching logic
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tab = button.dataset.tab;
+
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                tabContents.forEach(content => {
+                    if (content.id === tab) {
+                        content.classList.add('active');
+                    } else {
+                        content.classList.remove('active');
+                    }
+                });
+            });
+        });
     };
 
     init();
