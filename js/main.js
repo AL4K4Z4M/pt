@@ -3514,5 +3514,32 @@ function initApp() {
     fetchReviews();
 }
 
+/**
+ * Fetches and displays the community statistics.
+ */
+const fetchAndDisplayStats = async () => {
+    const totalUsersEl = document.getElementById('stats-total-users');
+    if (!totalUsersEl) return;
+
+    try {
+        const response = await fetch(`${API_URL}/stats`);
+        if (!response.ok) {
+            totalUsersEl.textContent = 'N/A';
+            return;
+        }
+        const stats = await response.json();
+        if (stats.success) {
+            totalUsersEl.textContent = stats.totalUsers;
+        }
+    } catch (error) {
+        console.error("Failed to fetch community stats:", error);
+        totalUsersEl.textContent = 'N/A';
+    }
+};
+
 // --- App Entry Point ---
-document.addEventListener('DOMContentLoaded', initApp);
+document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+    fetchAndDisplayStats(); // Initial fetch
+    setInterval(fetchAndDisplayStats, 30000); // Refresh every 30 seconds
+});

@@ -578,6 +578,24 @@ app.get('/api/badges', async (req, res) => {
     }
 });
 
+// Endpoint to get public community statistics
+app.get('/api/stats', async (req, res) => {
+    try {
+        // Get total users
+        const [userRows] = await db.query('SELECT COUNT(*) as totalUsers FROM users');
+        const totalUsers = userRows[0].totalUsers;
+
+        res.json({
+            success: true,
+            totalUsers
+        });
+
+    } catch (err) {
+        console.error('❌ Failed to fetch community stats:', err);
+        res.status(500).json({ success: false, message: 'Database error while fetching community stats.', details: err.message });
+    }
+});
+
 // Endpoint to get all user_badges for the admin dashboard
 app.get('/api/user_badges', authenticateToken, requireAdmin, async (req, res) => {
     try {
