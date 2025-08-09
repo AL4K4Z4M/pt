@@ -2163,55 +2163,55 @@ const renderReviews = () => {
 
 
     reviewsContainer.innerHTML = '';
-
     if (filteredData.length === 0) {
-
-        reviewsContainer.innerHTML = `<div class="text-center py-10"><p class="text-light-secondary">No reviews match the current filters.</p></div>`;
-
+        reviewsContainer.innerHTML = `<div class="text-center py-10"><p class="text-secondary">No reviews match the current filters.</p></div>`;
         return;
-
     }
 
-    filteredData.forEach(data => {
+    let reviewCount = 0;
+    filteredData.forEach((data, index) => {
+        reviewCount++;
+        // Every 7th card is an ad
+        if (reviewCount % 7 === 0) {
+            const adCardHtml = `
+                <div class="bg-tertiary p-4 rounded-xl shadow-md flex items-center space-x-4 review-card">
+                    <div class="flex-grow text-center">
+                        <p class="text-sm text-secondary mb-2">Advertisement</p>
+                        <!-- TODO: Replace with your AdSense ad unit -->
+                        <ins class="adsbygoogle"
+                             style="display:block; width:100%; height:60px;"
+                             data-ad-client="ca-pub-YOUR_PUBLISHER_ID"
+                             data-ad-slot="YOUR_AD_SLOT_ID"
+                             data-ad-format="auto"
+                             data-full-width-responsive="true"></ins>
+                        <script>
+                             (adsbygoogle = window.adsbygoogle || []).push({});
+                        </script>
+                    </div>
+                </div>`;
+            reviewsContainer.insertAdjacentHTML('beforeend', adCardHtml);
+        }
 
         const ratingColor = data.averageRating >= 4 ? 'text-green-400' : data.averageRating >= 2 ? 'text-yellow-400' : 'text-red-400';
-
         const firstReview = data.allReviews[0];
-
         const commentHtml = firstReview.comment ? renderStructuredComment(firstReview.comment).replace(/<[^>]*>/g, '') : 'No comment';
-        
         const vehicleTitle = firstReview.vehicle_make || 'Unknown Make';
 
         const reviewCardHtml = `
-
             <div class="bg-tertiary p-4 rounded-xl shadow-md flex items-center space-x-4 cursor-pointer review-card" data-plate-number="${data.plate_number}">
-
                 <div class="plate-display relative w-24 h-12" style="background-image: url('/images/blankplate.png');">
-
                     <div class="plate-number-overlay text-lg">${data.plate_number.toUpperCase()}</div>
-
                 </div>
-
                 <div class="flex-grow">
-
                     <h3 class="font-bold text-primary">${vehicleTitle}</h3>
-
                     <p class="text-sm text-secondary">${commentHtml.substring(0, 40)}...</p>
-
                 </div>
-
                 <div class="flex items-center font-bold text-lg ${ratingColor}">
-
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="mr-1"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path></svg>
-
                     <span>${parseFloat(data.averageRating).toFixed(1)}</span>
-
                 </div>
-
             </div>`;
-
         reviewsContainer.insertAdjacentHTML('beforeend', reviewCardHtml);
-
     });
 
     document.querySelectorAll('.review-card').forEach(card => {
