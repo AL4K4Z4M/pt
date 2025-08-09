@@ -228,21 +228,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- DATA FETCHING ---
     const fetchData = async (endpoint, stateKey) => {
+        const tableBodyId = `${stateKey}-table-body`;
+        const tableBody = document.getElementById(tableBodyId);
         try {
             const response = await fetch(`${API_URL}${endpoint}`, {
                 headers: { 'Authorization': `Bearer ${state.authToken}` }
             });
             if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.message || `Failed to fetch ${endpoint}`);
+                if(tableBody) {
+                    const cell = tableBody.insertRow().insertCell();
+                    cell.colSpan = "100%";
+                    cell.className = "text-center p-4";
+                    await handleApiError(response, cell);
+                }
+                return;
             }
             state[stateKey] = await response.json();
         } catch (error) {
-            console.error(`Error fetching ${endpoint}:`, error);
-            const tableBodyId = `${stateKey}-table-body`;
-            const tableBody = document.getElementById(tableBodyId);
+            console.error(`A critical error occurred while fetching ${endpoint}:`, error);
             if(tableBody) {
-                tableBody.innerHTML = `<tr><td colspan="100%" class="text-center p-4 text-red-600">Error: ${error.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="100%" class="text-center p-4 text-red-600">A critical error occurred. Please check the console.</td></tr>`;
             }
         }
     };
@@ -425,9 +430,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(updatedUser)
             });
 
-            const result = await response.json();
             if (!response.ok) {
-                throw new Error(result.message || 'Failed to save user.');
+                await handleApiError(response, messageEl);
+                return;
             }
 
             messageEl.textContent = 'User saved successfully!';
@@ -438,7 +443,8 @@ document.addEventListener('DOMContentLoaded', () => {
             render();
 
         } catch (error) {
-            messageEl.textContent = `Error: ${error.message}`;
+            console.error("A critical error occurred while saving a user:", error);
+            messageEl.textContent = 'A critical error occurred. Please check the console.';
             messageEl.className = 'text-sm mt-2 text-red-600';
         }
     };
@@ -464,9 +470,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            const result = await response.json();
             if (!response.ok) {
-                throw new Error(result.message || 'Failed to remove badge.');
+                await handleApiError(response, messageEl);
+                return;
             }
 
             messageEl.textContent = 'Badge removed successfully!';
@@ -477,7 +483,8 @@ document.addEventListener('DOMContentLoaded', () => {
             openManageUserModal(parseInt(userId, 10));
 
         } catch (error) {
-            messageEl.textContent = `Error: ${error.message}`;
+            console.error("A critical error occurred while removing a badge:", error);
+            messageEl.textContent = 'A critical error occurred. Please check the console.';
             messageEl.className = 'text-sm mt-2 text-red-600';
         }
     };
@@ -508,9 +515,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ badge_id: badgeId })
             });
 
-            const result = await response.json();
             if (!response.ok) {
-                throw new Error(result.message || 'Failed to award badge.');
+                await handleApiError(response, messageEl);
+                return;
             }
 
             messageEl.textContent = 'Badge awarded successfully!';
@@ -521,7 +528,8 @@ document.addEventListener('DOMContentLoaded', () => {
             openManageUserModal(parseInt(userId, 10));
 
         } catch (error) {
-            messageEl.textContent = `Error: ${error.message}`;
+            console.error("A critical error occurred while awarding a badge:", error);
+            messageEl.textContent = 'A critical error occurred. Please check the console.';
             messageEl.className = 'text-sm mt-2 text-red-600';
         }
     };
