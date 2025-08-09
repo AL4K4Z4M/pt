@@ -611,6 +611,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Modal Listeners
+        const showPasswordToggle = document.getElementById('modal-show-password-toggle');
+        const newPasswordInput = document.getElementById('modal-new-password');
+
+        if (showPasswordToggle && newPasswordInput) {
+            showPasswordToggle.addEventListener('change', () => {
+                newPasswordInput.type = showPasswordToggle.checked ? 'text' : 'password';
+            });
+        }
+
         document.getElementById('users-table-body').addEventListener('click', (e) => {
             if (e.target.classList.contains('manage-user-btn')) {
                 const userId = parseInt(e.target.dataset.userId, 10);
