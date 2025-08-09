@@ -1636,11 +1636,10 @@ const injectReviewModal = () => {
     const veryBadChipsHtml = veryBadTraits.map(trait => `<span class="trait-chip trait-very-bad" data-value="${trait}">${trait}</span>`).join('');
 
     const modalHtml = `
-        <div id="reviewModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+<el-dialog id="reviewModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden-dialog">
             <div class="bg-secondary text-primary rounded-2xl shadow-xl w-11/12 lg:w-2/3 max-w-5xl max-h-[90vh] flex flex-col">
                 <div class="flex justify-between items-center p-4 border-b border-color">
                     <h2 class="text-xl font-bold font-license-plate">Submit a Review</h2>
-                    <button id="closeModalBtn" class="text-secondary text-2xl hover:text-primary">&times;</button>
                 </div>
                 <div class="p-6 overflow-y-auto no-scrollbar">
                     <form id="reviewForm">
@@ -1716,7 +1715,7 @@ const injectReviewModal = () => {
                     <button type="submit" form="reviewForm" class="w-full bg-blue-600 text-white font-bold px-8 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50">Submit Review</button>
                 </div>
             </div>
-        </div>
+        </el-dialog>
     `;
 
     document.body.insertAdjacentHTML('beforeend', modalHtml);
@@ -2986,7 +2985,6 @@ const handleVote = async (clickedVoteType) => {
  */
 
 const reassignModalElements = () => {
-    const closeModalBtn = document.getElementById('closeModalBtn');
     const reviewForm = document.getElementById('reviewForm');
     const formMessage = document.getElementById('formMessage');
     const tagsInput = document.getElementById('tags');
@@ -3053,10 +3051,9 @@ const reassignModalElements = () => {
     }
 
     addReviewBtn.addEventListener('click', () => {
-        if (authToken) reviewModal.classList.remove('hidden');
+        if (authToken) reviewModal.classList.remove('hidden-dialog');
         else authModal.classList.remove('hidden');
     });
-    closeModalBtn.addEventListener('click', () => reviewModal.classList.add('hidden'));
 
     let selectedTraits = new Set();
     traitChips.forEach(chip => {
@@ -3125,7 +3122,7 @@ const reassignModalElements = () => {
             formMessage.textContent = 'Review submitted successfully!';
             formMessage.className = 'mt-4 text-center text-green-500';
             setTimeout(() => {
-                reviewModal.classList.add('hidden');
+                reviewModal.classList.add('hidden-dialog');
                 reviewForm.reset();
                 updateCommentBuilder();
                 traitChips.forEach(c => c.classList.remove('active'));
