@@ -2460,41 +2460,31 @@ const fetchReviews = async () => {
     const loadingIndicator = document.getElementById('loadingReviews');
 
     try {
-
         const response = await fetch(`${API_URL}/reviews`);
-
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
+        if (!response.ok) {
+            // Since this is a general page load, we don't have a specific message element.
+            // We can create a temporary one or log to console. For now, let's just update the loading indicator.
+            const errorElement = document.createElement('div');
+            await handleApiError(response, errorElement);
+            if(loadingIndicator) loadingIndicator.innerHTML = `<p class="text-red-500 col-span-full">${errorElement.textContent}</p>`;
+            return;
+        }
         allReviewsData = await response.json();
-
         aggregatedReviewsData = {};
-
         allReviewsData.forEach(review => {
-
             const plate = review.plate_number.toUpperCase();
-
             if (!aggregatedReviewsData[plate]) {
-
                 aggregatedReviewsData[plate] = { plate_number: plate, totalRating: 0, reviewCount: 0, averageRating: 0, allReviews: [] };
-
             }
-
             aggregatedReviewsData[plate].totalRating += review.rating;
-
             aggregatedReviewsData[plate].reviewCount++;
-
             aggregatedReviewsData[plate].averageRating = aggregatedReviewsData[plate].totalRating / aggregatedReviewsData[plate].reviewCount;
-
             aggregatedReviewsData[plate].allReviews.push(review);
-
         });
-
         renderReviews();
-
     } catch (error) {
-
-        if(loadingIndicator) loadingIndicator.innerHTML = `<p class="text-red-500 col-span-full">Error: ${error.message}.</p>`;
-
+        console.error("A critical error occurred during fetchReviews:", error);
+        if(loadingIndicator) loadingIndicator.innerHTML = `<p class="text-red-500 col-span-full">A critical error occurred. Please check the console.</p>`;
     }
 
 };
@@ -2517,30 +2507,24 @@ const fetchUserVotes = async () => {
     }
 
     try {
-
         const response = await fetch(`${API_URL}/users/votes`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
-
-        if (!response.ok) throw new Error('Could not fetch user votes.');
-
+        if (!response.ok) {
+            // Non-critical, so just log to console.
+            console.error('Failed to fetch user votes. This may affect vote button states.');
+            return;
+        }
         const result = await response.json();
-
         if (result.success) {
             userVotes = result.votes.reduce((acc, vote) => {
                 acc[vote.review_id] = vote.vote_type;
                 return acc;
             }, {});
-        } else {
-            throw new Error(result.message || 'Could not fetch user votes.');
         }
-
     } catch (error) {
-
-        console.error("Failed to fetch user votes:", error);
-
-        userVotes = {};
-
+        console.error("A critical error occurred during fetchUserVotes:", error);
+        userVotes = {}; // Reset on failure
     }
 
 };
@@ -2624,62 +2608,36 @@ const showUserProfile = async (username) => {
 
 
     try {
-
         const response = await fetch(`${API_URL}/users/profile/${username}`);
-
         if (!response.ok) {
-
-            const errorResult = await response.json();
-
-            throw new Error(errorResult.message || 'Could not fetch user profile.');
-
+            await handleApiError(response, profileReviewsContainer);
+            return;
         }
-
         const { user, reviews, badges: userBadges } = await response.json();
-
         const allBadges = await fetchAllBadges();
-
 
         // Populate public profile view
         profileTitle.textContent = `${user.username}'s Profile`;
-
         reviewsHeading.textContent = `${user.username}'s Submitted Reviews`;
-
         profileFirstNameEl.textContent = user.first_name || 'N/A';
-
         profileUsernameEl.textContent = user.username;
-
         profileJoinDateEl.textContent = new Date(user.created_at).toLocaleDateString();
-
         profileEmailContainer.style.display = 'none';
-
         profileJoinDateContainer.style.display = 'block';
-
         editProfileBtn.classList.add('hidden');
-
         profileVehicle.textContent = (user.current_vehicle_make && user.current_vehicle_model)
-
             ? `${user.current_vehicle_color || ''} ${user.current_vehicle_year || ''} ${user.current_vehicle_make} ${user.current_vehicle_model}`.trim()
-
             : 'Not specified';
-
 
         profileBio.innerHTML = user.bio ? renderStructuredComment(user.bio) : 'No bio provided.';
 
-
         renderProfileBadges(userBadges, allBadges, profileBadgesContainer, 4);
-
         renderProfileBadges(userBadges, allBadges, allBadgesContainer);
-
         renderProfileReviews(profileReviewsContainer, reviews, user.username);
 
-
     } catch (error) {
-
-        profileReviewsContainer.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
-
-        console.error(`Failed to fetch profile for ${username}:`, error);
-
+        console.error(`A critical error occurred during showUserProfile for ${username}:`, error);
+        profileReviewsContainer.innerHTML = `<p class="text-red-500">A critical error occurred. Please check the console.</p>`;
     }
 
 };
@@ -2738,113 +2696,64 @@ const showProfileModal = async () => {
 
 
     try {
-
         const response = await fetch(`${API_URL}/users/profile`, {
-
             headers: { 'Authorization': `Bearer ${authToken}` }
-
         });
 
-
         if (!response.ok) {
-
-            throw new Error('Could not fetch profile data.');
-
+            await handleApiError(response, profileReviewsContainer);
+            return;
         }
 
-
         const { user, reviews, badges: userBadges } = await response.json();
-
         const allBadges = await fetchAllBadges();
 
-
         // Populate display view
-
         document.getElementById('profileFirstName').textContent = user.first_name || 'N/A';
-
         document.getElementById('profileUsername').textContent = user.username;
-
         document.getElementById('profileEmail').textContent = user.email;
-
         document.getElementById('profileJoinDate').textContent = new Date(user.created_at).toLocaleDateString();
-
         profileVehicle.textContent = (user.current_vehicle_make && user.current_vehicle_model)
-
             ? `${user.current_vehicle_color || ''} ${user.current_vehicle_year || ''} ${user.current_vehicle_make} ${user.current_vehicle_model}`.trim()
-
             : 'Not specified';
-
 
         profileBio.innerHTML = user.bio ? renderStructuredComment(user.bio) : 'No bio provided.';
 
-
         // Populate the edit form fields
-
         document.getElementById('profile_first_name').value = user.first_name || '';
-
         document.getElementById('profile_vehicle_year').value = user.current_vehicle_year || '';
-
         document.getElementById('profile_vehicle_make').value = user.current_vehicle_make || '';
-
         document.getElementById('profile_vehicle_make').dispatchEvent(new Event('change'));
-
         setTimeout(() => {
-
             document.getElementById('profile_vehicle_model').value = user.current_vehicle_model || '';
-
             document.getElementById('profile_vehicle_color').value = user.current_vehicle_color || '';
-
         }, 100);
-
 
         // Populate the bio edit form
-
         const bioTemplateSelect = document.getElementById('bio-template');
-
         if (user.bio && user.bio.template) {
-
             bioTemplateSelect.value = user.bio.template;
-
         }
-
         bioTemplateSelect.dispatchEvent(new Event('change'));
-
         setTimeout(() => {
-
             if (user.bio && user.bio.words) {
-
                 const wordSelects = document.querySelectorAll('#bio-words-container select');
-
                 wordSelects.forEach((select, index) => {
-
                     if (user.bio.words[index]) {
-
                         select.value = user.bio.words[index];
-
                     }
-
                 });
-
             }
-
         }, 100);
 
-
         // Render dynamic content
-
         renderProfileBadges(userBadges, allBadges, profileBadgesContainer, 4);
-
         renderProfileBadges(userBadges, allBadges, allBadgesContainer);
-
         renderProfileReviews(profileReviewsContainer, reviews, user.username);
 
-
     } catch (error) {
-
-        profileReviewsContainer.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
-
-        console.error("Failed to fetch profile:", error);
-
+        console.error("A critical error occurred during showProfileModal:", error);
+        profileReviewsContainer.innerHTML = `<p class="text-red-500">A critical error occurred. Please check the console.</p>`;
     }
 
 };
@@ -3044,27 +2953,24 @@ const handleVote = async (clickedVoteType) => {
 
 
     try {
-
         const response = await fetch(`${API_URL}/reviews/${review.id}/vote`, {
-
             method: 'POST',
-
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-
             body: JSON.stringify({ voteType: newVoteType }),
-
         });
 
-         if (!response.ok) throw new Error('Vote failed on server');
-
+        if (!response.ok) {
+            // Since we can't easily show an error in the modal without adding a new element,
+            // we'll use an alert for now and then revert the data.
+            const errorElement = document.createElement('div');
+            await handleApiError(response, errorElement);
+            alert(`Error: ${errorElement.textContent}`);
+            fetchReviews(); // Re-fetch to get the correct state from the server.
+        }
     } catch (error) {
-
-        console.error('Vote failed:', error);
-
-        alert('There was an error submitting your vote.');
-
+        console.error('A critical error occurred during handleVote:', error);
+        alert('A critical error occurred while voting. Reverting changes.');
         fetchReviews(); // Re-fetch to get the correct state from the server
-
     }
 
 };
@@ -3204,16 +3110,20 @@ const reassignModalElements = () => {
                 body: JSON.stringify(data),
             });
 
-            if (response.status === 401 || response.status === 403) {
-                throw new Error('Authentication failed. Your session has expired.');
-            }
-
             if (!response.ok) {
-                const result = await response.json();
-                throw new Error(result.details || result.message || 'Failed to submit.');
+                await handleApiError(response, formMessage);
+                if (response.status === 401 || response.status === 403) {
+                    setTimeout(() => {
+                        reviewModal.classList.add('hidden');
+                        handleLogout();
+                        document.getElementById('authModal').classList.remove('hidden');
+                    }, 2500);
+                }
+                return;
             }
 
             formMessage.textContent = 'Review submitted successfully!';
+            formMessage.className = 'mt-4 text-center text-green-500';
             setTimeout(() => {
                 reviewModal.classList.add('hidden');
                 reviewForm.reset();
@@ -3225,16 +3135,9 @@ const reassignModalElements = () => {
             fetchReviews();
 
         } catch (error) {
-            formMessage.textContent = `Error: ${error.message}`;
-            formMessage.className = 'mt-4 text-center text-red-600';
-
-            if (error.message.includes('Authentication failed')) {
-                setTimeout(() => {
-                    reviewModal.classList.add('hidden');
-                    handleLogout();
-                    document.getElementById('authModal').classList.remove('hidden');
-                }, 2500);
-            }
+             console.error("A critical error occurred while submitting a review:", error);
+             formMessage.textContent = 'A critical error occurred. Please check the console.';
+             formMessage.className = 'mt-4 text-center text-red-600';
         }
     });
 };
@@ -3404,10 +3307,12 @@ function initApp() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             });
+
             if (!response.ok) {
-                const result = await response.json();
-                throw new Error(result.message || 'An error occurred.');
+                await handleApiError(response, authMessage);
+                return;
             }
+
             const result = await response.json();
             if (isAuthModalInLoginMode) {
                 authToken = result.accessToken;
@@ -3428,7 +3333,8 @@ function initApp() {
                 switchAuthMode();
             }
         } catch (error) {
-            authMessage.textContent = `Error: ${error.message}`;
+            console.error("A critical error occurred during authentication:", error);
+            authMessage.textContent = 'A critical error occurred. Please check the console.';
             authMessage.className = 'text-center text-red-500';
         }
     });
@@ -3576,8 +3482,8 @@ function initApp() {
             });
 
             if (!response.ok) {
-                 const result = await response.json().catch(() => ({ message: 'Failed to save profile. Server returned a non-JSON error.' }));
-                 throw new Error(result.message || 'Failed to save profile.');
+                await handleApiError(response, profileEditMessage);
+                return;
             }
 
             profileEditMessage.textContent = 'Saved successfully!';
@@ -3598,7 +3504,8 @@ function initApp() {
             }, 1500);
 
         } catch (error) {
-            profileEditMessage.textContent = `Error: ${error.message}`;
+            console.error("A critical error occurred while saving the profile:", error);
+            profileEditMessage.textContent = `A critical error occurred. Please check the console.`;
             profileEditMessage.className = 'text-center text-sm mt-4 text-red-500';
         }
     });
@@ -3607,5 +3514,32 @@ function initApp() {
     fetchReviews();
 }
 
+/**
+ * Fetches and displays the community statistics.
+ */
+const fetchAndDisplayStats = async () => {
+    const totalUsersEl = document.getElementById('stats-total-users');
+    if (!totalUsersEl) return;
+
+    try {
+        const response = await fetch(`${API_URL}/stats`);
+        if (!response.ok) {
+            totalUsersEl.textContent = 'N/A';
+            return;
+        }
+        const stats = await response.json();
+        if (stats.success) {
+            totalUsersEl.textContent = stats.totalUsers;
+        }
+    } catch (error) {
+        console.error("Failed to fetch community stats:", error);
+        totalUsersEl.textContent = 'N/A';
+    }
+};
+
 // --- App Entry Point ---
-document.addEventListener('DOMContentLoaded', initApp);
+document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+    fetchAndDisplayStats(); // Initial fetch
+    setInterval(fetchAndDisplayStats, 30000); // Refresh every 30 seconds
+});
