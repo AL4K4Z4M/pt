@@ -3060,12 +3060,20 @@ const reassignModalElements = () => {
 
     let selectedTraits = new Set();
     traitChips.forEach(chip => {
-        chip.addEventListener('click', () => {
-            chip.classList.toggle('active');
-            const traitValue = chip.dataset.value;
-            if (selectedTraits.has(traitValue)) selectedTraits.delete(traitValue);
-            else selectedTraits.add(traitValue);
+        chip.addEventListener('click', (e) => {
+            const currentChip = e.currentTarget;
+            currentChip.classList.toggle('active');
+            const traitValue = currentChip.dataset.value;
+
+            if (selectedTraits.has(traitValue)) {
+                selectedTraits.delete(traitValue);
+            } else {
+                selectedTraits.add(traitValue);
+            }
             tagsInput.value = Array.from(selectedTraits).join(', ');
+
+            // Defocus the chip to prevent "sticky hover" on mobile devices
+            currentChip.blur();
         });
     });
 
