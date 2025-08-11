@@ -3289,7 +3289,22 @@ function initApp() {
     const contactModal = document.getElementById('contactModal');
     const contactBtn = document.getElementById('contactBtn');
     const closeContactModalBtn = document.getElementById('closeContactModalBtn');
-    contactBtn.addEventListener('click', () => contactModal.classList.remove('hidden'));
+    contactBtn.addEventListener('click', () => {
+        contactModal.classList.remove('hidden');
+        if (authToken && currentUsername) {
+            fetch(`${API_URL}/users/profile`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.user) {
+                    document.getElementById('contact-name').value = data.user.first_name || '';
+                    document.getElementById('contact-email').value = data.user.email || '';
+                }
+            })
+            .catch(error => console.error('Error fetching user profile:', error));
+        }
+    });
     closeContactModalBtn.addEventListener('click', () => contactModal.classList.add('hidden'));
     showPasswordToggle.addEventListener('change', () => {
         const isChecked = showPasswordToggle.checked;
