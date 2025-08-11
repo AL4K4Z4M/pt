@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlateTraits - Contact Us</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="/images/favicon.ico" sizes="any">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @font-face {
+            font-family: 'LicensePlate';
+            src: url('/assets/fonts/LicensePlate-j9eO.ttf') format('truetype');
+        }
+        .font-license-plate {
+            font-family: 'LicensePlate', sans-serif;
+        }
+        .bg-dark-primary { background-color: #121212; }
+        .bg-dark-secondary { background-color: #1e1e1e; }
+        .text-light-primary { color: #ffffff; }
+        .text-light-secondary { color: #b3b3b3; }
+    </style>
+</head>
+<body class="bg-dark-primary text-light-primary min-h-screen flex items-center justify-center p-6">
+
+    <div class="max-w-2xl w-full bg-dark-secondary rounded-2xl shadow-xl p-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold font-license-plate text-blue-400">📬 Contact Us</h2>
+            <a href="home.html" class="text-light-secondary hover:text-light-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </a>
+        </div>
+        <p class="text-light-secondary leading-relaxed mb-6">
+            Have ideas, feedback, or questions? We'd love to hear from you. Please use the form below to get in touch.
+        </p>
+        <form
+            action="https://formspree.io/f/xpwlkgrj"
+            class="grid gap-y-6"
+            target="_top"
+            method="POST"
+        >
+            <div class="flex flex-col gap-y-2">
+                <label
+                    class="block font-medium leading-5 text-light-primary"
+                    for="contact-name"
+                >
+                    Your Name
+                </label>
+                <input
+                    class="h-12 appearance-none rounded-full border-0 px-4 bg-gray-800 text-white outline-none ring-1 ring-inset ring-gray-700 placeholder:text-gray-500 focus-visible:ring-blue-500"
+                    id="contact-name"
+                    name="name"
+                    required
+                />
+            </div>
+            <div class="flex flex-col gap-y-2">
+                <label
+                    class="block font-medium leading-5 text-light-primary"
+                    for="contact-email"
+                >
+                    Email
+                </label>
+                <input
+                    class="h-12 appearance-none rounded-full border-0 px-4 bg-gray-800 text-white outline-none ring-1 ring-inset ring-gray-700 placeholder:text-gray-500 focus-visible:ring-blue-500"
+                    id="contact-email"
+                    name="email"
+                    required
+                />
+            </div>
+            <div class="flex flex-col gap-y-2">
+                <label
+                    class="block font-medium leading-5 text-light-primary"
+                    for="contact-message"
+                >
+                    Message
+                </label>
+                <textarea
+                    class="resize-y appearance-none rounded-xl border-0 px-3 py-2 bg-gray-800 text-white outline-none ring-1 ring-inset ring-gray-700 placeholder:text-gray-500 focus-visible:ring-blue-500"
+                    id="contact-message"
+                    name="message"
+                    required
+                    rows="5"
+                ></textarea>
+            </div>
+            <div class="flex flex-row-reverse gap-x-6">
+                <button
+                    class="cursor-pointer rounded-full bg-blue-600 px-8 py-3 text-lg font-semibold leading-6 text-white transition-colors duration-200 hover:bg-blue-700"
+                    type="submit"
+                >
+                    Submit
+                </button>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>
