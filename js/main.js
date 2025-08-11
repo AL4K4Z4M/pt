@@ -2861,7 +2861,7 @@ const updateAuthUI = () => {
 
         // Initial fetch and set up polling for notifications
         fetchNotifications();
-        setInterval(fetchNotifications, 60000); // Poll every 60 seconds
+        setInterval(fetchNotifications, 15000); // Poll every 15 seconds
 
     } else {
         guestMenu.classList.remove('hidden');
@@ -3326,6 +3326,12 @@ function initApp() {
     showWelcomeModal();
 
     // --- Event Listeners ---
+    document.addEventListener('menuOpened', () => {
+        if (authToken) {
+            fetchNotifications();
+        }
+    });
+
     themeSelector.addEventListener('click', (event) => {
         const selectedTheme = event.target.dataset.theme;
         if (selectedTheme) {
