@@ -23,49 +23,117 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="/images/favicon.ico" sizes="any">
     <!-- Custom Styles (matching home.html theme) -->
+    <script>
+        // This script is placed in the head to prevent a flash of unstyled content.
+        (function() {
+            const theme = localStorage.getItem('theme') || 'system';
+            if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark-theme');
+                document.documentElement.classList.remove('light-theme');
+            } else {
+                document.documentElement.classList.add('light-theme');
+                document.documentElement.classList.remove('dark-theme');
+            }
+        })();
+    </script>
     <style>
+        /* --- 1. General & Typography --- */
         body {
             font-family: 'Inter', sans-serif;
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
 
-        /* Define the custom font */
         @font-face {
             font-family: 'LicensePlate';
             src: url('/assets/fonts/LicensePlate-j9eO.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
         }
 
-        /* Apply custom font to titles and headers */
         .font-license-plate {
             font-family: 'LicensePlate', sans-serif;
         }
 
-        /* Default (Dark) Theme Colors */
-        .bg-dark-primary { background-color: #121212; }
-        .bg-dark-secondary { background-color: #1e1e1e; }
-        .text-light-primary { color: #ffffff; }
-        .text-light-secondary { color: #b3b3b3; }
-        .text-light-tertiary { color: #808080; }
+        /* --- 2. Theme Definitions --- */
+        /* Light Theme */
+        .light-theme {
+            --bg-primary: #e5e7eb; /* gray-200 */
+            --bg-secondary: #f9fafb; /* gray-50 */
+            --bg-tertiary: #f3f4f6; /* gray-100 */
+            --border-color: #d1d5db; /* gray-300 */
+            --text-primary: #1f2937; /* gray-800 */
+            --text-secondary: #4b5563; /* gray-600 */
+            --text-tertiary: #6b7280; /* gray-500 */
+            --text-link: #2563eb; /* blue-600 */
+            --btn-primary-bg: #4f46e5; /* indigo-600 */
+            --btn-primary-hover-bg: #4338ca; /* indigo-700 */
 
-        /* Light Mode Overrides (if needed for this page) */
-        body.light-mode {
-            background-color: #f0f2f5;
+            /* Contact form specific variables */
+            --color-text-default: #1f2937;
+            --color-text-muted: #6b7280;
+            --color-border-default: #d1d5db;
+            --color-border-active: #4f46e5;
+            --color-primary: #4f46e5;
+            --color-primary-active: #4338ca;
+            --color-highlight: rgba(79, 70, 229, 0.5);
         }
-        body.light-mode .bg-dark-primary { background-color: #f0f2f5; }
-        body.light-mode .bg-dark-secondary { background-color: #ffffff; }
-        body.light-mode .text-light-primary { color: #1a202c; }
-        body.light-mode .text-light-secondary { color: #4a5568; }
-        body.light-mode .text-light-tertiary { color: #718096; }
+
+        /* Dark Theme */
+        .dark-theme {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-tertiary: #2a2a2a;
+            --border-color: #3a3a3a;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-tertiary: #808080;
+            --text-link: #60a5fa; /* blue-400 */
+            --btn-primary-bg: #6366f1; /* indigo-500 */
+            --btn-primary-hover-bg: #4f46e5; /* indigo-600 */
+
+            /* Contact form specific variables */
+            --color-text-default: #ffffff;
+            --color-text-muted: #b3b3b3;
+            --color-border-default: #3a3a3a;
+            --color-border-active: #6366f1;
+            --color-primary: #6366f1;
+            --color-primary-active: #4f46e5;
+            --color-highlight: rgba(99, 102, 241, 0.5);
+        }
+
+        /* Applying variables to generic classes for cross-page compatibility */
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        .bg-primary { background-color: var(--bg-primary); }
+        .bg-secondary { background-color: var(--bg-secondary); }
+        .bg-tertiary { background-color: var(--bg-tertiary); }
+        .text-primary { color: var(--text-primary); }
+        .text-secondary { color: var(--text-secondary); }
+        .text-tertiary { color: var(--text-tertiary); }
+        .border-color { border-color: var(--border-color); }
+
+        /* Form input styling */
+        .form-input {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .form-input::placeholder {
+            color: var(--text-tertiary);
+        }
+        .form-input:focus {
+            border-color: var(--text-link);
+            --tw-ring-color: var(--text-link);
+        }
     </style>
 </head>
-<body class="bg-dark-primary text-light-primary min-h-screen p-6">
+<body class="bg-primary text-primary min-h-screen p-6">
 
-    <div class="max-w-3xl mx-auto bg-dark-secondary rounded-2xl shadow-xl p-8">
-        <h1 class="text-3xl font-bold text-blue-400 mb-6 text-center font-license-plate">📬 Contact Us</h1>
+    <div class="max-w-3xl mx-auto bg-secondary rounded-2xl shadow-xl p-8">
+        <h1 class="text-3xl font-bold text-link mb-6 text-center font-license-plate">📬 Contact Us</h1>
 
         <section class="mb-8">
-            <p class="text-light-secondary leading-relaxed">
+            <p class="text-secondary leading-relaxed">
                 Have ideas, feedback, or questions? We'd love to hear from you. Please use the form below to get in touch.
             </p>
         </section>
@@ -78,13 +146,13 @@
         >
             <div class="flex flex-col gap-y-2">
                 <label
-                    class="block font-[family-name:--font-family-display] leading-5 text-[--color-text-default]"
+                    class="block font-medium leading-5 text-primary"
                     for="name"
                 >
                     Your Name
                 </label>
                 <input
-                    class="h-12 appearance-none rounded-full border-0 px-4 text-[--color-text-default] outline-none ring-1 ring-inset ring-[--color-border-default] placeholder:text-[--color-text-muted] focus-visible:ring-[--color-border-active]"
+                    class="h-12 appearance-none rounded-full border-0 px-4 bg-tertiary text-primary outline-none ring-1 ring-inset ring-border-color placeholder:text-tertiary focus-visible:ring-text-link"
                     id="name"
                     name="name"
                     required
@@ -92,41 +160,45 @@
             </div>
             <div class="flex flex-col gap-y-2">
                 <label
-                    class="block font-[family-name:--font-family-display] leading-5 text-[--color-text-default]"
+                    class="block font-medium leading-5 text-primary"
                     for="email"
                 >
                     Email
                 </label>
                 <input
-                    class="h-12 appearance-none rounded-full border-0 px-4 text-[--color-text-default] outline-none ring-1 ring-inset ring-[--color-border-default] placeholder:text-[--color-text-muted] focus-visible:ring-[--color-border-active]"
+                    class="h-12 appearance-none rounded-full border-0 px-4 bg-tertiary text-primary outline-none ring-1 ring-inset ring-border-color placeholder:text-tertiary focus-visible:ring-text-link"
                     id="email"
                     name="email"
                     required
                 />
-                <p class="block leading-5 text-[--color-text-muted]">
+                <p class="block leading-5 text-secondary">
                     This will help me respond to your query via an email.
                 </p>
             </div>
             <div class="flex flex-col gap-y-2">
                 <label
-                    class="block font-[family-name:--font-family-display] leading-5 text-[--color-text-default]"
+                    class="block font-medium leading-5 text-primary"
                     for="message"
                 >
                     Message
                 </label>
                 <textarea
-                    class="resize-y appearance-none rounded-xl border-0 px-3 py-2 text-[--color-text-default] outline-none ring-1 ring-inset ring-[--color-border-default] placeholder:text-[--color-text-muted] focus-visible:ring-[--color-border-active]"
+                    class="resize-y appearance-none rounded-xl border-0 px-3 py-2 bg-tertiary text-primary outline-none ring-1 ring-inset ring-border-color placeholder:text-tertiary focus-visible:ring-text-link"
                     id="message"
                     name="message"
                     required
+                    rows="5"
                 ></textarea>
-                <p class="block leading-5 text-[--color-text-muted]">
+                <p class="block leading-5 text-secondary">
                     What would you like to discuss?
                 </p>
             </div>
             <div class="flex flex-row-reverse gap-x-6">
                 <button
-                    class="cursor-pointer rounded-full bg-[--color-primary] px-8 py-3 text-lg font-semibold leading-6 text-white transition-colors duration-200 hover:bg-[--color-primary-active] focus-visible:bg-[--color-primary-active] focus-visible:outline focus-visible:outline-4 focus-visible:outline-[--color-highlight]"
+                    class="cursor-pointer rounded-full px-8 py-3 text-lg font-semibold leading-6 text-white transition-colors duration-200"
+                    style="background-color: var(--btn-primary-bg);"
+                    onmouseover="this.style.backgroundColor='var(--btn-primary-hover-bg)'"
+                    onmouseout="this.style.backgroundColor='var(--btn-primary-bg)'"
                     type="submit"
                 >
                     Submit
@@ -144,6 +216,8 @@
         </div>
     </div>
 
+    <script src="js/utils.js" defer></script>
+    <script src="js/main.js" defer></script>
     <script>
         const API_URL = 'https://platetraits.com/api';
         const authToken = localStorage.getItem('token');
