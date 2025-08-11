@@ -19,11 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (nameInput && user.first_name) {
                 nameInput.value = user.first_name;
-                nameInput.readOnly = true;
+                nameInput.disabled = true;
             }
             if (emailInput && user.email) {
                 emailInput.value = user.email;
-                emailInput.readOnly = true;
+                emailInput.disabled = true;
             }
         })
         .catch(error => {
