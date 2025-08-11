@@ -3354,7 +3354,11 @@ function initApp() {
                 authMessage.textContent = 'Login successful!';
                 authMessage.className = 'text-center text-green-500';
                 await fetchUserVotes();
-                setTimeout(() => { authModal.classList.add('hidden'); updateAuthUI(); }, 500);
+                setTimeout(() => {
+                    authModal.classList.add('hidden');
+                    updateAuthUI();
+                    closeMenu();
+                }, 500);
             } else {
                 authMessage.textContent = 'Registration successful! Please log in.';
                 authMessage.className = 'text-center text-green-500';

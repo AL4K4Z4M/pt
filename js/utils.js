@@ -31,3 +31,21 @@ async function handleApiError(response, messageElement) {
     messageElement.textContent = errorMessage;
     messageElement.className = 'text-center text-sm mt-4 text-red-500'; // Standard error styling
 }
+
+function openMenu() {
+    const sideMenu = document.getElementById('side-menu');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    if (sideMenu && sidebarOverlay) {
+        sideMenu.classList.remove('-translate-x-full');
+        sidebarOverlay.classList.remove('hidden');
+    }
+}
+
+function closeMenu() {
+    const sideMenu = document.getElementById('side-menu');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    if (sideMenu && sidebarOverlay) {
+        sideMenu.classList.add('-translate-x-full');
+        sidebarOverlay.classList.add('hidden');
+    }
+}
