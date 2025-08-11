@@ -2780,8 +2780,9 @@ const updateAuthUI = () => {
     const addReviewBtn = document.getElementById('addReviewBtn');
     const adminDashboardBtn = document.getElementById('adminDashboardBtn');
 
+    const guestMenu = document.getElementById('guest-menu');
     if (authToken) {
-        loginBtn.classList.add('hidden');
+        guestMenu.classList.add('hidden');
         userInfo.classList.remove('hidden');
         usernameDisplay.textContent = currentUsername;
         addReviewBtn.disabled = false;
@@ -2790,7 +2791,7 @@ const updateAuthUI = () => {
             adminDashboardBtn.style.display = isAdmin ? 'flex' : 'none';
         }
     } else {
-        loginBtn.classList.remove('hidden');
+        guestMenu.classList.remove('hidden');
         userInfo.classList.add('hidden');
         addReviewBtn.disabled = true;
         if (adminDashboardBtn) {
@@ -3284,6 +3285,28 @@ function initApp() {
     logoutBtn.addEventListener('click', handleLogout);
     closeAuthModalBtn.addEventListener('click', () => authModal.classList.add('hidden'));
     switchAuthModeBtn.addEventListener('click', switchAuthMode);
+
+    // Contact Modal
+    const contactModal = document.getElementById('contactModal');
+    const contactBtn = document.getElementById('contactBtn');
+    const closeContactModalBtn = document.getElementById('closeContactModalBtn');
+    contactBtn.addEventListener('click', () => {
+        contactModal.classList.remove('hidden');
+        if (authToken && currentUsername) {
+            fetch(`${API_URL}/users/profile`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.user) {
+                    document.getElementById('contact-name').value = data.user.first_name || '';
+                    document.getElementById('contact-email').value = data.user.email || '';
+                }
+            })
+            .catch(error => console.error('Error fetching user profile:', error));
+        }
+    });
+    closeContactModalBtn.addEventListener('click', () => contactModal.classList.add('hidden'));
     showPasswordToggle.addEventListener('change', () => {
         const isChecked = showPasswordToggle.checked;
         passwordInput.type = isChecked ? 'text' : 'password';
