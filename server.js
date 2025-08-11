@@ -53,6 +53,10 @@ const requireAdmin = (req, res, next) => {
 };
 
 app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'home.html'));
+});
+
+app.get('/welcome', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
