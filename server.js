@@ -688,8 +688,8 @@ app.post('/api/reviews/:reviewId/vote', authenticateToken, async (req, res) => {
                             const voterUsername = voterRows.length > 0 ? voterRows[0].username : 'Someone';
                             const message = `${voterUsername} just gave your review for ${plateNumber} an ${voteType === 'up' ? 'upvote' : 'downvote'}!`;
                             await db.query(
-                                'INSERT INTO notifications (user_id, message) VALUES (?, ?)',
-                                [reviewAuthorId, message]
+                                'INSERT INTO notifications (user_id, type, content, related_id) VALUES (?, ?, ?, ?)',
+                                [reviewAuthorId, 'vote', message, reviewId]
                             );
                         }
                     }

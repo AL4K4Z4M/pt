@@ -2495,7 +2495,7 @@ const renderNotifications = (notifications) => {
         const notificationEl = document.createElement('div');
         notificationEl.className = `p-3 mb-2 rounded-lg ${n.is_read ? 'bg-tertiary' : 'bg-blue-900/50'}`;
         notificationEl.innerHTML = `
-            <p class="text-primary">${n.message}</p>
+            <p class="text-primary">${n.content}</p>
             <p class="text-xs text-tertiary text-right">${new Date(n.created_at).toLocaleString()}</p>
         `;
         container.appendChild(notificationEl);
