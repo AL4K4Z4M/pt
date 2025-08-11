@@ -675,22 +675,48 @@ app.post('/api/reviews/:reviewId/vote', authenticateToken, async (req, res) => {
                     }
                 }
 
-                // Notification logic for any vote type other than 'none'
-                if (voteType !== 'none') {
-                    const [reviewRows] = await db.query('SELECT user_id, plate_number FROM reviews WHERE id = ?', [reviewId]);
-                    if (reviewRows.length > 0) {
-                        const reviewAuthorId = reviewRows[0].user_id;
-                        const plateNumber = reviewRows[0].plate_number.toUpperCase();
+                // Notification logic
+                const [reviewRows] = await db.query('SELECT user_id, plate_number FROM reviews WHERE id = ?', [reviewId]);
+                if (reviewRows.length > 0) {
+                    const reviewAuthorId = reviewRows[0].user_id;
+                    const plateNumber = reviewRows[0].plate_number.toUpperCase();
 
-                        // Avoid notifying user for their own actions
-                        if (reviewAuthorId !== userId) {
-                            const [voterRows] = await db.query('SELECT username FROM users WHERE id = ?', [userId]);
-                            const voterUsername = voterRows.length > 0 ? voterRows[0].username : 'Someone';
-                            const message = `${voterUsername} just gave your review for ${plateNumber} an ${voteType === 'up' ? 'upvote' : 'downvote'}!`;
+                    if (reviewAuthorId !== userId) {
+                        const [voterRows] = await db.query('SELECT username FROM users WHERE id = ?', [userId]);
+                        const voterUsername = voterRows.length > 0 ? voterRows[0].username : 'Someone';
+
+                        // This is a simplified check. A more robust solution might involve a dedicated `actor_id` column.
+                        const likeContent = `${voterUsername}%${plateNumber}%`;
+
+                        if (voteType === 'none') {
+                            // If vote is removed, delete the notification
                             await db.query(
-                                'INSERT INTO notifications (user_id, type, content, related_id) VALUES (?, ?, ?, ?)',
-                                [reviewAuthorId, 'vote', message, reviewId]
+                                'DELETE FROM notifications WHERE user_id = ? AND type = ? AND related_id = ? AND content LIKE ?',
+                                [reviewAuthorId, 'vote', reviewId, likeContent]
                             );
+                        } else {
+                            // Check for an existing notification from this voter for this review
+                            const [existingNotifications] = await db.query(
+                                'SELECT id FROM notifications WHERE user_id = ? AND type = ? AND related_id = ? AND content LIKE ?',
+                                [reviewAuthorId, 'vote', reviewId, likeContent]
+                            );
+
+                            const message = `${voterUsername} just gave your review for ${plateNumber} an ${voteType === 'up' ? 'upvote' : 'downvote'}!`;
+
+                            if (existingNotifications.length > 0) {
+                                // Update the existing notification to reflect the new vote
+                                const notificationId = existingNotifications[0].id;
+                                await db.query(
+                                    'UPDATE notifications SET content = ?, created_at = CURRENT_TIMESTAMP, is_read = 0 WHERE id = ?',
+                                    [message, notificationId]
+                                );
+                            } else {
+                                // No existing notification, so insert a new one
+                                await db.query(
+                                    'INSERT INTO notifications (user_id, type, content, related_id) VALUES (?, ?, ?, ?)',
+                                    [reviewAuthorId, 'vote', message, reviewId]
+                                );
+                            }
                         }
                     }
                 }
