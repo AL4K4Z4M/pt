@@ -2780,8 +2780,9 @@ const updateAuthUI = () => {
     const addReviewBtn = document.getElementById('addReviewBtn');
     const adminDashboardBtn = document.getElementById('adminDashboardBtn');
 
+    const guestMenu = document.getElementById('guest-menu');
     if (authToken) {
-        loginBtn.classList.add('hidden');
+        guestMenu.classList.add('hidden');
         userInfo.classList.remove('hidden');
         usernameDisplay.textContent = currentUsername;
         addReviewBtn.disabled = false;
@@ -2790,7 +2791,7 @@ const updateAuthUI = () => {
             adminDashboardBtn.style.display = isAdmin ? 'flex' : 'none';
         }
     } else {
-        loginBtn.classList.remove('hidden');
+        guestMenu.classList.remove('hidden');
         userInfo.classList.add('hidden');
         addReviewBtn.disabled = true;
         if (adminDashboardBtn) {
