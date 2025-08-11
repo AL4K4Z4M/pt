@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlateTraits - About Us</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="/images/favicon.ico" sizes="any">
+    <!-- Custom Styles (matching home.html theme) -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Define the custom font */
+        @font-face {
+            font-family: 'LicensePlate';
+            src: url('/assets/fonts/LicensePlate-j9eO.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* Apply custom font to titles and headers */
+        .font-license-plate {
+            font-family: 'LicensePlate', sans-serif;
+        }
+
+        /* Default (Dark) Theme Colors */
+        .bg-dark-primary { background-color: #121212; }
+        .bg-dark-secondary { background-color: #1e1e1e; }
+        .text-light-primary { color: #ffffff; }
+        .text-light-secondary { color: #b3b3b3; }
+        .text-light-tertiary { color: #808080; }
+
+        /* Light Mode Overrides (if needed for this page) */
+        body.light-mode {
+            background-color: #f0f2f5;
+        }
+        body.light-mode .bg-dark-primary { background-color: #f0f2f5; }
+        body.light-mode .bg-dark-secondary { background-color: #ffffff; }
+        body.light-mode .text-light-primary { color: #1a202c; }
+        body.light-mode .text-light-secondary { color: #4a5568; }
+        body.light-mode .text-light-tertiary { color: #718096; }
+    </style>
+</head>
+<body class="bg-dark-primary text-light-primary min-h-screen p-6">
+
+    <div class="max-w-3xl mx-auto bg-dark-secondary rounded-2xl shadow-xl p-8">
+        <h1 class="text-3xl font-bold text-blue-400 mb-6 text-center font-license-plate">🤔 About PlateTraits</h1>
+        <p class="text-light-secondary text-sm mb-6 text-center">Last Updated: August 11, 2025</p>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold text-light-primary mb-3 font-license-plate">Our Mission</h2>
+            <p class="text-light-secondary leading-relaxed">
+                At PlateTraits, our mission is to create a community-driven platform for anonymous, lighthearted feedback on driving behavior. We believe that a little bit of feedback can go a long way in making the roads a more pleasant and predictable place for everyone. We're not about shaming, we're about sharing quick, simple, and constructive observations.
+            </p>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold text-light-primary mb-3 font-license-plate">What We're Building</h2>
+            <p class="text-light-secondary leading-relaxed">
+                PlateTraits is a digital space where you can leave a note about a license plate. Did someone let you merge with a friendly wave? Give them a "Courteous" trait. Did someone cut you off? A "Needs Improvement" might be in order. The idea is to keep it simple, safe, and respectful.
+            </p>
+            <p class="text-light-secondary leading-relaxed mt-4">
+                We are focused on:
+            </p>
+            <ul class="list-disc list-inside text-light-secondary leading-relaxed mb-4 pl-4 mt-2">
+                <li><strong>Anonymity:</strong> We never ask for or store your personal information beyond a username and email.</li>
+                <li><strong>Safety:</strong> Our service is designed to be used *after* your drive is complete. Never use PlateTraits while operating a vehicle.</li>
+                <li><strong>Simplicity:</strong> Pre-set traits and simple forms make leaving feedback quick and easy.</li>
+            </ul>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold text-light-primary mb-3 font-license-plate">The Team</h2>
+            <p class="text-light-secondary leading-relaxed">
+                We're a small, independent team of developers and driving enthusiasts who thought, "What if there was a Yelp for license plates?" This project is a labor of love, and we're excited to see where the community takes it. We're constantly working on new features and improvements.
+            </p>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold text-light-primary mb-3 font-license-plate">Get In Touch</h2>
+            <p class="text-light-secondary leading-relaxed">
+                Have ideas, feedback, or questions? We'd love to hear from you. You can reach us at <a href="mailto:august@platetraits.com" class="text-blue-400 hover:underline">august@platetraits.com</a>.
+            </p>
+        </section>
+
+        <div class="text-center mt-8">
+            <a href="home.html" class="inline-block bg-gray-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-300">
+                Back to Home
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
