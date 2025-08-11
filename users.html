@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8HH3ZWCF88"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-8HH3ZWCF88');
+    </script>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlateTraits - Users</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="js/utils.js" defer></script>
+    <script src="js/users.js" defer></script>
+    <link rel="icon" href="/images/favicon.ico" sizes="any">
+    <script>
+        // This script is placed in the head to prevent a flash of unstyled content.
+        (function() {
+            const theme = localStorage.getItem('theme') || 'system';
+            if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark-theme');
+                document.documentElement.classList.remove('light-theme');
+            } else {
+                document.documentElement.classList.add('light-theme');
+                document.documentElement.classList.remove('dark-theme');
+            }
+        })();
+    </script>
+<style>
+    /* --- 1. General & Typography --- */
+    body {
+        font-family: 'Inter', sans-serif;
+        transition: background-color 0.5s ease, color 0.5s ease;
+    }
+    @font-face {
+        font-family: 'LicensePlate';
+        src: url('/assets/fonts/LicensePlate-j9eO.ttf') format('truetype');
+    }
+    .font-license-plate {
+        font-family: 'LicensePlate', sans-serif;
+    }
+    /* --- 2. Theme Definitions --- */
+    /* Light Theme */
+    .light-theme .bg-primary { background-color: #e5e7eb; } /* gray-200 */
+    .light-theme .bg-secondary { background-color: #f9fafb; } /* gray-50 */
+    .light-theme .bg-tertiary { background-color: #f3f4f6; } /* gray-100 */
+    .light-theme .border-color { border-color: #d1d5db; } /* gray-300 */
+    .light-theme .text-primary { color: #1f2937; } /* gray-800 */
+    .light-theme .text-secondary { color: #4b5563; } /* gray-600 */
+    .light-theme .text-tertiary { color: #6b7280; } /* gray-500 */
+    .light-theme .shadow-color { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
+    .light-theme .text-link { color: #2563eb; } /* blue-600 */
+    .light-theme .text-destructive { color: #dc2626; } /* red-600 */
+    .light-theme .btn-primary { background-color: #4f46e5; color: #ffffff; } /* indigo-600 */
+    .light-theme .btn-primary:hover { background-color: #4338ca; } /* indigo-700 */
+    .light-theme .btn-secondary { background-color: #d1d5db; color: #1f2937; } /* gray-300, gray-800 */
+    .light-theme .btn-secondary:hover { background-color: #9ca3af; } /* gray-400 */
+    .light-theme .form-input:focus, .light-theme .form-select:focus { --tw-ring-color: #4f46e5; border-color: #4f46e5; }
+    .light-theme .form-checkbox { color: #4f46e5; } /* indigo-600 */
+    .light-theme .theme-btn.active { background-color: #4f46e5; color: #ffffff; border-color: #4f46e5; }
+    .light-theme .theme-btn:not(.active) { background-color: #e5e7eb; color: #4b5563; }
+    /* Dark Theme (Default) */
+    .dark-theme .bg-primary { background-color: #121212; }
+    .dark-theme .bg-secondary { background-color: #1e1e1e; }
+    .dark-theme .bg-tertiary { background-color: #2a2a2a; }
+    .dark-theme .border-color { border-color: #3a3a3a; }
+    .dark-theme .text-primary { color: #ffffff; }
+    .dark-theme .text-secondary { color: #b3b3b3; }
+    .dark-theme .text-tertiary { color: #808080; }
+    .dark-theme .shadow-color { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+    .dark-theme .text-link { color: #60a5fa; } /* blue-400 */
+    .dark-theme .text-destructive { color: #f87171; } /* red-400 */
+    .dark-theme .btn-primary { background-color: #6366f1; color: #ffffff; } /* indigo-500 */
+    .dark-theme .btn-primary:hover { background-color: #4f46e5; } /* indigo-600 */
+    .dark-theme .btn-secondary { background-color: #3a3a3a; color: #e5e7eb; } /* custom gray, gray-200 */
+    .dark-theme .btn-secondary:hover { background-color: #4b5563; } /* gray-600 */
+    .dark-theme .form-input:focus, .dark-theme .form-select:focus { --tw-ring-color: #6366f1; border-color: #6366f1; }
+    .dark-theme .form-checkbox { color: #6366f1; } /* indigo-500 */
+    .dark-theme .theme-btn.active { background-color: #6366f1; color: #ffffff; border-color: #6366f1; }
+    .dark-theme .theme-btn:not(.active) { background-color: #2a2a2a; color: #b3b3b3; }
+    /* --- 3. Component Styles --- */
+    /* Utility */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .btn { font-weight: 700; padding: 0.75rem 1rem; border-radius: 0.5rem; transition: all 0.5s ease; }
+    /* Form Elements */
+    .form-input, .form-select {
+        width: 100%;
+        margin-top: 0.25rem;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        transition: all 0.5s ease;
+    }
+    .form-input, .form-select {
+        background-color: var(--bg-tertiary, #f3f4f6);
+        color: var(--text-primary, #1f2937);
+        border: 1px solid var(--border-color, #d1d5db);
+    }
+    .form-input::placeholder { color: var(--text-tertiary, #6b7280); }
+    .form-input:focus, .form-select:focus {
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+        box-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+    }
+</style>
+</head>
+<body class="bg-primary text-primary overflow-hidden">
+    <div class="h-screen flex flex-col">
+        <main class="flex-1 flex flex-col bg-secondary shadow-color overflow-hidden">
+             <div class="bg-secondary text-primary flex items-center justify-between p-1 shadow-md">
+                <a href="home.html" class="p-2 focus:outline-none rounded-md hover:bg-tertiary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </a>
+                <div class="text-2xl font-bold font-license-plate tracking-wider">
+                    Users
+                </div>
+                 <div class="w-8"></div>
+            </div>
+            <div class="flex-grow overflow-y-auto no-scrollbar px-4 pb-4">
+                <div id="usersContainer" class="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4">
+                    <div id="loadingUsers" class="text-center py-10"><p class="text-secondary">Loading users...</p></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

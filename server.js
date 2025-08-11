@@ -261,6 +261,17 @@ app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
     }
 });
 
+// NEW: Public-facing endpoint to get a list of all users
+app.get('/api/users/list', authenticateToken, async (req, res) => {
+    try {
+        const [users] = await db.query('SELECT id, username, created_at FROM users ORDER BY created_at DESC');
+        res.json(users);
+    } catch (err) {
+        console.error('❌ Failed to fetch public user list:', err);
+        res.status(500).json({ success: false, message: 'Database error while fetching user list.' });
+    }
+});
+
 // NEW: Endpoint for an admin to update a user's information
 app.put('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res) => {
     const { id } = req.params;

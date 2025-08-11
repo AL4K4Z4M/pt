@@ -3544,6 +3544,13 @@ function initApp() {
 
     // --- Initial Data Fetch ---
     fetchReviews();
+
+    // Check for username in URL to show profile
+    const urlParams = new URLSearchParams(window.location.search);
+    const usernameFromUrl = urlParams.get('username');
+    if (usernameFromUrl) {
+        showUserProfile(usernameFromUrl);
+    }
 }
 
 /**
