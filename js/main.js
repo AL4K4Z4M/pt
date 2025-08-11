@@ -3284,6 +3284,13 @@ function initApp() {
     logoutBtn.addEventListener('click', handleLogout);
     closeAuthModalBtn.addEventListener('click', () => authModal.classList.add('hidden'));
     switchAuthModeBtn.addEventListener('click', switchAuthMode);
+
+    // Contact Modal
+    const contactModal = document.getElementById('contactModal');
+    const contactBtn = document.getElementById('contactBtn');
+    const closeContactModalBtn = document.getElementById('closeContactModalBtn');
+    contactBtn.addEventListener('click', () => contactModal.classList.remove('hidden'));
+    closeContactModalBtn.addEventListener('click', () => contactModal.classList.add('hidden'));
     showPasswordToggle.addEventListener('change', () => {
         const isChecked = showPasswordToggle.checked;
         passwordInput.type = isChecked ? 'text' : 'password';

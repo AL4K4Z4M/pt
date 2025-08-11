@@ -311,10 +311,10 @@
                             <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                             <span>About Us</span>
                         </a>
-                        <a href="contact.html" class="w-full flex items-center space-x-3 text-secondary hover:text-primary hover:bg-tertiary rounded-md p-2 transition-colors duration-200">
+                        <button id="contactBtn" class="w-full flex items-center space-x-3 text-secondary hover:text-primary hover:bg-tertiary rounded-md p-2 transition-colors duration-200">
                             <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                             <span>Contact</span>
-                        </a>
+                        </button>
                         <a id="adminDashboardBtn" href="admin.html" class="w-full flex items-center space-x-3 text-secondary hover:text-primary hover:bg-tertiary rounded-md p-2 transition-colors duration-200" style="display: none;">
                             <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                             <span>Admin Dashboard</span>
@@ -513,6 +513,78 @@
                         <button id="backToProfileBtn" class="btn btn-secondary !px-4 !py-2">Back to Profile</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="contactModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-secondary text-primary rounded-2xl shadow-xl w-11/12 lg:w-1/2 max-w-2xl p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold font-license-plate">📬 Contact Us</h2>
+                <button id="closeContactModalBtn" class="text-secondary hover:text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <p class="text-secondary leading-relaxed mb-6">
+                Have ideas, feedback, or questions? We'd love to hear from you. Please use the form below to get in touch.
+            </p>
+            <form
+                action="https://formspree.io/f/xpwlkgrj"
+                class="grid gap-y-6"
+                target="_top"
+                method="POST"
+            >
+                <div class="flex flex-col gap-y-2">
+                    <label
+                        class="block font-medium leading-5 text-primary"
+                        for="contact-name"
+                    >
+                        Your Name
+                    </label>
+                    <input
+                        class="h-12 appearance-none rounded-full border-0 px-4 bg-tertiary text-primary outline-none ring-1 ring-inset ring-border-color placeholder:text-tertiary focus-visible:ring-text-link"
+                        id="contact-name"
+                        name="name"
+                        required
+                    />
+                </div>
+                <div class="flex flex-col gap-y-2">
+                    <label
+                        class="block font-medium leading-5 text-primary"
+                        for="contact-email"
+                    >
+                        Email
+                    </label>
+                    <input
+                        class="h-12 appearance-none rounded-full border-0 px-4 bg-tertiary text-primary outline-none ring-1 ring-inset ring-border-color placeholder:text-tertiary focus-visible:ring-text-link"
+                        id="contact-email"
+                        name="email"
+                        required
+                    />
+                </div>
+                <div class="flex flex-col gap-y-2">
+                    <label
+                        class="block font-medium leading-5 text-primary"
+                        for="contact-message"
+                    >
+                        Message
+                    </label>
+                    <textarea
+                        class="resize-y appearance-none rounded-xl border-0 px-3 py-2 bg-tertiary text-primary outline-none ring-1 ring-inset ring-border-color placeholder:text-tertiary focus-visible:ring-text-link"
+                        id="contact-message"
+                        name="message"
+                        required
+                        rows="5"
+                    ></textarea>
+                </div>
+                <div class="flex flex-row-reverse gap-x-6">
+                    <button
+                        class="cursor-pointer rounded-full btn btn-primary px-8 py-3 text-lg font-semibold leading-6 text-white transition-colors duration-200"
+                        type="submit"
+                    >
+                        Submit
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
