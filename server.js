@@ -52,7 +52,13 @@ const requireAdmin = (req, res, next) => {
     next();
 };
 
-app.get('/', (req, res) => res.send('PlateTraits backend is running.'));
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/contact', (req, res) => {
+    res.sendFile(path.join(__dirname, 'contact.html'));
+});
 
 // Endpoint for user registration
 app.post('/api/users/register', async (req, res) => {

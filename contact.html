@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8HH3ZWCF88"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-8HH3ZWCF88');
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlateTraits - Contact Us</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="/images/favicon.ico" sizes="any">
+    <!-- Custom Styles (matching home.html theme) -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Define the custom font */
+        @font-face {
+            font-family: 'LicensePlate';
+            src: url('/assets/fonts/LicensePlate-j9eO.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* Apply custom font to titles and headers */
+        .font-license-plate {
+            font-family: 'LicensePlate', sans-serif;
+        }
+
+        /* Default (Dark) Theme Colors */
+        .bg-dark-primary { background-color: #121212; }
+        .bg-dark-secondary { background-color: #1e1e1e; }
+        .text-light-primary { color: #ffffff; }
+        .text-light-secondary { color: #b3b3b3; }
+        .text-light-tertiary { color: #808080; }
+
+        /* Light Mode Overrides (if needed for this page) */
+        body.light-mode {
+            background-color: #f0f2f5;
+        }
+        body.light-mode .bg-dark-primary { background-color: #f0f2f5; }
+        body.light-mode .bg-dark-secondary { background-color: #ffffff; }
+        body.light-mode .text-light-primary { color: #1a202c; }
+        body.light-mode .text-light-secondary { color: #4a5568; }
+        body.light-mode .text-light-tertiary { color: #718096; }
+    </style>
+</head>
+<body class="bg-dark-primary text-light-primary min-h-screen p-6">
+
+    <div class="max-w-3xl mx-auto bg-dark-secondary rounded-2xl shadow-xl p-8">
+        <h1 class="text-3xl font-bold text-blue-400 mb-6 text-center font-license-plate">📬 Contact Us</h1>
+
+        <section class="mb-8">
+            <p class="text-light-secondary leading-relaxed">
+                Have ideas, feedback, or questions? We'd love to hear from you. Please use the form below to get in touch.
+            </p>
+        </section>
+
+        <form
+            action="https://formspree.io/f/xpwlkgrj"
+            method="POST"
+            class="space-y-6"
+        >
+            <div>
+                <label for="email" class="block text-sm font-medium text-light-secondary">
+                    Your email:
+                </label>
+                <input id="email" type="email" name="email" class="mt-1 block w-full bg-dark-primary border border-gray-600 rounded-md shadow-sm py-2 px-3 text-light-primary focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div>
+                <label for="message" class="block text-sm font-medium text-light-secondary">
+                    Your message:
+                </label>
+                <textarea id="message" name="message" rows="4" class="mt-1 block w-full bg-dark-primary border border-gray-600 rounded-md shadow-sm py-2 px-3 text-light-primary focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+            </div>
+            <div class="text-center">
+                <button type="submit" class="inline-block bg-blue-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300">
+                    Send
+                </button>
+            </div>
+        </form>
+
+        <div class="text-center mt-8 space-x-4">
+            <a href="home.html" class="inline-block bg-gray-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-300">
+                Back to Home
+            </a>
+            <a href="index.html" class="inline-block bg-gray-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-300">
+                Back to Welcome Page
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
