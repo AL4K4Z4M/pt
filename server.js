@@ -657,29 +657,45 @@ app.post('/api/reviews/:reviewId/vote', authenticateToken, async (req, res) => {
 
         res.status(200).json({ success: true, message: 'Vote recorded.' });
 
+        // Asynchronously handle badge and notification logic without holding up the response
         (async () => {
-            if (voteType === 'up') {
-                try {
+            try {
+                // Badge logic for upvoting
+                if (voteType === 'up') {
                     const [upvoteCountRows] = await db.query('SELECT COUNT(*) as upvoteCount FROM review_votes WHERE user_id = ? AND vote_type = "up"', [userId]);
                     const upvoteCount = upvoteCountRows[0].upvoteCount;
-
                     const upvoterBadgeChecks = [
-                        { count: 5, id: '0500' },
-                        { count: 10, id: '0501' },
-                        { count: 50, id: '0502' },
-                        { count: 100, id: '0503' },
-                        { count: 500, id: '0504' },
-                        { count: 1000, id: '0505' }
+                        { count: 5, id: '0500' }, { count: 10, id: '0501' }, { count: 50, id: '0502' },
+                        { count: 100, id: '0503' }, { count: 500, id: '0504' }, { count: 1000, id: '0505' }
                     ];
-
                     for (const check of upvoterBadgeChecks) {
                         if (upvoteCount >= check.count) {
                             await db.query('INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)', [userId, check.id]);
                         }
                     }
-                } catch (badgeError) {
-                    console.error('❌ Upvoter badge awarding failed after voting:', badgeError);
                 }
+
+                // Notification logic for any vote type other than 'none'
+                if (voteType !== 'none') {
+                    const [reviewRows] = await db.query('SELECT user_id, plate_number FROM reviews WHERE id = ?', [reviewId]);
+                    if (reviewRows.length > 0) {
+                        const reviewAuthorId = reviewRows[0].user_id;
+                        const plateNumber = reviewRows[0].plate_number.toUpperCase();
+
+                        // Avoid notifying user for their own actions
+                        if (reviewAuthorId !== userId) {
+                            const [voterRows] = await db.query('SELECT username FROM users WHERE id = ?', [userId]);
+                            const voterUsername = voterRows.length > 0 ? voterRows[0].username : 'Someone';
+                            const message = `${voterUsername} just gave your review for ${plateNumber} an ${voteType === 'up' ? 'upvote' : 'downvote'}!`;
+                            await db.query(
+                                'INSERT INTO notifications (user_id, message) VALUES (?, ?)',
+                                [reviewAuthorId, message]
+                            );
+                        }
+                    }
+                }
+            } catch (asyncError) {
+                console.error('❌ Post-vote async logic failed:', asyncError);
             }
         })();
 
@@ -688,6 +704,37 @@ app.post('/api/reviews/:reviewId/vote', authenticateToken, async (req, res) => {
         res.status(500).json({ error: 'Database error while voting.', details: err.message });
     }
 });
+
+// NEW: Endpoint to get user's notifications
+app.get('/api/notifications', authenticateToken, async (req, res) => {
+    const userId = req.user.userId;
+    try {
+        const [notifications] = await db.query(
+            'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50', // Added a limit
+            [userId]
+        );
+        res.json({ success: true, notifications });
+    } catch (err) {
+        console.error(`❌ Failed to fetch notifications for user ${userId}:`, err);
+        res.status(500).json({ success: false, message: 'Database error while fetching notifications.' });
+    }
+});
+
+// NEW: Endpoint to mark all notifications as read for a user
+app.put('/api/notifications/read', authenticateToken, async (req, res) => {
+    const userId = req.user.userId;
+    try {
+        await db.query(
+            'UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0',
+            [userId]
+        );
+        res.json({ success: true, message: 'Notifications marked as read.' });
+    } catch (err) {
+        console.error(`❌ Failed to mark notifications as read for user ${userId}:`, err);
+        res.status(500).json({ success: false, message: 'Database error while updating notifications.' });
+    }
+});
+
 
 // Endpoint to get all badges
 app.get('/api/badges', async (req, res) => {

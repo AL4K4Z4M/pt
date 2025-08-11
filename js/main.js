@@ -28,6 +28,7 @@ let currentUsername = localStorage.getItem('username');
 let isAdmin = localStorage.getItem('isAdmin') === 'true';
 
 let isAuthModalInLoginMode = true;
+let unreadNotifications = 0;
 
 
 // --- 2. Data Definitions ---
@@ -2448,6 +2449,77 @@ const renderProfileReviews = (container, reviews, profileUsername) => {
 
 // --- 4. API & Data Fetching ---
 
+const fetchNotifications = async () => {
+    if (!authToken) return;
+    try {
+        const response = await fetch(`${API_URL}/notifications`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!response.ok) {
+            console.error('Failed to fetch notifications');
+            return;
+        }
+        const result = await response.json();
+        if (result.success) {
+            const notifications = result.notifications;
+            unreadNotifications = notifications.filter(n => !n.is_read).length;
+            updateInboxCount();
+            // If the modal is open, render the new notifications
+            if (!document.getElementById('inboxModal').classList.contains('hidden')) {
+                renderNotifications(notifications);
+            }
+        }
+    } catch (error) {
+        console.error("A critical error occurred during fetchNotifications:", error);
+    }
+};
+
+const updateInboxCount = () => {
+    const inboxCountEl = document.getElementById('inbox-count');
+    if (unreadNotifications > 0) {
+        inboxCountEl.textContent = unreadNotifications;
+        inboxCountEl.classList.remove('hidden');
+    } else {
+        inboxCountEl.classList.add('hidden');
+    }
+};
+
+const renderNotifications = (notifications) => {
+    const container = document.getElementById('inboxContainer');
+    container.innerHTML = '';
+    if (notifications.length === 0) {
+        container.innerHTML = '<p class="text-secondary">You have no notifications.</p>';
+        return;
+    }
+    notifications.forEach(n => {
+        const notificationEl = document.createElement('div');
+        notificationEl.className = `p-3 mb-2 rounded-lg ${n.is_read ? 'bg-tertiary' : 'bg-blue-900/50'}`;
+        notificationEl.innerHTML = `
+            <p class="text-primary">${n.message}</p>
+            <p class="text-xs text-tertiary text-right">${new Date(n.created_at).toLocaleString()}</p>
+        `;
+        container.appendChild(notificationEl);
+    });
+};
+
+const markNotificationsAsRead = async () => {
+    if (!authToken || unreadNotifications === 0) return;
+    try {
+        const response = await fetch(`${API_URL}/notifications/read`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (response.ok) {
+            unreadNotifications = 0;
+            updateInboxCount();
+            // Re-fetch to get updated read status for rendering
+            fetchNotifications();
+        }
+    } catch (error) {
+        console.error("Failed to mark notifications as read:", error);
+    }
+};
+
 
 /**
 
@@ -2770,35 +2842,36 @@ const showProfileModal = async () => {
  */
 
 const updateAuthUI = () => {
-
-    const loginBtn = document.getElementById('loginBtn');
-
     const userInfo = document.getElementById('userInfo');
-
-    const usernameDisplay = document.getElementById('usernameDisplay');
-
+    const guestMenu = document.getElementById('guest-menu');
     const addReviewBtn = document.getElementById('addReviewBtn');
     const adminDashboardBtn = document.getElementById('adminDashboardBtn');
+    const inboxBtn = document.getElementById('inboxBtn');
 
-    const guestMenu = document.getElementById('guest-menu');
     if (authToken) {
         guestMenu.classList.add('hidden');
         userInfo.classList.remove('hidden');
-        usernameDisplay.textContent = currentUsername;
+        document.getElementById('usernameDisplay').textContent = currentUsername;
         addReviewBtn.disabled = false;
+        inboxBtn.classList.remove('hidden');
 
         if (adminDashboardBtn) {
             adminDashboardBtn.style.display = isAdmin ? 'flex' : 'none';
         }
+
+        // Initial fetch and set up polling for notifications
+        fetchNotifications();
+        setInterval(fetchNotifications, 60000); // Poll every 60 seconds
+
     } else {
         guestMenu.classList.remove('hidden');
         userInfo.classList.add('hidden');
         addReviewBtn.disabled = true;
+        inboxBtn.classList.add('hidden');
         if (adminDashboardBtn) {
             adminDashboardBtn.style.display = 'none';
         }
     }
-
 };
 
 
@@ -3175,6 +3248,9 @@ function initApp() {
     const profileModal = document.getElementById('profileModal');
     const closeProfileModalBtn = document.getElementById('closeProfileModalBtn');
     const backToProfileBtn = document.getElementById('backToProfileBtn');
+    const inboxBtn = document.getElementById('inboxBtn');
+    const inboxModal = document.getElementById('inboxModal');
+    const closeInboxModalBtn = document.getElementById('closeInboxModalBtn');
     const badgeDetailModal = document.getElementById('badgeDetailModal');
     const closeBadgeDetailModalBtn = document.getElementById('closeBadgeDetailModalBtn');
     const allBadgesModal = document.getElementById('allBadgesModal');
@@ -3400,6 +3476,16 @@ function initApp() {
     profileBtn.addEventListener('click', showProfileModal);
     closeProfileModalBtn.addEventListener('click', () => profileModal.classList.add('hidden'));
     backToProfileBtn.addEventListener('click', goBackToProfile);
+
+    // Inbox Modal
+    inboxBtn.addEventListener('click', () => {
+        inboxModal.classList.remove('hidden');
+        fetchNotifications(); // Fetch latest notifications when opening
+        markNotificationsAsRead();
+    });
+    closeInboxModalBtn.addEventListener('click', () => {
+        inboxModal.classList.add('hidden');
+    });
 
     // Badge Modals
     closeBadgeDetailModalBtn.addEventListener('click', () => badgeDetailModal.classList.add('hidden'));

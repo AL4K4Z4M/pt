@@ -307,6 +307,13 @@
                             <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                             <span>Profile</span>
                         </button>
+                        <button id="inboxBtn" class="w-full flex items-center justify-between space-x-3 text-secondary hover:text-primary hover:bg-tertiary rounded-md p-2 transition-colors duration-200">
+                            <div class="flex items-center space-x-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                <span>Inbox</span>
+                            </div>
+                            <span id="inbox-count" class="bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                        </button>
                         <a href="users.html" class="w-full flex items-center space-x-3 text-secondary hover:text-primary hover:bg-tertiary rounded-md p-2 transition-colors duration-200">
                             <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                             <span>Users</span>
@@ -724,6 +731,18 @@
             <div class="p-6 overflow-y-auto no-scrollbar">
                 <div id="allBadgesContainer">
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="inboxModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-secondary text-primary rounded-2xl shadow-xl w-11/12 lg:w-2/3 max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-color">
+                <h2 class="text-xl font-bold font-license-plate">Inbox</h2>
+                <button id="closeInboxModalBtn" class="text-2xl text-secondary hover:text-primary">&times;</button>
+            </div>
+            <div id="inboxContainer" class="p-6 overflow-y-auto no-scrollbar">
+                <p class="text-secondary">Loading notifications...</p>
             </div>
         </div>
     </div>
