@@ -739,20 +739,6 @@
             const sideMenu = document.getElementById('side-menu');
             const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-            const openMenu = () => {
-                if (sideMenu && sidebarOverlay) {
-                    sideMenu.classList.remove('-translate-x-full');
-                    sidebarOverlay.classList.remove('hidden');
-                }
-            };
-
-            const closeMenu = () => {
-                 if (sideMenu && sidebarOverlay) {
-                    sideMenu.classList.add('-translate-x-full');
-                    sidebarOverlay.classList.add('hidden');
-                }
-            };
-
             if (menuToggleBtn && sideMenu && sidebarOverlay) {
                 // Toggle menu with hamburger button
                 menuToggleBtn.addEventListener('click', (e) => {
