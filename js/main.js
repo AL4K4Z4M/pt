@@ -29,6 +29,7 @@ let isAdmin = localStorage.getItem('isAdmin') === 'true';
 
 let isAuthModalInLoginMode = true;
 let unreadNotifications = 0;
+let allNotifications = []; // To cache notifications
 
 
 // --- 2. Data Definitions ---
@@ -2449,7 +2450,7 @@ const renderProfileReviews = (container, reviews, profileUsername) => {
 
 // --- 4. API & Data Fetching ---
 
-const fetchNotifications = async () => {
+const fetchNotifications = async (showAll = false) => {
     if (!authToken) return;
     try {
         const response = await fetch(`${API_URL}/notifications`, {
@@ -2461,12 +2462,37 @@ const fetchNotifications = async () => {
         }
         const result = await response.json();
         if (result.success) {
-            const notifications = result.notifications;
-            unreadNotifications = notifications.filter(n => !n.is_read).length;
+            const newNotifications = result.notifications;
+
+            // Don't show toasts on initial load
+            if (allNotifications.length > 0) {
+                const existingIds = new Set(allNotifications.map(n => n.id));
+                const newlyArrived = newNotifications.filter(n => !existingIds.has(n.id));
+
+                newlyArrived.forEach(n => {
+                    Toastify({
+                        text: `New message: "${n.content.substring(0, 30)}..."`,
+                        duration: 5000,
+                        gravity: "top",
+                        position: "center",
+                        backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+                        stopOnFocus: true,
+                        onClick: function() {
+                            const inboxModal = document.getElementById('inboxModal');
+                            inboxModal.classList.remove('hidden');
+                            fetchNotifications();
+                        }
+                    }).showToast();
+                });
+            }
+
+            allNotifications = newNotifications;
+            unreadNotifications = allNotifications.filter(n => !n.is_read).length;
             updateInboxCount();
-            // If the modal is open, render the new notifications
+
+            // If the modal is open, render the notifications
             if (!document.getElementById('inboxModal').classList.contains('hidden')) {
-                renderNotifications(notifications);
+                renderNotifications(allNotifications, showAll);
             }
         }
     } catch (error) {
@@ -2477,29 +2503,62 @@ const fetchNotifications = async () => {
 const updateInboxCount = () => {
     const inboxCountEl = document.getElementById('inbox-count');
     if (unreadNotifications > 0) {
-        inboxCountEl.textContent = unreadNotifications;
+        inboxCountEl.textContent = unreadNotifications > 9 ? '9+' : unreadNotifications;
         inboxCountEl.classList.remove('hidden');
     } else {
         inboxCountEl.classList.add('hidden');
     }
 };
 
-const renderNotifications = (notifications) => {
+const renderNotifications = (notifications, showAll = false) => {
     const container = document.getElementById('inboxContainer');
-    container.innerHTML = '';
+    container.innerHTML = ''; // Clear previous content
+
     if (notifications.length === 0) {
         container.innerHTML = '<p class="text-secondary">You have no notifications.</p>';
         return;
     }
-    notifications.forEach(n => {
+
+    // Add "Mark All as Read" button
+    const hasUnread = notifications.some(n => !n.is_read);
+    if (hasUnread) {
+        const markAllReadBtn = document.createElement('button');
+        markAllReadBtn.id = 'markAllReadBtn';
+        markAllReadBtn.className = 'btn btn-secondary mb-4 w-full';
+        markAllReadBtn.textContent = 'Mark All as Read';
+        container.appendChild(markAllReadBtn);
+    }
+
+    const notificationsToShow = showAll ? notifications : notifications.slice(0, 20);
+
+    notificationsToShow.forEach(n => {
         const notificationEl = document.createElement('div');
-        notificationEl.className = `p-3 mb-2 rounded-lg ${n.is_read ? 'bg-tertiary' : 'bg-blue-900/50'}`;
+        notificationEl.className = `p-3 mb-2 rounded-lg relative transition-colors duration-300 ${!n.is_read ? 'bg-blue-500/20 border border-blue-400' : 'bg-tertiary'}`;
+
+        let newTag = '';
+        if (!n.is_read) {
+            newTag = '<span class="absolute top-2 right-2 text-xs font-bold bg-red-500 text-white px-2 py-1 rounded-full animate-pulse">NEW</span>';
+        }
+
         notificationEl.innerHTML = `
-            <p class="text-primary">${n.content}</p>
-            <p class="text-xs text-tertiary text-right">${new Date(n.created_at).toLocaleString()}</p>
+            ${newTag}
+            <p class="text-primary pr-16">${n.content}</p>
+            <div class="flex justify-between items-center mt-2">
+                <p class="text-xs text-tertiary">${new Date(n.created_at).toLocaleString()}</p>
+                ${!n.is_read ? `<button class="text-xs text-link hover:underline mark-one-read-btn" data-id="${n.id}">Mark as Read</button>` : ''}
+            </div>
         `;
         container.appendChild(notificationEl);
     });
+
+    // Add "Show All" button if there are more notifications
+    if (!showAll && notifications.length > 20) {
+        const showAllBtn = document.createElement('button');
+        showAllBtn.id = 'showAllNotificationsBtn';
+        showAllBtn.className = 'btn btn-primary mt-4 w-full';
+        showAllBtn.textContent = `Show All (${notifications.length}) Notifications`;
+        container.appendChild(showAllBtn);
+    }
 };
 
 const markNotificationsAsRead = async () => {
@@ -2510,13 +2569,27 @@ const markNotificationsAsRead = async () => {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         if (response.ok) {
-            unreadNotifications = 0;
-            updateInboxCount();
-            // Re-fetch to get updated read status for rendering
-            fetchNotifications();
+            fetchNotifications(); // Re-fetch to update UI
         }
     } catch (error) {
         console.error("Failed to mark notifications as read:", error);
+    }
+};
+
+const markOneNotificationAsRead = async (notificationId) => {
+    if (!authToken) return;
+    try {
+        const response = await fetch(`${API_URL}/notifications/${notificationId}/read`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (response.ok) {
+            fetchNotifications(); // Re-fetch to update UI
+        } else {
+            console.error('Failed to mark notification as read');
+        }
+    } catch (error) {
+        console.error("A critical error occurred while marking one notification as read:", error);
     }
 };
 
@@ -3487,10 +3560,22 @@ function initApp() {
     inboxBtn.addEventListener('click', () => {
         inboxModal.classList.remove('hidden');
         fetchNotifications(); // Fetch latest notifications when opening
-        markNotificationsAsRead();
     });
     closeInboxModalBtn.addEventListener('click', () => {
         inboxModal.classList.add('hidden');
+    });
+    // Add event delegation for inbox buttons
+    document.getElementById('inboxContainer').addEventListener('click', (e) => {
+        if (e.target.id === 'markAllReadBtn') {
+            markNotificationsAsRead();
+        }
+        if (e.target.id === 'showAllNotificationsBtn') {
+            renderNotifications(allNotifications, true); // Re-render with all notifications
+        }
+        if (e.target.classList.contains('mark-one-read-btn')) {
+            const notificationId = e.target.dataset.id;
+            markOneNotificationAsRead(notificationId);
+        }
     });
 
     // Badge Modals
