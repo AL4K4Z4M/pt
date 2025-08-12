@@ -2470,19 +2470,22 @@ const fetchNotifications = async (showAll = false) => {
                 const newlyArrived = newNotifications.filter(n => !existingIds.has(n.id));
 
                 newlyArrived.forEach(n => {
-                    Toastify({
+                    const toast = Toastify({
                         text: `New message: "${n.content.substring(0, 30)}..."`,
-                        duration: 5000,
+                        duration: 3000,
                         gravity: "top",
                         position: "center",
                         backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
                         stopOnFocus: true,
                         onClick: function() {
+                            // `this` is the toast element, hide it.
+                            this.hideToast();
                             const inboxModal = document.getElementById('inboxModal');
                             inboxModal.classList.remove('hidden');
                             fetchNotifications();
                         }
-                    }).showToast();
+                    });
+                    toast.showToast();
                 });
             }
 
