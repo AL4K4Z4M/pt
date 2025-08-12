@@ -33,6 +33,8 @@ let isAdmin = localStorage.getItem('isAdmin') === 'true';
 let isAuthModalInLoginMode = true;
 let unreadNotifications = 0;
 let allNotifications = []; // To cache notifications
+let isInitialNotificationFetch = true;
+let notificationIntervalId = null;
 let allBadgesCache = []; // To cache all badges
 
 
@@ -2373,8 +2375,8 @@ const fetchNotifications = async (showAll = false) => {
         if (result.success) {
             const newNotifications = result.notifications;
 
-            // Don't show toasts on initial load
-            if (allNotifications.length > 0) {
+            // Only show toasts for notifications that arrive after the initial fetch.
+            if (!isInitialNotificationFetch) {
                 const existingIds = new Set(allNotifications.map(n => n.id));
                 const newlyArrived = newNotifications.filter(n => !existingIds.has(n.id));
 
@@ -2409,6 +2411,7 @@ const fetchNotifications = async (showAll = false) => {
             allNotifications = newNotifications;
             unreadNotifications = allNotifications.filter(n => !n.is_read).length;
             updateInboxCount();
+            isInitialNotificationFetch = false; // Set flag after the first successful fetch.
 
             // If the modal is open, render the notifications
             if (!document.getElementById('inboxModal').classList.contains('hidden')) {
@@ -2856,7 +2859,8 @@ const updateAuthUI = () => {
 
         // Initial fetch and set up polling for notifications
         fetchNotifications();
-        setInterval(fetchNotifications, 15000); // Poll every 15 seconds
+        if (notificationIntervalId) clearInterval(notificationIntervalId);
+        notificationIntervalId = setInterval(fetchNotifications, 15000); // Poll every 15 seconds
 
     } else {
         guestMenu.classList.remove('hidden');
@@ -2865,6 +2869,10 @@ const updateAuthUI = () => {
         inboxBtn.classList.add('hidden');
         if (adminDashboardBtn) {
             adminDashboardBtn.style.display = 'none';
+        }
+        if (notificationIntervalId) {
+            clearInterval(notificationIntervalId);
+            notificationIntervalId = null;
         }
     }
 };
@@ -2891,6 +2899,11 @@ const handleLogout = () => {
     isAdmin = false;
 
     userVotes = {};
+
+    allNotifications = [];
+    unreadNotifications = 0;
+    isInitialNotificationFetch = true;
+    updateInboxCount();
 
     updateAuthUI();
 
