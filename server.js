@@ -83,14 +83,29 @@ app.post('/api/users/register', async (req, res) => {
         const [result] = await connection.query('INSERT INTO users (username, first_name, email, password) VALUES (?, ?, ?, ?)', [username, first_name, email, hashedPassword]);
         const newUserId = result.insertId;
 
+        const awardBadgeAndNotify = async (userId, badgeId) => {
+            const [result] = await connection.query('INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)', [userId, badgeId]);
+            if (result.affectedRows > 0) {
+                const [badgeRows] = await connection.query('SELECT name FROM badges WHERE badge_id = ?', [badgeId]);
+                if (badgeRows.length > 0) {
+                    const badgeName = badgeRows[0].name;
+                    const content = `You've earned the "${badgeName}" badge!`;
+                    await connection.query(
+                        'INSERT INTO notifications (user_id, type, content, related_id) VALUES (?, ?, ?, ?)',
+                        [userId, 'badge', content, badgeId]
+                    );
+                }
+            }
+        };
+
         if (userCount < 10) {
-            await connection.query('INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)', [newUserId, '0002']);
+            await awardBadgeAndNotify(newUserId, '0002');
         }
         if (userCount < 50) {
-            await connection.query('INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)', [newUserId, '0003']);
+            await awardBadgeAndNotify(newUserId, '0003');
         }
         if (userCount < 100) {
-            await connection.query('INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)', [newUserId, '0004']);
+            await awardBadgeAndNotify(newUserId, '0004');
         }
 
         await connection.commit();
@@ -153,7 +168,18 @@ app.get('/api/users/profile', authenticateToken, async (req, res) => {
         ];
         for (const badge of membershipBadges) {
             if (accountAgeInDays >= badge.days) {
-                await db.query('INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)', [user.id, badge.id]);
+                const [result] = await db.query('INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)', [user.id, badge.id]);
+                if (result.affectedRows > 0) {
+                    const [badgeRows] = await db.query('SELECT name FROM badges WHERE badge_id = ?', [badge.id]);
+                    if (badgeRows.length > 0) {
+                        const badgeName = badgeRows[0].name;
+                        const content = `You've earned the "${badgeName}" badge!`;
+                        await db.query(
+                            'INSERT INTO notifications (user_id, type, content, related_id) VALUES (?, ?, ?, ?)',
+                            [user.id, 'badge', content, badge.id]
+                        );
+                    }
+                }
             }
         }
 
@@ -224,7 +250,18 @@ app.get('/api/users/profile/:username', async (req, res) => {
         ];
         for (const badge of membershipBadges) {
             if (accountAgeInDays >= badge.days) {
-                await db.query('INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)', [user.id, badge.id]);
+                const [result] = await db.query('INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)', [user.id, badge.id]);
+                if (result.affectedRows > 0) {
+                    const [badgeRows] = await db.query('SELECT name FROM badges WHERE badge_id = ?', [badge.id]);
+                    if (badgeRows.length > 0) {
+                        const badgeName = badgeRows[0].name;
+                        const content = `You've earned the "${badgeName}" badge!`;
+                        await db.query(
+                            'INSERT INTO notifications (user_id, type, content, related_id) VALUES (?, ?, ?, ?)',
+                            [user.id, 'badge', content, badge.id]
+                        );
+                    }
+                }
             }
         }
 
@@ -350,10 +387,23 @@ app.post('/api/admin/users/:id/badges', authenticateToken, requireAdmin, async (
     }
 
     try {
-        await db.query(
-            'INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)',
+        const [result] = await db.query(
+            'INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)',
             [id, badge_id]
         );
+
+        if (result.affectedRows > 0) {
+            const [badgeRows] = await db.query('SELECT name FROM badges WHERE badge_id = ?', [badge_id]);
+            if (badgeRows.length > 0) {
+                const badgeName = badgeRows[0].name;
+                const content = `An admin has granted you the "${badgeName}" badge!`;
+                await db.query(
+                    'INSERT INTO notifications (user_id, type, content, related_id) VALUES (?, ?, ?, ?)',
+                    [id, 'badge', content, badge_id]
+                );
+            }
+        }
+
         res.status(201).json({ success: true, message: 'Badge awarded successfully.' });
     } catch (err) {
         console.error(`❌ Failed to award badge ${badge_id} to user ${id}:`, err);
@@ -369,6 +419,9 @@ app.delete('/api/admin/users/:userId/badges/:badgeId', authenticateToken, requir
     const { userId, badgeId } = req.params;
 
     try {
+        const [badgeRows] = await db.query('SELECT name FROM badges WHERE badge_id = ?', [badgeId]);
+        const badgeName = badgeRows.length > 0 ? badgeRows[0].name : 'a badge';
+
         const [result] = await db.query(
             'DELETE FROM user_badges WHERE user_id = ? AND badge_id = ?',
             [userId, badgeId]
@@ -377,6 +430,12 @@ app.delete('/api/admin/users/:userId/badges/:badgeId', authenticateToken, requir
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, message: 'Badge not found for this user.' });
         }
+
+        const content = `An admin has revoked your "${badgeName}" badge.`;
+        await db.query(
+            'INSERT INTO notifications (user_id, type, content, related_id) VALUES (?, ?, ?, ?)',
+            [userId, 'badge_revoked', content, badgeId]
+        );
 
         res.json({ success: true, message: 'Badge removed successfully.' });
     } catch (err) {
@@ -600,7 +659,18 @@ app.post('/api/reviews', authenticateToken, async (req, res) => {
 
             for (const check of reviewerBadgeChecks) {
                 if (totalReviewsCount >= check.count) {
-                    await db.query('INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)', [user_id, check.id]);
+                    const [result] = await db.query('INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)', [user_id, check.id]);
+                    if (result.affectedRows > 0) {
+                        const [badgeRows] = await db.query('SELECT name FROM badges WHERE badge_id = ?', [check.id]);
+                        if (badgeRows.length > 0) {
+                            const badgeName = badgeRows[0].name;
+                            const content = `You've earned the "${badgeName}" badge!`;
+                            await db.query(
+                                'INSERT INTO notifications (user_id, type, content, related_id) VALUES (?, ?, ?, ?)',
+                                [user_id, 'badge', content, check.id]
+                            );
+                        }
+                    }
                 }
             }
 
@@ -619,7 +689,18 @@ app.post('/api/reviews', authenticateToken, async (req, res) => {
 
             for (const check of sedanBadgeChecks) {
                 if (sedanCount >= check.count) {
-                    await db.query('INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)', [user_id, check.id]);
+                    const [result] = await db.query('INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)', [user_id, check.id]);
+                    if (result.affectedRows > 0) {
+                        const [badgeRows] = await db.query('SELECT name FROM badges WHERE badge_id = ?', [check.id]);
+                        if (badgeRows.length > 0) {
+                            const badgeName = badgeRows[0].name;
+                            const content = `You've earned the "${badgeName}" badge!`;
+                            await db.query(
+                                'INSERT INTO notifications (user_id, type, content, related_id) VALUES (?, ?, ?, ?)',
+                                [user_id, 'badge', content, check.id]
+                            );
+                        }
+                    }
                 }
             }
         } catch (badgeError) {
@@ -670,7 +751,18 @@ app.post('/api/reviews/:reviewId/vote', authenticateToken, async (req, res) => {
                     ];
                     for (const check of upvoterBadgeChecks) {
                         if (upvoteCount >= check.count) {
-                            await db.query('INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)', [userId, check.id]);
+                            const [result] = await db.query('INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)', [userId, check.id]);
+                            if (result.affectedRows > 0) {
+                                const [badgeRows] = await db.query('SELECT name FROM badges WHERE badge_id = ?', [check.id]);
+                                if (badgeRows.length > 0) {
+                                    const badgeName = badgeRows[0].name;
+                                    const content = `You've earned the "${badgeName}" badge!`;
+                                    await db.query(
+                                        'INSERT INTO notifications (user_id, type, content, related_id) VALUES (?, ?, ?, ?)',
+                                        [userId, 'badge', content, check.id]
+                                    );
+                                }
+                            }
                         }
                     }
                 }
@@ -758,6 +850,22 @@ app.put('/api/notifications/read', authenticateToken, async (req, res) => {
     } catch (err) {
         console.error(`❌ Failed to mark notifications as read for user ${userId}:`, err);
         res.status(500).json({ success: false, message: 'Database error while updating notifications.' });
+    }
+});
+
+// NEW: Endpoint to mark a single notification as read
+app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
+    const userId = req.user.userId;
+    const { id } = req.params;
+    try {
+        const [result] = await db.query(
+            'UPDATE notifications SET is_read = 1 WHERE user_id = ? AND id = ? AND is_read = 0',
+            [userId, id]
+        );
+        res.json({ success: true, message: 'Notification marked as read.' });
+    } catch (err) {
+        console.error(`❌ Failed to mark notification ${id} as read for user ${userId}:`, err);
+        res.status(500).json({ success: false, message: 'Database error while updating notification.' });
     }
 });
 
