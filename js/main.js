@@ -2478,11 +2478,16 @@ const fetchNotifications = async (showAll = false) => {
                         backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
                         stopOnFocus: true,
                         onClick: function() {
-                            // `this` is the toast element, hide it.
                             this.hideToast();
-                            const inboxModal = document.getElementById('inboxModal');
-                            inboxModal.classList.remove('hidden');
-                            fetchNotifications();
+                            if (n.type === 'badge') {
+                                document.getElementById('profileModal').classList.remove('hidden');
+                                showProfileModal().then(() => {
+                                    document.getElementById('showAllBadgesBtn').click();
+                                });
+                            } else {
+                                document.getElementById('inboxModal').classList.remove('hidden');
+                                fetchNotifications();
+                            }
                         }
                     });
                     toast.showToast();
@@ -2552,6 +2557,16 @@ const renderNotifications = (notifications, showAll = false) => {
             </div>
         `;
         container.appendChild(notificationEl);
+
+        notificationEl.addEventListener('click', () => {
+            if (n.type === 'badge') {
+                document.getElementById('inboxModal').classList.add('hidden');
+                document.getElementById('profileModal').classList.remove('hidden');
+                showProfileModal().then(() => {
+                    document.getElementById('showAllBadgesBtn').click();
+                });
+            }
+        });
     });
 
     // Add "Show All" button if there are more notifications
