@@ -2189,69 +2189,66 @@ const showBadgeDetail = (badge, isUnlocked = true) => {
 };
 
 const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
-
     if (!container) return;
-
     container.innerHTML = '';
 
-
-    if (!allBadges || allBadges.length === 0) {
-
+    if (!allBadges) {
         container.innerHTML = '<p class="text-light-secondary text-sm">Could not load achievements.</p>';
-
         return;
-
     }
-
 
     const userBadgeIds = new Set(userBadges.map(b => b.badge_id));
 
+    // Create a map of all public (non-secret) badges for easy lookup.
+    const publicBadgesById = new Map(allBadges.map(b => [b.badge_id, b]));
+
+    // The comprehensive list of badges to potentially show:
+    // Start with all public badges, then add any earned secret badges.
+    const allVisibleBadges = new Map(publicBadgesById);
+    userBadges.forEach(b => {
+        if (b.is_secret && !allVisibleBadges.has(b.badge_id)) {
+            allVisibleBadges.set(b.badge_id, b);
+        }
+    });
+
+    const badgesToShow = Array.from(allVisibleBadges.values());
+
     // Sort all badges: unlocked first, then by ID
-    const sortedBadges = [...allBadges].sort((a, b) => {
+    const sortedBadges = badgesToShow.sort((a, b) => {
         const aUnlocked = userBadgeIds.has(a.badge_id);
         const bUnlocked = userBadgeIds.has(b.badge_id);
         if (aUnlocked !== bUnlocked) {
             return aUnlocked ? -1 : 1; // Unlocked badges come first
         }
-        return a.badge_id - b.badge_id; // Then sort by badge ID
+        return a.badge_id.localeCompare(b.badge_id); // Then sort by badge ID
     });
 
     // Determine the final list of badges to display
     const badgesToDisplay = limit > 0 ? sortedBadges.slice(0, limit) : sortedBadges;
 
-
     badgesToDisplay.forEach(badge => {
-
         const isUnlocked = userBadgeIds.has(badge.badge_id);
 
-        const badgeElement = document.createElement('div');
+        // Crucially, don't render a badge if it's secret and the user hasn't unlocked it.
+        if (badge.is_secret && !isUnlocked) {
+            return;
+        }
 
+        const badgeElement = document.createElement('div');
         badgeElement.className = 'badge-container cursor-pointer';
 
-
         const imgClass = isUnlocked ? '' : 'badge-locked';
-
         const lockIconHtml = isUnlocked ? '' : `
-
             <svg class="lock-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-
             </svg>
-
         `;
-
 
         badgeElement.innerHTML = `
-
             <img src="${badge.image_url || '/images/badges/default.png'}" alt="${badge.name}" class="w-16 h-16 transition-transform hover:scale-110 ${imgClass}">
-
             ${lockIconHtml}
-
         `;
-
 
         badgeElement.addEventListener('click', () => {
             if (container.id === 'allBadgesContainer') {
@@ -2260,11 +2257,8 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
             showBadgeDetail(badge, isUnlocked);
         });
 
-
         container.appendChild(badgeElement);
-
     });
-
 };
 
 

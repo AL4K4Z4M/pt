@@ -662,7 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await Promise.all([
             fetchData('/users', 'users'),
             fetchData('/admin/reviews', 'reviews'),
-            fetchData('/badges', 'badges'),
+            fetchData('/admin/badges', 'badges'),
             fetchData('/user_badges', 'userBadges'),
             fetchData('/review_votes', 'reviewVotes')
         ]);
