@@ -38,6 +38,7 @@ function openMenu() {
     if (sideMenu && sidebarOverlay) {
         sideMenu.classList.remove('-translate-x-full');
         sidebarOverlay.classList.remove('hidden');
+        document.dispatchEvent(new CustomEvent('menuOpened'));
     }
 }
 
