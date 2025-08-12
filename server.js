@@ -163,9 +163,9 @@ app.get('/api/users/profile', authenticateToken, async (req, res) => {
 
         const accountAgeInDays = (new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24);
         const membershipBadges = [
-            { days: 30, id: '0300' }, { days: 182, id: '0301' }, { days: 365, id: '0302' },
-            { days: 730, id: '0303' }, { days: 1095, id: '0304' }, { days: 1460, id: '0305' },
-            { days: 1825, id: '0306' }
+            { days: 30, id: '0456' }, { days: 182, id: '0457' }, { days: 365, id: '0458' },
+            { days: 730, id: '0459' }, { days: 1095, id: '0460' }, { days: 1460, id: '0461' },
+            { days: 1825, id: '0462' }
         ];
         for (const badge of membershipBadges) {
             if (accountAgeInDays >= badge.days) {
@@ -245,9 +245,9 @@ app.get('/api/users/profile/:username', async (req, res) => {
 
         const accountAgeInDays = (new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24);
         const membershipBadges = [
-            { days: 30, id: '0300' }, { days: 182, id: '0301' }, { days: 365, id: '0302' },
-            { days: 730, id: '0303' }, { days: 1095, id: '0304' }, { days: 1460, id: '0305' },
-            { days: 1825, id: '0306' }
+            { days: 30, id: '0456' }, { days: 182, id: '0457' }, { days: 365, id: '0458' },
+            { days: 730, id: '0459' }, { days: 1095, id: '0460' }, { days: 1460, id: '0461' },
+            { days: 1825, id: '0462' }
         ];
         for (const badge of membershipBadges) {
             if (accountAgeInDays >= badge.days) {
@@ -650,12 +650,12 @@ app.post('/api/reviews', authenticateToken, async (req, res) => {
             const totalReviewsCount = userReviews.length;
 
             const reviewerBadgeChecks = [
-                { count: 5, id: '0200' },
-                { count: 10, id: '0201' },
-                { count: 50, id: '0202' },
-                { count: 100, id: '0203' },
-                { count: 500, id: '0204' },
-                { count: 1000, id: '0205' }
+                { count: 5, id: '0356' },
+                { count: 10, id: '0357' },
+                { count: 50, id: '0358' },
+                { count: 100, id: '0359' },
+                { count: 500, id: '0360' },
+                { count: 1000, id: '0361' }
             ];
 
             for (const check of reviewerBadgeChecks) {
@@ -747,8 +747,8 @@ app.post('/api/reviews/:reviewId/vote', authenticateToken, async (req, res) => {
                     const [upvoteCountRows] = await db.query('SELECT COUNT(*) as upvoteCount FROM review_votes WHERE user_id = ? AND vote_type = "up"', [userId]);
                     const upvoteCount = upvoteCountRows[0].upvoteCount;
                     const upvoterBadgeChecks = [
-                        { count: 5, id: '0500' }, { count: 10, id: '0501' }, { count: 50, id: '0502' },
-                        { count: 100, id: '0503' }, { count: 500, id: '0504' }, { count: 1000, id: '0505' }
+                        { count: 5, id: '0656' }, { count: 10, id: '0657' }, { count: 50, id: '0658' },
+                        { count: 100, id: '0659' }, { count: 500, id: '0660' }, { count: 1000, id: '0661' }
                     ];
                     for (const check of upvoterBadgeChecks) {
                         if (upvoteCount >= check.count) {
