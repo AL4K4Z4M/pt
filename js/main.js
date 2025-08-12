@@ -30,6 +30,7 @@ let isAdmin = localStorage.getItem('isAdmin') === 'true';
 let isAuthModalInLoginMode = true;
 let unreadNotifications = 0;
 let allNotifications = []; // To cache notifications
+let allBadgesCache = []; // To cache all badges
 
 
 // --- 2. Data Definitions ---
@@ -2239,6 +2240,16 @@ const renderReviews = () => {
 
  */
 
+const showBadgeDetail = (badge, isUnlocked = true) => {
+    const badgeDetailModal = document.getElementById('badgeDetailModal');
+    const detailImage = document.getElementById('badgeDetailImage');
+    detailImage.src = badge.image_url || '/images/badges/default.png';
+    detailImage.classList.toggle('badge-locked', !isUnlocked);
+    document.getElementById('badgeDetailName').textContent = badge.name;
+    document.getElementById('badgeDetailDescription').textContent = isUnlocked ? badge.description : 'This badge is locked. Keep using PlateTraits to discover how to unlock it!';
+    badgeDetailModal.classList.remove('hidden');
+};
+
 const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
 
     if (!container) return;
@@ -2323,26 +2334,10 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
 
 
         badgeElement.addEventListener('click', () => {
-
             if (container.id === 'allBadgesContainer') {
-
                 document.getElementById('allBadgesModal').classList.add('hidden');
-
             }
-
-
-            const detailImage = document.getElementById('badgeDetailImage');
-
-            detailImage.src = badge.image_url || '/images/badges/default.png';
-
-            detailImage.classList.toggle('badge-locked', !isUnlocked);
-
-            document.getElementById('badgeDetailName').textContent = badge.name;
-
-            document.getElementById('badgeDetailDescription').textContent = isUnlocked ? badge.description : 'This badge is locked. Keep using PlateTraits to discover how to unlock it!';
-
-            document.getElementById('badgeDetailModal').classList.remove('hidden');
-
+            showBadgeDetail(badge, isUnlocked);
         });
 
 
@@ -2480,11 +2475,14 @@ const fetchNotifications = async (showAll = false) => {
                         onClick: function() {
                             this.hideToast();
                             if (n.type === 'badge') {
-                                document.getElementById('profileModal').classList.remove('hidden');
-                                showProfileModal().then(() => {
-                                    document.getElementById('showAllBadgesBtn').click();
-                                });
-                            } else {
+                                const badge = allBadgesCache.find(b => b.badge_id.toString() === n.related_id.toString());
+                                if (badge) {
+                                    showBadgeDetail(badge, true);
+                                }
+                            } else if (n.type === 'badge_revoked') {
+                                // Do nothing, just show the toast.
+                            }
+                            else {
                                 document.getElementById('inboxModal').classList.remove('hidden');
                                 fetchNotifications();
                             }
@@ -2558,15 +2556,16 @@ const renderNotifications = (notifications, showAll = false) => {
         `;
         container.appendChild(notificationEl);
 
-        notificationEl.addEventListener('click', () => {
-            if (n.type === 'badge') {
-                document.getElementById('inboxModal').classList.add('hidden');
-                document.getElementById('profileModal').classList.remove('hidden');
-                showProfileModal().then(() => {
-                    document.getElementById('showAllBadgesBtn').click();
-                });
-            }
-        });
+        if (n.type === 'badge') {
+            notificationEl.classList.add('cursor-pointer', 'hover:bg-gray-700');
+            notificationEl.addEventListener('click', () => {
+                const badge = allBadgesCache.find(b => b.badge_id.toString() === n.related_id.toString());
+                if (badge) {
+                    document.getElementById('inboxModal').classList.add('hidden');
+                    showBadgeDetail(badge, true);
+                }
+            });
+        }
     });
 
     // Add "Show All" button if there are more notifications
@@ -2702,27 +2701,17 @@ const fetchUserVotes = async () => {
  */
 
 const fetchAllBadges = async () => {
-
     try {
-
         const response = await fetch(`${API_URL}/badges`);
-
         if (!response.ok) {
-
             throw new Error('Could not fetch all badges.');
-
         }
-
-        return await response.json();
-
+        allBadgesCache = await response.json();
+        return allBadgesCache;
     } catch (error) {
-
         console.error("Failed to fetch all badges:", error);
-
         return []; // Return empty array on error
-
     }
-
 };
 
 
@@ -3738,6 +3727,7 @@ function initApp() {
     });
 
     // --- Initial Data Fetch ---
+    fetchAllBadges();
     fetchReviews();
 
     // Check for username in URL to show profile

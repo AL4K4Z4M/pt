@@ -419,6 +419,9 @@ app.delete('/api/admin/users/:userId/badges/:badgeId', authenticateToken, requir
     const { userId, badgeId } = req.params;
 
     try {
+        const [badgeRows] = await db.query('SELECT name FROM badges WHERE badge_id = ?', [badgeId]);
+        const badgeName = badgeRows.length > 0 ? badgeRows[0].name : 'a badge';
+
         const [result] = await db.query(
             'DELETE FROM user_badges WHERE user_id = ? AND badge_id = ?',
             [userId, badgeId]
@@ -427,6 +430,12 @@ app.delete('/api/admin/users/:userId/badges/:badgeId', authenticateToken, requir
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, message: 'Badge not found for this user.' });
         }
+
+        const content = `An admin has revoked your "${badgeName}" badge.`;
+        await db.query(
+            'INSERT INTO notifications (user_id, type, content, related_id) VALUES (?, ?, ?, ?)',
+            [userId, 'badge_revoked', content, badgeId]
+        );
 
         res.json({ success: true, message: 'Badge removed successfully.' });
     } catch (err) {
