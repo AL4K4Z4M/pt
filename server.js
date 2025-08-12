@@ -761,6 +761,22 @@ app.put('/api/notifications/read', authenticateToken, async (req, res) => {
     }
 });
 
+// NEW: Endpoint to mark a single notification as read
+app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
+    const userId = req.user.userId;
+    const { id } = req.params;
+    try {
+        const [result] = await db.query(
+            'UPDATE notifications SET is_read = 1 WHERE user_id = ? AND id = ? AND is_read = 0',
+            [userId, id]
+        );
+        res.json({ success: true, message: 'Notification marked as read.' });
+    } catch (err) {
+        console.error(`❌ Failed to mark notification ${id} as read for user ${userId}:`, err);
+        res.status(500).json({ success: false, message: 'Database error while updating notification.' });
+    }
+});
+
 
 // Endpoint to get all badges
 app.get('/api/badges', async (req, res) => {
