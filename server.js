@@ -29,6 +29,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
 
 app.use(cors());
 app.use(express.json());
+app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use('/images', express.static(path.join('/var', 'www', 'platetraits', 'images')));
 
 // Middleware to authenticate JWT tokens and check admin status
