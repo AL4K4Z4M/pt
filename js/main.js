@@ -18,6 +18,9 @@ let userVotes = {}; // Holds the user's vote for each review_id: { [review_id]: 
 
 let lastViewedProfile = null; // To store the username for the "Back to Profile" button functionality
 
+let currentRenderedCount = 0;
+let currentFilteredData = [];
+
 
 // Authentication state
 
@@ -2054,175 +2057,110 @@ const showNextReview = () => {
 
  */
 
-const renderReviews = () => {
-
+const renderReviews = (options = {}) => {
+    const { isLoadMore = false } = options;
     const reviewsContainer = document.getElementById('reviewsContainer');
+    const loadMoreContainer = document.getElementById('loadMoreContainer');
 
-    const normalizePlate = (plate) => plate.replace(/[\s-]/g, '').toLowerCase();
+    // Only re-calculate the filter and sort if it's not a "load more" action.
+    if (!isLoadMore) {
+        const normalizePlate = (plate) => plate.replace(/[\s-]/g, '').toLowerCase();
+        const searchTerm = normalizePlate(document.getElementById('searchPlate').value.trim());
+        const selectedState = document.getElementById('filterState').value;
+        const selectedMake = document.getElementById('filterMake').value;
+        const selectedType = document.getElementById('filterType').value;
+        const selectedSubtype = document.getElementById('filterSubtype').value;
+        const selectedTrait = document.getElementById('filterTrait').value;
 
-    const searchTerm = normalizePlate(document.getElementById('searchPlate').value.trim());
-
-    const selectedState = document.getElementById('filterState').value;
-
-    const selectedMake = document.getElementById('filterMake').value;
-
-    const selectedType = document.getElementById('filterType').value;
-
-    const selectedSubtype = document.getElementById('filterSubtype').value;
-
-    const selectedTrait = document.getElementById('filterTrait').value;
-
-
-    let filteredData = Object.values(aggregatedReviewsData).filter(data => {
-
-        const plateMatch = normalizePlate(data.plate_number).includes(searchTerm);
-
-        const stateMatch = !selectedState || data.allReviews.some(review => review.incident_location === selectedState);
-
-        const makeMatch = !selectedMake || data.allReviews.some(review => review.vehicle_make === selectedMake);
-
-
-        const typeMatch = !selectedType || data.allReviews.some(review => {
-
-            if (!review.vehicle_make || !review.vehicle_model) return false;
-
-            const subtype = vehicleSubtype[review.vehicle_make]?.[review.vehicle_model];
-
-            const type = vehicleType[subtype];
-
-            return type === selectedType;
-
+        let filteredData = Object.values(aggregatedReviewsData).filter(data => {
+            const plateMatch = normalizePlate(data.plate_number).includes(searchTerm);
+            const stateMatch = !selectedState || data.allReviews.some(review => review.incident_location === selectedState);
+            const makeMatch = !selectedMake || data.allReviews.some(review => review.vehicle_make === selectedMake);
+            const typeMatch = !selectedType || data.allReviews.some(review => {
+                if (!review.vehicle_make || !review.vehicle_model) return false;
+                const subtype = vehicleSubtype[review.vehicle_make]?.[review.vehicle_model];
+                const type = vehicleType[subtype];
+                return type === selectedType;
+            });
+            const subtypeMatch = !selectedSubtype || data.allReviews.some(review => {
+                if (!review.vehicle_make || !review.vehicle_model) return false;
+                const subtype = vehicleSubtype[review.vehicle_make]?.[review.vehicle_model];
+                return subtype === selectedSubtype;
+            });
+            const traitMatch = !selectedTrait || data.allReviews.some(review => review.tags && review.tags.includes(selectedTrait));
+            return plateMatch && stateMatch && makeMatch && typeMatch && subtypeMatch && traitMatch;
         });
 
+        const selectedSort = document.getElementById('sortReviews').value;
+        const reviewsHeading = document.getElementById('reviewsHeading');
 
-        const subtypeMatch = !selectedSubtype || data.allReviews.some(review => {
-
-            if (!review.vehicle_make || !review.vehicle_model) return false;
-
-            const subtype = vehicleSubtype[review.vehicle_make]?.[review.vehicle_model];
-
-            return subtype === selectedSubtype;
-
+        // Sort the data
+        filteredData.sort((a, b) => {
+            switch (selectedSort) {
+                case 'highest': return b.averageRating - a.averageRating;
+                case 'lowest': return a.averageRating - b.averageRating;
+                case 'oldest': return new Date(a.allReviews[0].created_at) - new Date(b.allReviews[0].created_at);
+                case 'recent': default: return new Date(b.allReviews[0].created_at) - new Date(a.allReviews[0].created_at);
+            }
         });
 
+        // Update heading
+        const sortOptions = {
+            recent: 'newest Reviews',
+            oldest: 'Oldest Reviews',
+            highest: 'Highest-Rated Plates',
+            lowest: 'Lowest-Rated Plates',
+        };
+        reviewsHeading.textContent = sortOptions[selectedSort] || 'Recent Reviews';
 
-        const traitMatch = !selectedTrait || data.allReviews.some(review => review.tags && review.tags.includes(selectedTrait));
-
-
-        return plateMatch && stateMatch && makeMatch && typeMatch && subtypeMatch && traitMatch;
-
-    });
-
-
-    const selectedSort = document.getElementById('sortReviews').value;
-
-    const reviewsHeading = document.getElementById('reviewsHeading');
-
-
-    // Sort the data
-
-    filteredData.sort((a, b) => {
-
-        switch (selectedSort) {
-
-            case 'highest':
-
-                return b.averageRating - a.averageRating;
-
-            case 'lowest':
-
-                return a.averageRating - b.averageRating;
-
-            case 'oldest':
-
-                return new Date(a.allReviews[0].created_at) - new Date(b.allReviews[0].created_at);
-
-            case 'recent':
-
-            default:
-
-                return new Date(b.allReviews[0].created_at) - new Date(a.allReviews[0].created_at);
-
-        }
-
-    });
-
-
-    // Update heading
-
-    const sortOptions = {
-
-        recent: 'newest Reviews',
-
-        oldest: 'Oldest Reviews',
-
-        highest: 'Highest-Rated Plates',
-
-        lowest: 'Lowest-Rated Plates',
-
-    };
-
-    reviewsHeading.textContent = sortOptions[selectedSort] || 'Recent Reviews';
-
-
-    reviewsContainer.innerHTML = '';
-
-    if (filteredData.length === 0) {
-
-        reviewsContainer.innerHTML = `<div class="text-center py-10"><p class="text-light-secondary">No reviews match the current filters.</p></div>`;
-
-        return;
-
+        // Store the fully filtered/sorted list and reset the count
+        console.log(`After filtering, found ${filteredData.length} plates.`);
+        currentFilteredData = filteredData;
+        currentRenderedCount = 0;
+        reviewsContainer.innerHTML = '';
     }
 
-    filteredData.forEach(data => {
+    // Now, render the next batch of items
+    const itemsToRender = currentFilteredData.slice(currentRenderedCount, currentRenderedCount + 10);
+    console.log(`Rendering ${itemsToRender.length} new items.`);
 
+    if (currentRenderedCount === 0 && itemsToRender.length === 0) {
+        reviewsContainer.innerHTML = `<div class="text-center py-10"><p class="text-light-secondary">No reviews match the current filters.</p></div>`;
+        if (loadMoreContainer) loadMoreContainer.classList.add('hidden');
+        return;
+    }
+
+    itemsToRender.forEach(data => {
         const ratingColor = data.averageRating >= 4 ? 'text-green-400' : data.averageRating >= 2 ? 'text-yellow-400' : 'text-red-400';
-
         const firstReview = data.allReviews[0];
-
         const commentHtml = firstReview.comment ? renderStructuredComment(firstReview.comment).replace(/<[^>]*>/g, '') : 'No comment';
-        
         const vehicleTitle = firstReview.vehicle_make || 'Unknown Make';
-
         const reviewCardHtml = `
-
             <div class="bg-tertiary p-4 rounded-xl shadow-md flex items-center space-x-4 cursor-pointer review-card" data-plate-number="${data.plate_number}">
-
                 <div class="plate-display relative w-24 h-12" style="background-image: url('/images/blankplate.png');">
-
                     <div class="plate-number-overlay text-lg">${data.plate_number.toUpperCase()}</div>
-
                 </div>
-
                 <div class="flex-grow">
-
                     <h3 class="font-bold text-primary">${vehicleTitle}</h3>
-
                     <p class="text-sm text-secondary">${commentHtml.substring(0, 40)}...</p>
-
                 </div>
-
                 <div class="flex items-center font-bold text-lg ${ratingColor}">
-
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="mr-1"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path></svg>
-
                     <span>${parseFloat(data.averageRating).toFixed(1)}</span>
-
                 </div>
-
             </div>`;
-
         reviewsContainer.insertAdjacentHTML('beforeend', reviewCardHtml);
-
     });
 
-    document.querySelectorAll('.review-card').forEach(card => {
+    currentRenderedCount += itemsToRender.length;
 
-        card.addEventListener('click', (event) => showReviewDetail(event.currentTarget.dataset.plateNumber));
-
-    });
-
+    if (loadMoreContainer) {
+        if (currentRenderedCount < currentFilteredData.length) {
+            loadMoreContainer.classList.remove('hidden');
+        } else {
+            loadMoreContainer.classList.add('hidden');
+        }
+    }
 };
 
 
@@ -2632,6 +2570,7 @@ const fetchReviews = async () => {
             return;
         }
         allReviewsData = await response.json();
+        console.log(`Fetched ${allReviewsData.length} reviews from the API.`);
         aggregatedReviewsData = {};
         allReviewsData.forEach(review => {
             const plate = review.plate_number.toUpperCase();
@@ -2643,7 +2582,7 @@ const fetchReviews = async () => {
             aggregatedReviewsData[plate].averageRating = aggregatedReviewsData[plate].totalRating / aggregatedReviewsData[plate].reviewCount;
             aggregatedReviewsData[plate].allReviews.push(review);
         });
-        renderReviews();
+        renderReviews({ isLoadMore: false });
     } catch (error) {
         console.error("A critical error occurred during fetchReviews:", error);
         if(loadingIndicator) loadingIndicator.innerHTML = `<p class="text-red-500 col-span-full">A critical error occurred. Please check the console.</p>`;
@@ -3324,6 +3263,8 @@ function initApp() {
     const sortReviewsSelect = document.getElementById('sortReviews');
     const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
     const filtersContainer = document.getElementById('filtersContainer');
+    const reviewsContainer = document.getElementById('reviewsContainer');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
     const profileBtn = document.getElementById('profileBtn');
     const profileModal = document.getElementById('profileModal');
     const closeProfileModalBtn = document.getElementById('closeProfileModalBtn');
@@ -3590,20 +3531,27 @@ function initApp() {
     showAllBadgesBtn.addEventListener('click', () => allBadgesModal.classList.remove('hidden'));
     closeAllBadgesModalBtn.addEventListener('click', () => allBadgesModal.classList.add('hidden'));
 
-    // Filters
-    document.getElementById('searchPlate').addEventListener('input', renderReviews);
-    filterStateSelect.addEventListener('change', renderReviews);
-    filterMakeSelect.addEventListener('change', renderReviews);
-    // Create a mapping from type to its subtypes for the filter logic
-    const typesToSubtypes = {};
-    for (const subtype in vehicleType) {
-        const type = vehicleType[subtype];
-        if (!typesToSubtypes[type]) {
-            typesToSubtypes[type] = [];
-        }
-        typesToSubtypes[type].push(subtype);
-    }
+    // Filters & Review Rendering
+    document.getElementById('searchPlate').addEventListener('input', () => renderReviews({ isLoadMore: false }));
+    filterStateSelect.addEventListener('change', () => renderReviews({ isLoadMore: false }));
+    filterMakeSelect.addEventListener('change', () => renderReviews({ isLoadMore: false }));
+    filterSubtypeSelect.addEventListener('change', () => renderReviews({ isLoadMore: false }));
+    filterTraitSelect.addEventListener('change', () => renderReviews({ isLoadMore: false }));
+    sortReviewsSelect.addEventListener('change', () => renderReviews({ isLoadMore: false }));
     
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', () => renderReviews({ isLoadMore: true }));
+    }
+
+    if (reviewsContainer) {
+        reviewsContainer.addEventListener('click', (event) => {
+            const card = event.target.closest('.review-card');
+            if (card) {
+                showReviewDetail(card.dataset.plateNumber);
+            }
+        });
+    }
+
     filterTypeSelect.addEventListener('change', () => {
         const selectedType = filterTypeSelect.value;
         const relevantSubtypes = selectedType ? (typesToSubtypes[selectedType] || []).sort() : uniqueVehicleSubtypes;
@@ -3611,11 +3559,9 @@ function initApp() {
         const newSubtypeOptions = ['<option value="">All Subtypes</option>', ...relevantSubtypes.map(subtype => `<option value="${subtype}">${subtype}</option>`)].join('');
         filterSubtypeSelect.innerHTML = newSubtypeOptions;
         
-        renderReviews();
+        renderReviews({ isLoadMore: false });
     });
-    filterSubtypeSelect.addEventListener('change', renderReviews);
-    filterTraitSelect.addEventListener('change', renderReviews);
-    sortReviewsSelect.addEventListener('change', renderReviews);
+
     toggleFiltersBtn.addEventListener('click', () => {
         filtersContainer.classList.toggle('hidden');
     });
