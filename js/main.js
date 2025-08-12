@@ -2206,36 +2206,18 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
 
     const userBadgeIds = new Set(userBadges.map(b => b.badge_id));
 
-    let badgesToDisplay;
+    // Sort all badges: unlocked first, then by ID
+    const sortedBadges = [...allBadges].sort((a, b) => {
+        const aUnlocked = userBadgeIds.has(a.badge_id);
+        const bUnlocked = userBadgeIds.has(b.badge_id);
+        if (aUnlocked !== bUnlocked) {
+            return aUnlocked ? -1 : 1; // Unlocked badges come first
+        }
+        return a.badge_id - b.badge_id; // Then sort by badge ID
+    });
 
-
-    if (limit > 0) {
-
-        // Sort for the preview: unlocked first, then by ID
-
-        const sortedBadges = [...allBadges].sort((a, b) => {
-
-            const aUnlocked = userBadgeIds.has(a.badge_id);
-
-            const bUnlocked = userBadgeIds.has(b.badge_id);
-
-            if (aUnlocked !== bUnlocked) {
-
-                return aUnlocked ? -1 : 1;
-
-            }
-
-            return a.badge_id - b.badge_id;
-
-        });
-
-        badgesToDisplay = sortedBadges.slice(0, limit);
-
-    } else {
-
-        badgesToDisplay = allBadges; // For the "Show All" modal
-
-    }
+    // Determine the final list of badges to display
+    const badgesToDisplay = limit > 0 ? sortedBadges.slice(0, limit) : sortedBadges;
 
 
     badgesToDisplay.forEach(badge => {
