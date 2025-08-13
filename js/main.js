@@ -2572,6 +2572,13 @@ const fetchNotifications = async (showAll = false) => {
                         }
                     });
                     toast.showToast();
+
+                    // Refresh data based on notification type
+                    if (n.type === 'badge' || n.type === 'badge_revoked') {
+                        fetchCurrentUserBadges();
+                    } else if (n.type === 'vote') {
+                        fetchReviews();
+                    }
                 });
             }
 
