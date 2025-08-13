@@ -2328,7 +2328,12 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
 
         const nameEl = document.createElement('p');
         nameEl.className = 'mt-1 text-xs';
-        nameEl.textContent = badge.name;
+        const viewerHasBadge = currentUserBadgeIds.has(badge.badge_id);
+        if (badge.is_secret && !viewerHasBadge) {
+            nameEl.textContent = 'Secret';
+        } else {
+            nameEl.textContent = badge.name;
+        }
         wrapperDiv.appendChild(nameEl);
 
         wrapperDiv.addEventListener('click', () => {

@@ -1136,8 +1136,7 @@ app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
 // Endpoint to get all badges
 app.get('/api/badges', async (req, res) => {
     try {
-        // UPDATED: This now only fetches non-secret badges for public display.
-        const [badges] = await db.query('SELECT * FROM badges WHERE is_secret = 0 ORDER BY badge_id');
+        const [badges] = await db.query('SELECT * FROM badges ORDER BY badge_id');
         res.json(badges);
     } catch (err) {
         console.error('❌ Failed to fetch all badges:', err);
