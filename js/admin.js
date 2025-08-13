@@ -1181,7 +1181,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
   function addSelectedUser(id){
     state.selectedUserIds.add(id);
     renderSelection();
-    // make it obvious which users can be dragged:
+    // make it obvious which users can be dragged: 
     toast('User added to selection.', 'success');
   }
 
