@@ -273,7 +273,7 @@ app.get('/api/users/profile', authenticateToken, async (req, res) => {
         const [reviewRows] = await db.query('SELECT * FROM reviews WHERE user_id = ? ORDER BY created_at DESC', [userId]);
 
         const [badgeRows] = await db.query(`
-            SELECT b.badge_id, b.name, b.description, b.image_url, b.is_secret
+            SELECT b.badge_id, b.name, b.description, b.image_url, b.is_secret, b.rarity
             FROM user_badges ub
             JOIN badges b ON ub.badge_id = b.badge_id
             WHERE ub.user_id = ?
@@ -360,7 +360,7 @@ app.get('/api/users/profile/:username', async (req, res) => {
         }));
 
         const [badgeRows] = await db.query(`
-            SELECT b.badge_id, b.name, b.description, b.image_url, b.is_secret
+            SELECT b.badge_id, b.name, b.description, b.image_url, b.is_secret, b.rarity
             FROM user_badges ub
             JOIN badges b ON ub.badge_id = b.badge_id
             WHERE ub.user_id = ?

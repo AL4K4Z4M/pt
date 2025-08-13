@@ -2187,9 +2187,6 @@ const showBadgeDetail = (badge, isUnlocked = true) => {
   const descEl = document.getElementById('badgeDetailDescription');
   const imgEl = document.getElementById('badgeDetailImage'); // existing <img> in modal
   const rarityEl = document.getElementById('badgeDetailRarity');
-  const debugEl = document.getElementById('badge-debug-info');
-
-  debugEl.textContent = JSON.stringify(badge, null, 2);
 
   const viewerHasBadge = currentUserBadgeIds.has(badge.badge_id);
   const useShimmer = badge.is_secret && isUnlocked; // shimmer if badge itself is secret & unlocked for the profile being viewed
