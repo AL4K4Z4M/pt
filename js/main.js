@@ -2182,27 +2182,66 @@ const renderReviews = (options = {}) => {
  */
 
 const showBadgeDetail = (badge, isUnlocked = true) => {
-    const badgeDetailModal = document.getElementById('badgeDetailModal');
-    const detailImage = document.getElementById('badgeDetailImage');
-    detailImage.src = badge.image_url || '/images/badges/default.png';
+  const badgeDetailModal = document.getElementById('badgeDetailModal');
+  const nameEl = document.getElementById('badgeDetailName');
+  const descEl = document.getElementById('badgeDetailDescription');
+  const imgEl = document.getElementById('badgeDetailImage'); // existing <img> in modal
 
-    const viewerHasBadge = currentUserBadgeIds.has(badge.badge_id);
+  const viewerHasBadge = currentUserBadgeIds.has(badge.badge_id);
+  const useShimmer = badge.is_secret && isUnlocked; // shimmer if badge itself is secret & unlocked for the profile being viewed
 
-    // The badge is displayed as locked if the profile owner doesn't have it.
-    detailImage.classList.toggle('badge-locked', !isUnlocked);
+  // mount point for shimmer content (create once, reuse)
+  let shimmerMount = document.getElementById('badgeDetailShimmer');
+  if (!shimmerMount) {
+    shimmerMount = document.createElement('div');
+    shimmerMount.id = 'badgeDetailShimmer';
+    shimmerMount.className = 'mx-auto mb-4';
+    imgEl.insertAdjacentElement('beforebegin', shimmerMount);
+  }
+  shimmerMount.innerHTML = '';
 
-    document.getElementById('badgeDetailName').textContent = badge.name;
+  const src = badge.image_url || '/images/badges/default.png';
 
-    let description = badge.description;
-    if (badge.is_secret && !viewerHasBadge) {
-        description = "This is a secret badge.";
-    } else if (!isUnlocked) {
-        description = 'This badge is locked. Keep using PlateTraits to discover how to unlock it!';
-    }
+  if (useShimmer) {
+    // hide the plain image; render shimmering version
+    imgEl.classList.add('hidden');
 
-    document.getElementById('badgeDetailDescription').textContent = description;
-    badgeDetailModal.classList.remove('hidden');
+    shimmerMount.innerHTML = `
+      <div class="badge-wrap badge-detail-tile no-glow" tabindex="0"
+           aria-label="${badge.name} - secret shimmering badge">
+        <div class="badge-img" aria-hidden="true">
+          <img src="${src}" alt="${badge.name}">
+        </div>
+        <div class="shine" aria-hidden="true"></div>
+        <div class="sparkles" aria-hidden="true">
+          ${Array(8).fill('<span class="sparkle"></span>').join('')}
+        </div>
+      </div>
+    `;
+
+    // convert to inline SVG + apply mask
+    applyShimmerEffect();
+  } else {
+    // show the plain image
+    imgEl.classList.remove('hidden');
+    imgEl.src = src;
+    imgEl.classList.toggle('badge-locked', !isUnlocked);
+  }
+
+  // text content
+  nameEl.textContent = badge.name;
+
+  let description = badge.description;
+  if (badge.is_secret && !viewerHasBadge) {
+    description = 'This is a secret badge.';
+  } else if (!isUnlocked) {
+    description = 'This badge is locked. Keep using PlateTraits to discover how to unlock it!';
+  }
+  descEl.textContent = description;
+
+  badgeDetailModal.classList.remove('hidden');
 };
+
 
 const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
     if (!container) return;
@@ -2214,12 +2253,8 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
     }
 
     const userBadgeIds = new Set(userBadges.map(b => b.badge_id));
+    const publicBadgesById = new Map(allBadges.filter(b => !b.is_secret).map(b => [b.badge_id, b]));
 
-    // Create a map of all public (non-secret) badges for easy lookup.
-    const publicBadgesById = new Map(allBadges.map(b => [b.badge_id, b]));
-
-    // The comprehensive list of badges to potentially show:
-    // Start with all public badges, then add any earned secret badges.
     const allVisibleBadges = new Map(publicBadgesById);
     userBadges.forEach(b => {
         if (b.is_secret && !allVisibleBadges.has(b.badge_id)) {
@@ -2229,43 +2264,52 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
 
     const badgesToShow = Array.from(allVisibleBadges.values());
 
-    // Sort all badges: unlocked first, then by ID
     const sortedBadges = badgesToShow.sort((a, b) => {
         const aUnlocked = userBadgeIds.has(a.badge_id);
         const bUnlocked = userBadgeIds.has(b.badge_id);
-        if (aUnlocked !== bUnlocked) {
-            return aUnlocked ? -1 : 1; // Unlocked badges come first
-        }
-        return a.badge_id.localeCompare(b.badge_id); // Then sort by badge ID
+        if (aUnlocked !== bUnlocked) return aUnlocked ? -1 : 1;
+        return a.badge_id.localeCompare(b.badge_id);
     });
 
-    // Determine the final list of badges to display
     const badgesToDisplay = limit > 0 ? sortedBadges.slice(0, limit) : sortedBadges;
 
     badgesToDisplay.forEach(badge => {
         const isUnlocked = userBadgeIds.has(badge.badge_id);
+        if (badge.is_secret && !isUnlocked) return;
 
-        // Crucially, don't render a badge if it's secret and the user hasn't unlocked it.
-        if (badge.is_secret && !isUnlocked) {
-            return;
+        const wrapperDiv = document.createElement('div');
+        const badgeElement = document.createElement('div');
+        let badgeHtml = '';
+
+        if (badge.is_secret && isUnlocked) {
+  badgeElement.className = 'badge-container cursor-pointer';
+  badgeHtml = `
+    <div class="badge-wrap badge-tile no-glow" tabindex="0"
+         aria-label="${badge.name} - secret shimmering badge">
+      <div class="badge-img" aria-hidden="true">
+        <img src="${badge.image_url || '/images/badges/default.png'}" alt="${badge.name}">
+      </div>
+      <div class="shine" aria-hidden="true"></div>
+      <div class="sparkles" aria-hidden="true">
+        ${Array(8).fill('<span class="sparkle"></span>').join('')}
+      </div>
+    </div>
+  `;
+}else {
+            badgeElement.className = 'badge-container cursor-pointer';
+            const imgClass = isUnlocked ? '' : 'badge-locked';
+            const lockIconHtml = isUnlocked ? '' : `
+                <svg class="lock-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>`;
+            badgeHtml = `
+                <img src="${badge.image_url || '/images/badges/default.png'}" alt="${badge.name}" class="w-16 h-16 transition-transform hover:scale-110 ${imgClass}">
+                ${lockIconHtml}
+            `;
         }
 
-        const badgeElement = document.createElement('div');
-        badgeElement.className = 'badge-container cursor-pointer';
-
-        const imgClass = isUnlocked ? '' : 'badge-locked';
-        const lockIconHtml = isUnlocked ? '' : `
-            <svg class="lock-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-        `;
-
-        badgeElement.innerHTML = `
-            <img src="${badge.image_url || '/images/badges/default.png'}" alt="${badge.name}" class="w-16 h-16 transition-transform hover:scale-110 ${imgClass}">
-            ${lockIconHtml}
-        `;
-
+        badgeElement.innerHTML = badgeHtml;
         badgeElement.addEventListener('click', () => {
             if (container.id === 'allBadgesContainer') {
                 document.getElementById('allBadgesModal').classList.add('hidden');
@@ -2273,7 +2317,74 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
             showBadgeDetail(badge, isUnlocked);
         });
 
-        container.appendChild(badgeElement);
+        wrapperDiv.appendChild(badgeElement);
+        container.appendChild(wrapperDiv);
+    });
+
+    applyShimmerEffect();
+};
+
+const applyShimmerEffect = () => {
+    document.querySelectorAll('.badge-wrap').forEach(badgeWrap => {
+        const img = badgeWrap.querySelector('.badge-img img');
+        if (!img) return;
+
+        const imageUrl = img.src;
+        if (!imageUrl || !imageUrl.endsWith('.svg')) return;
+
+        fetch(imageUrl)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            })
+            .then(svgText => {
+                const badgeImgDiv = badgeWrap.querySelector('.badge-img');
+                if (!badgeImgDiv) return;
+
+                badgeImgDiv.innerHTML = svgText;
+                const svgEl = badgeImgDiv.querySelector('svg');
+                if (!svgEl) return;
+
+                // Now apply the mask using the user's original logic
+                const shine = badgeWrap.querySelector('.shine');
+                const sparkles = badgeWrap.querySelector('.sparkles');
+
+                try {
+                    const clone = svgEl.cloneNode(true);
+                    if (!clone.getAttribute('viewBox')) {
+                        const w = clone.getAttribute('width') || 200;
+                        const h = clone.getAttribute('height') || 200;
+                        clone.setAttribute('viewBox', `0 0 ${w} ${h}`);
+                        clone.removeAttribute('width');
+                        clone.removeAttribute('height');
+                    }
+
+                    const serializer = new XMLSerializer();
+                    let serializedText = serializer.serializeToString(clone);
+                    if (!/xmlns=/.test(serializedText)) {
+                        serializedText = serializedText.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+                    }
+
+                    const url = 'data:image/svg+xml;utf8,' + encodeURIComponent(serializedText);
+
+                    [shine, sparkles].forEach(el => {
+                        if (!el) return;
+                        el.style.webkitMaskImage = `url('${url}')`;
+                        el.style.maskImage = `url('${url}')`;
+                        el.style.webkitMaskRepeat = 'no-repeat';
+                        el.style.maskRepeat = 'no-repeat';
+                        el.style.webkitMaskPosition = 'center';
+                        el.style.maskPosition = 'center';
+                        el.style.webkitMaskSize = 'contain';
+                        el.style.maskSize = 'contain';
+                    });
+                } catch (e) {
+                    console.error("Failed to apply shimmer effect:", e);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching SVG for shimmer effect:', error);
+            });
     });
 };
 
