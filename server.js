@@ -273,7 +273,7 @@ app.get('/api/users/profile', authenticateToken, async (req, res) => {
         const [reviewRows] = await db.query('SELECT * FROM reviews WHERE user_id = ? ORDER BY created_at DESC', [userId]);
 
         const [badgeRows] = await db.query(`
-            SELECT b.badge_id, b.name, b.description, b.image_url, b.is_secret
+            SELECT b.badge_id, b.name, b.description, b.image_url, b.is_secret, b.rarity
             FROM user_badges ub
             JOIN badges b ON ub.badge_id = b.badge_id
             WHERE ub.user_id = ?
@@ -360,7 +360,7 @@ app.get('/api/users/profile/:username', async (req, res) => {
         }));
 
         const [badgeRows] = await db.query(`
-            SELECT b.badge_id, b.name, b.description, b.image_url, b.is_secret
+            SELECT b.badge_id, b.name, b.description, b.image_url, b.is_secret, b.rarity
             FROM user_badges ub
             JOIN badges b ON ub.badge_id = b.badge_id
             WHERE ub.user_id = ?
@@ -1136,8 +1136,7 @@ app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
 // Endpoint to get all badges
 app.get('/api/badges', async (req, res) => {
     try {
-        // UPDATED: This now only fetches non-secret badges for public display.
-        const [badges] = await db.query('SELECT * FROM badges WHERE is_secret = 0 ORDER BY badge_id');
+        const [badges] = await db.query('SELECT * FROM badges ORDER BY badge_id');
         res.json(badges);
     } catch (err) {
         console.error('❌ Failed to fetch all badges:', err);

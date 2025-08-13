@@ -2230,15 +2230,17 @@ const showBadgeDetail = (badge, isUnlocked = true) => {
   }
 
   // text content
-  nameEl.textContent = badge.name;
-
-  let description = badge.description;
   if (badge.is_secret && !viewerHasBadge) {
-    description = 'This is a secret badge.';
-  } else if (!isUnlocked) {
-    description = 'This badge is locked. Keep using PlateTraits to discover how to unlock it!';
+    nameEl.textContent = 'Secret';
+    descEl.textContent = 'This is a secret badge.';
+  } else {
+    nameEl.textContent = badge.name;
+    if (!isUnlocked) {
+      descEl.textContent = 'This badge is locked. Keep using PlateTraits to discover how to unlock it!';
+    } else {
+      descEl.textContent = badge.description;
+    }
   }
-  descEl.textContent = description;
 
   if (badge.rarity) {
     rarityEl.textContent = `Rarity: ${badge.rarity}`;
@@ -2326,7 +2328,12 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
 
         const nameEl = document.createElement('p');
         nameEl.className = 'mt-1 text-xs';
-        nameEl.textContent = badge.name;
+        const viewerHasBadge = currentUserBadgeIds.has(badge.badge_id);
+        if (badge.is_secret && !viewerHasBadge) {
+            nameEl.textContent = 'Secret';
+        } else {
+            nameEl.textContent = badge.name;
+        }
         wrapperDiv.appendChild(nameEl);
 
         wrapperDiv.addEventListener('click', () => {
