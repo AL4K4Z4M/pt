@@ -176,7 +176,7 @@ app.post('/api/users/login', async (req, res) => {
 
         const match = await bcrypt.compare(password, user.password);
         if (match) {
-            const accessToken = jwt.sign({ userId: user.id, username: user.username, isAdmin: user.is_admin }, process.env.JWT_SECRET, { expiresIn: '1h' });
+            const accessToken = jwt.sign({ userId: user.id, username: user.username, isAdmin: user.is_admin }, process.env.JWT_SECRET, { expiresIn: '24h' });
             res.json({ success: true, accessToken: accessToken, username: user.username, isAdmin: user.is_admin });
 
             // Asynchronous badge logic post-response
