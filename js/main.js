@@ -3349,11 +3349,6 @@ const reassignModalElements = () => {
 
         data.rating = Number(data.rating);
 
-        if (forbiddenWords.some(word => data.plate_number.toLowerCase().includes(word))) {
-            formMessage.textContent = 'Error: Plate number contains forbidden words.';
-            return;
-        }
-
         try {
             const response = await fetch(`${API_URL}/reviews`, {
                 method: 'POST',
