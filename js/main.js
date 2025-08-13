@@ -2267,7 +2267,8 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
     const allVisibleBadges = new Map(publicBadgesById);
     userBadges.forEach(b => {
         if (b.is_secret && !allVisibleBadges.has(b.badge_id)) {
-            allVisibleBadges.set(b.badge_id, b);
+            const fullBadge = allBadges.find(ab => ab.badge_id === b.badge_id);
+            allVisibleBadges.set(b.badge_id, fullBadge || b);
         }
     });
 
@@ -2287,12 +2288,13 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
         if (badge.is_secret && !isUnlocked) return;
 
         const wrapperDiv = document.createElement('div');
+        wrapperDiv.classList.add('cursor-pointer');
         const badgeElement = document.createElement('div');
         let badgeHtml = '';
 
         if (badge.is_secret && isUnlocked) {
-  badgeElement.className = 'badge-container cursor-pointer';
-  badgeHtml = `
+            badgeElement.className = 'badge-container';
+            badgeHtml = `
     <div class="badge-wrap badge-tile no-glow" tabindex="0"
          aria-label="${badge.name} - secret shimmering badge">
       <div class="badge-img" aria-hidden="true">
@@ -2304,8 +2306,8 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
       </div>
     </div>
   `;
-}else {
-            badgeElement.className = 'badge-container cursor-pointer';
+        } else {
+            badgeElement.className = 'badge-container';
             const imgClass = isUnlocked ? '' : 'badge-locked';
             const lockIconHtml = isUnlocked ? '' : `
                 <svg class="lock-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2319,14 +2321,21 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
         }
 
         badgeElement.innerHTML = badgeHtml;
-        badgeElement.addEventListener('click', () => {
+
+        wrapperDiv.appendChild(badgeElement);
+
+        const nameEl = document.createElement('p');
+        nameEl.className = 'mt-1 text-xs';
+        nameEl.textContent = badge.name;
+        wrapperDiv.appendChild(nameEl);
+
+        wrapperDiv.addEventListener('click', () => {
             if (container.id === 'allBadgesContainer') {
                 document.getElementById('allBadgesModal').classList.add('hidden');
             }
             showBadgeDetail(badge, isUnlocked);
         });
 
-        wrapperDiv.appendChild(badgeElement);
         container.appendChild(wrapperDiv);
     });
 
