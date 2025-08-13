@@ -2188,6 +2188,8 @@ const showBadgeDetail = (badge, isUnlocked = true) => {
   const imgEl = document.getElementById('badgeDetailImage'); // existing <img> in modal
   const rarityEl = document.getElementById('badgeDetailRarity');
 
+  const formattedName = `#${String(badge.badge_id).padStart(4, '0')} ${badge.name}`;
+
   const viewerHasBadge = currentUserBadgeIds.has(badge.badge_id);
   const useShimmer = badge.is_secret && isUnlocked; // shimmer if badge itself is secret & unlocked for the profile being viewed
 
@@ -2209,9 +2211,9 @@ const showBadgeDetail = (badge, isUnlocked = true) => {
 
     shimmerMount.innerHTML = `
       <div class="badge-wrap badge-detail-tile no-glow" tabindex="0"
-           aria-label="${badge.name} - secret shimmering badge">
+           aria-label="${formattedName} - secret shimmering badge">
         <div class="badge-img" aria-hidden="true">
-          <img src="${src}" alt="${badge.name}">
+          <img src="${src}" alt="${formattedName}">
         </div>
         <div class="shine" aria-hidden="true"></div>
         <div class="sparkles" aria-hidden="true">
@@ -2226,11 +2228,12 @@ const showBadgeDetail = (badge, isUnlocked = true) => {
     // show the plain image
     imgEl.classList.remove('hidden');
     imgEl.src = src;
+    imgEl.alt = formattedName;
     imgEl.classList.toggle('badge-locked', !isUnlocked);
   }
 
   // text content
-  nameEl.textContent = badge.name;
+  nameEl.textContent = formattedName;
 
   let description = badge.description;
   if (badge.is_secret && !viewerHasBadge) {
@@ -2287,6 +2290,8 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
         const isUnlocked = userBadgeIds.has(badge.badge_id);
         if (badge.is_secret && !isUnlocked) return;
 
+        const displayName = `#${String(badge.badge_id).padStart(4, '0')} ${badge.name}`;
+
         const wrapperDiv = document.createElement('div');
         wrapperDiv.classList.add('cursor-pointer');
         const badgeElement = document.createElement('div');
@@ -2296,9 +2301,9 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
             badgeElement.className = 'badge-container';
             badgeHtml = `
     <div class="badge-wrap badge-tile no-glow" tabindex="0"
-         aria-label="${badge.name} - secret shimmering badge">
+         aria-label="${displayName} - secret shimmering badge">
       <div class="badge-img" aria-hidden="true">
-        <img src="${badge.image_url || '/images/badges/default.png'}" alt="${badge.name}">
+        <img src="${badge.image_url || '/images/badges/default.png'}" alt="${displayName}">
       </div>
       <div class="shine" aria-hidden="true"></div>
       <div class="sparkles" aria-hidden="true">
@@ -2315,7 +2320,7 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>`;
             badgeHtml = `
-                <img src="${badge.image_url || '/images/badges/default.png'}" alt="${badge.name}" class="w-16 h-16 transition-transform hover:scale-110 ${imgClass}">
+                <img src="${badge.image_url || '/images/badges/default.png'}" alt="${displayName}" class="w-16 h-16 transition-transform hover:scale-110 ${imgClass}">
                 ${lockIconHtml}
             `;
         }
@@ -2326,7 +2331,7 @@ const renderProfileBadges = (userBadges, allBadges, container, limit = 0) => {
 
         const nameEl = document.createElement('p');
         nameEl.className = 'mt-1 text-xs';
-        nameEl.textContent = badge.name;
+        nameEl.textContent = displayName;
         wrapperDiv.appendChild(nameEl);
 
         wrapperDiv.addEventListener('click', () => {
@@ -2780,7 +2785,8 @@ const fetchUserVotes = async () => {
 
 const fetchAllBadges = async () => {
     try {
-        const response = await fetch(`${API_URL}/badges`);
+        const headers = authToken ? { 'Authorization': `Bearer ${authToken}` } : {};
+        const response = await fetch(`${API_URL}/badges`, { headers });
         if (!response.ok) {
             throw new Error('Could not fetch all badges.');
         }
