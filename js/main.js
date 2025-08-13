@@ -36,6 +36,7 @@ let allNotifications = []; // To cache notifications
 let isInitialNotificationFetch = true;
 let notificationIntervalId = null;
 let allBadgesCache = []; // To cache all badges
+let currentUserBadgeIds = new Set(); // To cache the current user's badge IDs
 
 
 // --- 2. Data Definitions ---
@@ -2184,9 +2185,22 @@ const showBadgeDetail = (badge, isUnlocked = true) => {
     const badgeDetailModal = document.getElementById('badgeDetailModal');
     const detailImage = document.getElementById('badgeDetailImage');
     detailImage.src = badge.image_url || '/images/badges/default.png';
+
+    const viewerHasBadge = currentUserBadgeIds.has(badge.badge_id);
+
+    // The badge is displayed as locked if the profile owner doesn't have it.
     detailImage.classList.toggle('badge-locked', !isUnlocked);
+
     document.getElementById('badgeDetailName').textContent = badge.name;
-    document.getElementById('badgeDetailDescription').textContent = isUnlocked ? badge.description : 'This badge is locked. Keep using PlateTraits to discover how to unlock it!';
+
+    let description = badge.description;
+    if (badge.is_secret && !viewerHasBadge) {
+        description = "This is a secret badge.";
+    } else if (!isUnlocked) {
+        description = 'This badge is locked. Keep using PlateTraits to discover how to unlock it!';
+    }
+
+    document.getElementById('badgeDetailDescription').textContent = description;
     badgeDetailModal.classList.remove('hidden');
 };
 
@@ -2360,6 +2374,23 @@ const renderProfileReviews = (container, reviews, profileUsername) => {
 
 
 // --- 4. API & Data Fetching ---
+
+const fetchCurrentUserBadges = async () => {
+    if (!authToken) return;
+    try {
+        const response = await fetch(`${API_URL}/users/profile`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (response.ok) {
+            const { badges } = await response.json();
+            currentUserBadgeIds = new Set(badges.map(b => b.badge_id));
+        } else {
+            console.error('Failed to fetch current user badges, response not ok.');
+        }
+    } catch (error) {
+        console.error("A critical error occurred during fetchCurrentUserBadges:", error);
+    }
+};
 
 const fetchNotifications = async (showAll = false) => {
     if (!authToken) return;
@@ -2858,6 +2889,7 @@ const updateAuthUI = () => {
         }
 
         // Initial fetch and set up polling for notifications
+        fetchCurrentUserBadges();
         fetchNotifications();
         if (notificationIntervalId) clearInterval(notificationIntervalId);
         notificationIntervalId = setInterval(fetchNotifications, 15000); // Poll every 15 seconds
@@ -2899,6 +2931,7 @@ const handleLogout = () => {
     isAdmin = false;
 
     userVotes = {};
+    currentUserBadgeIds.clear();
 
     allNotifications = [];
     unreadNotifications = 0;
