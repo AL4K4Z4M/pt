@@ -192,7 +192,7 @@
 
     /* Shimmering Badge Styles */
     .badge-wrap {
-        --shine-speed: 3.2s;
+        --shine-speed: 8s; /* Slowed down for a more subtle effect */
         --tilt: 10deg;
         --lift: 8px;
         position: relative;
@@ -227,16 +227,16 @@
         z-index: 3;
         inset: 0;
         pointer-events: none;
-        background: linear-gradient(115deg,
-                    rgba(255,255,255,0) 18%,
-                    rgba(255,255,200,.12) 38%,
-                    rgba(255,255,180,.50) 50%,
-                    rgba(255,255,200,.12) 62%,
-                    rgba(255,255,255,0) 82%) no-repeat;
-        background-size: 220% 220%;
-        mix-blend-mode: screen;
+        background: linear-gradient(135deg,
+            rgba(255, 100, 100, 0.3) 0%,
+            rgba(100, 255, 100, 0.3) 25%,
+            rgba(100, 100, 255, 0.3) 50%,
+            rgba(255, 100, 255, 0.3) 75%,
+            rgba(255, 100, 100, 0.3) 100%);
+        background-size: 400% 400%;
+        mix-blend-mode: color-dodge;
         animation: sweep var(--shine-speed) linear infinite;
-        opacity: .95;
+        opacity: .8;
         /* mask is set via JS to match the inline SVG silhouette */
     }
     .sparkles {
@@ -245,7 +245,6 @@
         inset: 0;
         pointer-events: none;
         overflow: hidden;
-        mix-blend-mode: screen;
         /* mask is set via JS */
     }
     .sparkle {
@@ -254,13 +253,13 @@
         position: absolute;
         left: var(--x);
         top: var(--y);
-        width: 8px;
-        height: 8px;
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
         transform: translate(-50%, -50%) scale(0);
-        background: radial-gradient(circle, rgba(255,255,210,.95), rgba(255,215,0,.55) 40%, rgba(255,255,255,0) 70%);
-        filter: blur(.2px) brightness(140%);
-        animation: twinkle 2.4s ease-in-out infinite;
+        background: white;
+        filter: blur(.5px);
+        animation: glitter 3s ease-in-out infinite;
         opacity: 0;
     }
     .sparkle:nth-child(1) { --x: 22%; --y: 28%; animation-delay: .2s; }
@@ -274,7 +273,7 @@
     .badge-wrap:hover,
     .badge-wrap:focus-visible {
         transform: translateY(calc(var(--lift) * -1)) rotateX(var(--tilt)) rotateY(calc(var(--tilt) * -.6));
-        filter: drop-shadow(0 28px 45px rgba(255, 200, 60, .45));
+        filter: drop-shadow(0 28px 45px rgba(180, 100, 255, .35));
     }
     .badge-wrap:hover .badge-img,
     .badge-wrap:focus-visible .badge-img {
@@ -283,22 +282,37 @@
     }
     .badge-wrap:hover .shine,
     .badge-wrap:focus-visible .shine {
-        animation-duration: 1.6s;
+        animation-duration: 4s; /* Speed up on hover */
     }
     .badge-wrap:hover .sparkle,
     .badge-wrap:focus-visible .sparkle {
         opacity: 1;
     }
     @keyframes sweep {
-        0%   { background-position: -120% -120%; }
-        50%  { background-position:  50%  50%; }
-        100% { background-position: 220% 220%; }
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
-    @keyframes twinkle {
-        0%   { transform: translate(-50%, -50%) scale(0.1); opacity: 0; }
-        35%  { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
-        70%  { transform: translate(-50%, -50%) scale(.15); opacity: .2; }
-        100% { transform: translate(-50%, -50%) scale(0);   opacity: 0; }
+    @keyframes glitter {
+        0%, 100% {
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+        }
+        25% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            box-shadow: 0 0 8px 2px #0ff; /* Cyan */
+        }
+        50% {
+            transform: translate(-50%, -50%) scale(0.5);
+            opacity: .5;
+            box-shadow: 0 0 8px 2px #f0f; /* Magenta */
+        }
+        75% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            box-shadow: 0 0 8px 2px #ff0; /* Yellow */
+        }
     }
     @media (prefers-reduced-motion: reduce) {
         .shine, .sparkle { animation: none !important; }
