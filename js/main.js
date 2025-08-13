@@ -2232,14 +2232,15 @@ const showBadgeDetail = (badge, isUnlocked = true) => {
   // text content
   nameEl.textContent = badge.name;
 
-  let description = badge.description;
   if (badge.is_secret && !viewerHasBadge) {
-    description = 'This is a secret badge.';
+    descEl.textContent = 'This is a secret badge.';
   } else if (!isUnlocked) {
-    description = 'This badge is locked. Keep using PlateTraits to discover how to unlock it!';
+    descEl.textContent = 'This badge is locked. Keep using PlateTraits to discover how to unlock it!';
+  } else {
+    descEl.textContent = badge.description;
   }
-  descEl.textContent = description;
 
+  // Show rarity if it exists, regardless of secret status
   if (badge.rarity) {
     rarityEl.textContent = `Rarity: ${badge.rarity}`;
     rarityEl.classList.remove('hidden');
