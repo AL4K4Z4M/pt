@@ -2187,6 +2187,9 @@ const showBadgeDetail = (badge, isUnlocked = true) => {
   const descEl = document.getElementById('badgeDetailDescription');
   const imgEl = document.getElementById('badgeDetailImage'); // existing <img> in modal
   const rarityEl = document.getElementById('badgeDetailRarity');
+  const debugEl = document.getElementById('badge-debug-info');
+
+  debugEl.textContent = JSON.stringify(badge, null, 2);
 
   const viewerHasBadge = currentUserBadgeIds.has(badge.badge_id);
   const useShimmer = badge.is_secret && isUnlocked; // shimmer if badge itself is secret & unlocked for the profile being viewed
@@ -2232,15 +2235,14 @@ const showBadgeDetail = (badge, isUnlocked = true) => {
   // text content
   nameEl.textContent = badge.name;
 
+  let description = badge.description;
   if (badge.is_secret && !viewerHasBadge) {
-    descEl.textContent = 'This is a secret badge.';
+    description = 'This is a secret badge.';
   } else if (!isUnlocked) {
-    descEl.textContent = 'This badge is locked. Keep using PlateTraits to discover how to unlock it!';
-  } else {
-    descEl.textContent = badge.description;
+    description = 'This badge is locked. Keep using PlateTraits to discover how to unlock it!';
   }
+  descEl.textContent = description;
 
-  // Show rarity if it exists, regardless of secret status
   if (badge.rarity) {
     rarityEl.textContent = `Rarity: ${badge.rarity}`;
     rarityEl.classList.remove('hidden');
