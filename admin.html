@@ -1,335 +1,470 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - PlateTraits</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" href="/images/favicon.ico" sizes="any">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .stat-card {
-            background-color: #fff;
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        .sortable .sort-indicator::after {
-            content: ' \\2195'; /* Up-down arrow */
-            color: #9ca3af;
-        }
-        .sortable.asc .sort-indicator::after {
-            content: ' \\2191'; /* Up arrow */
-            color: #1f2937;
-        }
-        .sortable.desc .sort-indicator::after {
-            content: ' \\2193'; /* Down arrow */
-            color: #1f2937;
-        }
-        tbody tr {
-            transition: background-color 0.2s ease-in-out;
-        }
-        tbody tr:hover {
-            background-color: #f3f4f6;
-        }
-        .tab-button {
-            padding: 0.75rem 1.5rem;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s ease-in-out;
-            font-weight: 500;
-            color: #4b5563; /* gray-600 */
-        }
-        .tab-button.active {
-            color: #1d4ed8; /* blue-700 */
-            border-color: #1d4ed8;
-        }
-        .tab-button:hover {
-            background-color: #f3f4f6; /* gray-100 */
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard — PlateTraits</title>
+  <link rel="icon" href="/images/favicon.ico" sizes="any" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; }
+    .stat-card { transition: transform .15s ease, box-shadow .2s ease; }
+    .stat-card:hover { transform: translateY(-2px); }
+    .sortable .sort-indicator::after { content: ' ↕'; color: #9ca3af; }
+    .sortable.asc .sort-indicator::after { content: ' ↑'; color: #1f2937; }
+    .sortable.desc .sort-indicator::after { content: ' ↓'; color: #1f2937; }
+    thead.sticky th { position: sticky; top: 0; z-index: 10; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .skeleton { position: relative; overflow: hidden; background: #e5e7eb; }
+    .skeleton::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, #ffffff66, transparent); animation: shimmer 1.2s infinite; }
+    @keyframes shimmer { 100% { transform: translateX(100%); } }
+    .badge-chip { display:flex; align-items:center; padding: .25rem .5rem; background: #e5e7eb; color:#111827; border-radius: 999px; font-size:.75rem; }
+    .panel { border: 1px solid rgba(0,0,0,.06); }
+    .dark .panel { border-color: rgba(255,255,255,.08); }
+    /* Drag & drop */
+    #selection-dropzone.drag-over { border-color: rgb(59 130 246); background: rgba(59,130,246,.06); }
+    tr.user-row.selected { outline: 2px solid rgb(59 130 246); outline-offset: -2px; background: rgba(59,130,246,.06); }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-
-    <header class="bg-white shadow-sm">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center space-x-4">
-                    <img src="/images/pt_logo.png" alt="PlateTraits Logo" class="h-10">
-                    <h1 class="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-                </div>
-                <a href="/home.html" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">← Back to Main Site</a>
-            </div>
+<body class="h-full bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between py-4 gap-4">
+        <div class="flex items-center gap-3 min-w-0">
+          <img src="/images/pt_logo.png" alt="PlateTraits" class="h-9 w-9 rounded"/>
+          <h1 class="text-xl sm:text-2xl font-bold truncate">Admin Dashboard</h1>
+          <span id="env-pill" class="hidden sm:inline-block ml-2 text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200">Live</span>
         </div>
-    </header>
-
-    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
-
-        <!-- Stats Section -->
-        <section id="stats-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-            <div class="stat-card"><h3 class="text-sm font-medium text-gray-500">Total Users</h3><p id="total-users" class="text-3xl font-semibold">0</p></div>
-            <div class="stat-card"><h3 class="text-sm font-medium text-gray-500">Total Reviews</h3><p id="total-reviews" class="text-3xl font-semibold">0</p></div>
-            <div class="stat-card"><h3 class="text-sm font-medium text-gray-500">Total Badges</h3><p id="total-badges" class="text-3xl font-semibold">0</p></div>
-            <div class="stat-card"><h3 class="text-sm font-medium text-gray-500">Badges Awarded</h3><p id="total-user-badges" class="text-3xl font-semibold">0</p></div>
-            <div class="stat-card"><h3 class="text-sm font-medium text-gray-500">Total Votes</h3><p id="total-votes" class="text-3xl font-semibold">0</p></div>
-        </section>
-
-        <!-- Filter Section -->
-        <section id="filter-section" class="mb-8">
-            <div class="bg-white p-4 rounded-lg shadow-md relative">
-                <label for="user-filter" class="block text-sm font-medium text-gray-700 mb-2">Filter by Username</label>
-                <input type="text" id="user-filter" placeholder="Start typing to see suggestions..." autocomplete="off" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                <div id="autocomplete-suggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg hidden"></div>
-            </div>
-        </section>
-
-        <!-- Tab Navigation -->
-        <div class="mb-8">
-            <div class="border-b border-gray-200">
-                <nav class="-mb-px flex space-x-4" aria-label="Tabs">
-                    <button class="tab-button active" data-tab="user-management">User Management</button>
-                    <button class="tab-button" data-tab="content-management">Content Management</button>
-                </nav>
-            </div>
+        <div class="hidden md:flex items-center gap-2 flex-1 max-w-lg">
+          <input id="global-filter" type="search" placeholder="Global search… (users, plates, badges)"
+                 class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-sm">
         </div>
-
-        <!-- Tab Content -->
-        <div id="user-management" class="tab-content active space-y-8">
-            <!-- Users Table -->
-            <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <div class="px-6 py-4 border-b"><h2 class="text-xl font-semibold">Users</h2></div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full" id="users-table">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="id" data-table="users">ID<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="username" data-table="users">Username<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="first_name" data-table="users">First Name<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="email" data-table="users">Email<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="created_at" data-table="users">Created At<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="users-table-body" class="bg-white divide-y divide-gray-200">
-                            <!-- User rows will be inserted here by admin.js -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- User Badges Table -->
-            <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <div class="px-6 py-4 border-b"><h2 class="text-xl font-semibold">User Badges (Earned)</h2></div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full" id="user-badges-table">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="id" data-table="userBadges">ID<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="user_id" data-table="userBadges">User<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="badge_id" data-table="userBadges">Badge ID<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="earned_at" data-table="userBadges">Earned At<span class="sort-indicator"></span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="user-badges-table-body" class="bg-white divide-y divide-gray-200"></tbody>
-                    </table>
-                </div>
-            </div>
-
-             <!-- Badges Table -->
-            <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <div class="px-6 py-4 border-b"><h2 class="text-xl font-semibold">Badges</h2></div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full" id="badges-table">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="badge_id" data-table="badges">ID<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="name" data-table="badges">Name<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                            </tr>
-                        </thead>
-                        <tbody id="badges-table-body" class="bg-white divide-y divide-gray-200"></tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="density-toggle" class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-sm">Compact</button>
+          <button id="dark-toggle" class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-sm">Dark</button>
+          <button id="refresh-btn" class="px-3 py-2 rounded-md bg-gray-900 text-white dark:bg-white dark:text-gray-900 text-sm">Refresh</button>
+          <a href="/home.html" class="px-3 py-2 rounded-md text-sm border border-gray-300 dark:border-gray-700">Main Site</a>
         </div>
+      </div>
+      <div class="md:hidden pb-3">
+        <input id="global-filter-mobile" type="search" placeholder="Global search…"
+               class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-sm">
+      </div>
+    </div>
+  </header>
 
-        <div id="content-management" class="tab-content space-y-8">
-            <!-- Reviews Table -->
-            <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <div class="px-6 py-4 border-b"><h2 class="text-xl font-semibold">Reviews</h2></div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full" id="reviews-table">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="id" data-table="reviews">ID<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="plate_number" data-table="reviews">Plate Number<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="user_id" data-table="reviews">User<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="rating" data-table="reviews">Rating<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="status" data-table="reviews">Status<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="created_at" data-table="reviews">Created At<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="reviews-table-body" class="bg-white divide-y divide-gray-200">
-                            <!-- Review rows will be inserted here by admin.js -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+  <main class="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 space-y-6">
+    <!-- Stats -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div class="stat-card panel rounded-xl p-4 bg-white dark:bg-gray-900">
+        <div class="text-sm text-gray-500">Total Users</div>
+        <div id="total-users" class="text-3xl font-semibold mt-1">—</div>
+      </div>
+      <div class="stat-card panel rounded-xl p-4 bg-white dark:bg-gray-900">
+        <div class="text-sm text-gray-500">Total Reviews</div>
+        <div id="total-reviews" class="text-3xl font-semibold mt-1">—</div>
+      </div>
+      <div class="stat-card panel rounded-xl p-4 bg-white dark:bg-gray-900">
+        <div class="text-sm text-gray-500">Total Badges</div>
+        <div id="total-badges" class="text-3xl font-semibold mt-1">—</div>
+      </div>
+      <div class="stat-card panel rounded-xl p-4 bg-white dark:bg-gray-900">
+        <div class="text-sm text-gray-500">Badges Awarded</div>
+        <div id="total-user-badges" class="text-3xl font-semibold mt-1">—</div>
+      </div>
+      <div class="stat-card panel rounded-xl p-4 bg-white dark:bg-gray-900">
+        <div class="text-sm text-gray-500">Total Votes</div>
+        <div id="total-votes" class="text-3xl font-semibold mt-1">—</div>
+      </div>
+    </section>
 
-            <!-- Review Votes Table -->
-            <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <div class="px-6 py-4 border-b"><h2 class="text-xl font-semibold">Review Votes</h2></div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full" id="review-votes-table">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="id" data-table="reviewVotes">ID<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="review_id" data-table="reviewVotes">Review ID<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="user_id" data-table="reviewVotes">User<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="vote_type" data-table="reviewVotes">Vote Type<span class="sort-indicator"></span></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" data-sort-key="created_at" data-table="reviewVotes">Created At<span class="sort-indicator"></span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="review-votes-table-body" class="bg-white divide-y divide-gray-200"></tbody>
-                    </table>
-                </div>
-            </div>
+    <!-- Filters + Selection -->
+    <section class="panel rounded-xl bg-white dark:bg-gray-900 p-4 space-y-3">
+      <div class="flex items-center justify-between gap-2">
+        <label for="user-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Filter by Username</label>
+        <button id="clear-user-filter" class="text-xs px-2 py-1 border rounded-md">Clear</button>
+      </div>
+      <div class="relative">
+        <input id="user-filter" type="text" autocomplete="off" placeholder="Type to filter users live… (click a suggestion to lock exact match)"
+               class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950">
+        <div id="autocomplete-suggestions" class="absolute z-20 w-full mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg hidden"></div>
+      </div>
+
+      <!-- Selection box -->
+      <div class="flex items-center justify-between mt-3">
+        <h3 class="text-sm font-medium">Selected users for bulk actions <span id="selected-count" class="text-xs text-gray-500">(0)</span></h3>
+        <div class="flex items-center gap-2">
+          <button id="add-filtered-to-selection" class="text-xs px-2 py-1 border rounded-md">Add all filtered</button>
+          <button id="clear-selection" class="text-xs px-2 py-1 border rounded-md">Clear selection</button>
         </div>
-    </main>
+      </div>
+      <div id="selection-dropzone"
+           class="min-h-[70px] rounded-md border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 p-3 flex flex-wrap items-start gap-2">
+        <span id="selection-hint" class="text-sm text-gray-500">Drag users from the Users table into this box, or use “Add all filtered”.</span>
+        <div id="selected-users-chips" class="flex flex-wrap gap-2"></div>
+      </div>
+    </section>
 
-    <script src="js/utils.js"></script>
-    <script src="js/admin.js"></script>
-
-    <!-- Manage User Modal -->
-    <div id="manage-user-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-            <div class="flex justify-between items-center p-4 border-b">
-                <h2 class="text-xl font-bold">Manage User: <span id="modal-username"></span></h2>
-                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
-            </div>
-            <div class="p-6 overflow-y-auto space-y-6">
-                <!-- Edit User Section -->
-                <div id="edit-user-section" class="space-y-4">
-                    <h3 class="text-lg font-semibold border-b pb-2">Edit User Information</h3>
-
-                    <!-- Basic Info -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="modal-first-name" class="block text-sm font-medium text-gray-700">First Name</label>
-                            <input type="text" id="modal-first-name" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
-                        </div>
-                        <div>
-                            <label for="modal-email" class="block text-sm font-medium text-gray-700">Email</label>
-                            <input type="email" id="modal-email" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
-                        </div>
-                    </div>
-
-                    <!-- Vehicle Info -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                            <label for="modal-vehicle-make" class="block text-sm font-medium text-gray-700">Vehicle Make</label>
-                            <select id="modal-vehicle-make" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="modal-vehicle-model" class="block text-sm font-medium text-gray-700">Vehicle Model</label>
-                            <select id="modal-vehicle-model" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" disabled></select>
-                        </div>
-                         <div>
-                            <label for="modal-vehicle-year" class="block text-sm font-medium text-gray-700">Vehicle Year</label>
-                            <select id="modal-vehicle-year" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="modal-vehicle-color" class="block text-sm font-medium text-gray-700">Vehicle Color</label>
-                            <select id="modal-vehicle-color" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"></select>
-                        </div>
-                    </div>
-
-                    <!-- Bio Section -->
-                    <div>
-                        <label for="modal-bio-template" class="block text-sm font-medium text-gray-700">Bio</label>
-                        <div class="mt-1 space-y-2 p-3 border border-gray-200 rounded-md">
-                            <select id="modal-bio-template" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"></select>
-                            <div id="modal-bio-words-container" class="space-y-2"></div>
-                        </div>
-                    </div>
-
-                    <!-- Admin Controls -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-                         <div>
-                            <label for="modal-new-password" class="block text-sm font-medium text-gray-700">Set New Password</label>
-                            <input type="password" id="modal-new-password" placeholder="Leave blank to keep current" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
-                            <div class="mt-2 flex items-center">
-                                <input type="checkbox" id="modal-show-password-toggle" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                <label for="modal-show-password-toggle" class="ml-2 block text-sm text-gray-900">Show Password</label>
-                            </div>
-                        </div>
-                        <div class="flex items-end">
-                            <div class="flex items-center">
-                                <input type="checkbox" id="modal-is-admin" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                <label for="modal-is-admin" class="ml-2 block text-sm font-medium text-gray-900">Is Admin</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button id="save-user-btn" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save All Changes</button>
-                    <p id="edit-user-message" class="text-sm mt-2"></p>
-                </div>
-
-                <!-- Award/Remove Badge Section -->
-                <div id="award-badge-section" class="pt-4 border-t">
-                    <h3 class="text-lg font-semibold mb-2">Manage Badges</h3>
-                    <div class="flex items-center gap-4 mb-4">
-                        <select id="modal-badge-select" class="flex-grow mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"></select>
-                        <button id="award-badge-btn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 whitespace-nowrap">Award Badge</button>
-                    </div>
-                    <p id="award-badge-message" class="text-sm mt-2"></p>
-                    <div>
-                        <h4 class="text-md font-semibold mb-2">Current Badges</h4>
-                        <div id="modal-user-badges" class="flex flex-wrap gap-2">
-                            <!-- Badges will be populated here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Tabs -->
+    <div class="border-b border-gray-200 dark:border-gray-800">
+      <nav class="-mb-px flex flex-wrap gap-1" aria-label="Tabs">
+        <button class="tab-button px-4 py-2 text-sm border-b-2 border-blue-600 text-blue-700 dark:text-blue-300" data-tab="dashboard">Dashboard</button>
+        <button class="tab-button px-4 py-2 text-sm border-b-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-800" data-tab="user-management">Users</button>
+        <button class="tab-button px-4 py-2 text-sm border-b-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-800" data-tab="badges">Badges</button>
+        <button class="tab-button px-4 py-2 text-sm border-b-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-800" data-tab="reviews">Reviews</button>
+        <button class="tab-button px-4 py-2 text-sm border-b-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-800" data-tab="votes">Votes</button>
+      </nav>
     </div>
 
-    <!-- Delete User Confirmation Modal -->
-    <div id="delete-user-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
-            <div class="flex justify-between items-center p-4 border-b">
-                <h2 class="text-xl font-bold">Confirm Deletion</h2>
-                <button id="cancel-delete-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
-            </div>
-            <div class="p-6 space-y-4">
-                <p>To confirm, please enter your password. This action is permanent and cannot be undone.</p>
-                <div>
-                    <label for="admin-password-input" class="block text-sm font-medium text-gray-700">Your Password</label>
-                    <input type="password" id="admin-password-input" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
-                </div>
-                <div class="flex items-center">
-                    <input type="checkbox" id="confirm-delete-checkbox" class="h-4 w-4 text-red-600 border-gray-300 rounded">
-                    <label for="confirm-delete-checkbox" class="ml-2 block text-sm text-gray-900">I understand this will permanently delete the user and all their data.</label>
-                </div>
-                <p id="delete-user-error-message" class="text-sm text-red-600"></p>
-            </div>
-            <div class="flex justify-end p-4 bg-gray-50 border-t">
-                <button id="cancel-delete-action-btn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 mr-2">Cancel</button>
-                <button id="confirm-delete-action-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-300" disabled>Delete User</button>
-            </div>
+    <!-- Dashboard -->
+    <section id="dashboard" class="tab-content active space-y-6">
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-500">Time range:</span>
+        <div class="flex items-center gap-1" id="range-buttons">
+          <button data-range="7" class="px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-700">7d</button>
+          <button data-range="30" class="px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-700">30d</button>
+          <button data-range="90" class="px-2 py-1 text-xs rounded bg-blue-600 text-white">90d</button>
+          <button data-range="365" class="px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-700">365d</button>
+          <button data-range="all" class="px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-700">All</button>
         </div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="panel rounded-xl p-4 bg-white dark:bg-gray-900 overflow-hidden">
+          <h3 class="font-semibold mb-3">New Users</h3>
+          <div class="relative h-64 md:h-80">
+            <canvas id="chart-users" class="absolute inset-0"></canvas>
+          </div>
+        </div>
+        <div class="panel rounded-xl p-4 bg-white dark:bg-gray-900 overflow-hidden">
+          <h3 class="font-semibold mb-3">Ratings Distribution</h3>
+          <div class="relative h-64 md:h-80">
+            <canvas id="chart-ratings" class="absolute inset-0"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Users -->
+    <section id="user-management" class="tab-content space-y-4">
+      <div class="panel rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+          <h2 class="text-lg font-semibold">Users</h2>
+          <div class="flex items-center gap-2">
+            <label class="text-xs">Rows:
+              <select id="users-page-size" class="ml-1 text-xs border rounded p-1 bg-white dark:bg-gray-950 dark:border-gray-700">
+                <option>10</option><option selected>25</option><option>50</option><option>100</option>
+              </select>
+            </label>
+            <button id="export-users" class="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-700">Export CSV</button>
+          </div>
+        </div>
+        <div class="overflow-auto max-h-[60vh]">
+          <table class="min-w-full text-sm" id="users-table">
+            <thead class="sticky bg-gray-100 dark:bg-gray-800/60">
+              <tr>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="id" data-table="users">ID<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="username" data-table="users">Username<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="first_name" data-table="users">First Name<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="email" data-table="users">Email<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="created_at" data-table="users">Created<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-between px-4 py-3">
+          <div id="users-count" class="text-xs text-gray-500">—</div>
+          <div class="flex items-center gap-2">
+            <button id="users-prev" class="px-2 py-1 border rounded text-xs">Prev</button>
+            <span id="users-page" class="text-xs"></span>
+            <button id="users-next" class="px-2 py-1 border rounded text-xs">Next</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Badges -->
+    <section id="badges" class="tab-content space-y-4">
+      <div class="panel rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+          <h2 class="text-lg font-semibold">Badges</h2>
+          <div class="flex items-center gap-2">
+            <button id="export-badges" class="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-700">Export CSV</button>
+          </div>
+        </div>
+        <div class="overflow-auto max-h-[50vh]">
+          <table class="min-w-full text-sm" id="badges-table">
+            <thead class="sticky bg-gray-100 dark:bg-gray-800/60">
+              <tr>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="badge_id" data-table="badges">ID<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="name" data-table="badges">Name<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left">Description</th>
+              </tr>
+            </thead>
+            <tbody id="badges-table-body" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+          <h2 class="text-lg font-semibold">User Badges (Earned)</h2>
+          <div class="flex items-center gap-2">
+            <label class="text-xs">Rows:
+              <select id="userBadges-page-size" class="ml-1 text-xs border rounded p-1 bg-white dark:bg-gray-950 dark:border-gray-700">
+                <option>25</option><option selected>50</option><option>100</option>
+              </select>
+            </label>
+            <button id="export-user-badges" class="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-700">Export CSV</button>
+          </div>
+        </div>
+        <div class="overflow-auto max-h-[50vh]">
+          <table class="min-w-full text-sm">
+            <thead class="sticky bg-gray-100 dark:bg-gray-800/60">
+              <tr>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="id" data-table="userBadges">ID<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="user_id" data-table="userBadges">User<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="badge_id" data-table="userBadges">Badge ID<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="earned_at" data-table="userBadges">Earned<span class="sort-indicator"></span></th>
+              </tr>
+            </thead>
+            <tbody id="user-badges-table-body" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-between px-4 py-3">
+          <div id="userBadges-count" class="text-xs text-gray-500">—</div>
+          <div class="flex items-center gap-2">
+            <button id="userBadges-prev" class="px-2 py-1 border rounded text-xs">Prev</button>
+            <span id="userBadges-page" class="text-xs"></span>
+            <button id="userBadges-next" class="px-2 py-1 border rounded text-xs">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bulk badge operations -->
+      <div class="panel rounded-xl bg-white dark:bg-gray-900 p-4 space-y-3">
+        <h3 class="font-semibold">Bulk badge operations (apply to <span id="bulk-target-label">selected users</span>)</h3>
+        <div class="flex flex-wrap items-center gap-3">
+          <select id="bulk-badge-select" class="flex-grow px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950"></select>
+          <button id="bulk-award-btn" class="px-3 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 whitespace-nowrap">Award Selected</button>
+          <button id="bulk-grant-all" class="px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 whitespace-nowrap">Grant All Badges</button>
+          <button id="bulk-remove-all" class="px-3 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 whitespace-nowrap">Remove All Badges</button>
+        </div>
+        <p id="bulk-badge-msg" class="text-sm"></p>
+      </div>
+    </section>
+
+    <!-- Reviews -->
+    <section id="reviews" class="tab-content space-y-4">
+      <div class="panel rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+          <h2 class="text-lg font-semibold">Reviews</h2>
+          <div class="flex items-center gap-2">
+            <label class="text-xs">Rows:
+              <select id="reviews-page-size" class="ml-1 text-xs border rounded p-1 bg-white dark:bg-gray-950 dark:border-gray-700">
+                <option>25</option><option selected>50</option><option>100</option>
+              </select>
+            </label>
+            <button id="bulk-delete-reviews" class="px-3 py-1.5 text-sm rounded-md border border-red-300 text-red-700 dark:border-red-700 dark:text-red-300">Delete Selected</button>
+            <button id="export-reviews" class="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-700">Export CSV</button>
+          </div>
+        </div>
+        <div class="overflow-auto max-h-[60vh]">
+          <table class="min-w-full text-sm" id="reviews-table">
+            <thead class="sticky bg-gray-100 dark:bg-gray-800/60">
+              <tr>
+                <th class="px-4 py-2"><input type="checkbox" id="reviews-check-all"/></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="id" data-table="reviews">ID<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="plate_number" data-table="reviews">Plate<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="user_id" data-table="reviews">User<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="rating" data-table="reviews">Rating<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="status" data-table="reviews">Status<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="created_at" data-table="reviews">Created<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reviews-table-body" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-between px-4 py-3">
+          <div id="reviews-count" class="text-xs text-gray-500">—</div>
+          <div class="flex items-center gap-2">
+            <button id="reviews-prev" class="px-2 py-1 border rounded text-xs">Prev</button>
+            <span id="reviews-page" class="text-xs"></span>
+            <button id="reviews-next" class="px-2 py-1 border rounded text-xs">Next</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Votes -->
+    <section id="votes" class="tab-content space-y-4">
+      <div class="panel rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+          <h2 class="text-lg font-semibold">Review Votes</h2>
+          <div class="flex items-center gap-2">
+            <label class="text-xs">Rows:
+              <select id="votes-page-size" class="ml-1 text-xs border rounded p-1 bg-white dark:bg-gray-950 dark:border-gray-700">
+                <option>25</option><option selected>50</option><option>100</option>
+              </select>
+            </label>
+            <button id="export-votes" class="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-700">Export CSV</button>
+          </div>
+        </div>
+        <div class="overflow-auto max-h-[60vh]">
+          <table class="min-w-full text-sm" id="review-votes-table">
+            <thead class="sticky bg-gray-100 dark:bg-gray-800/60">
+              <tr>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="id" data-table="reviewVotes">ID<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="review_id" data-table="reviewVotes">Review ID<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="user_id" data-table="reviewVotes">User<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="vote_type" data-table="reviewVotes">Vote<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="created_at" data-table="reviewVotes">Created<span class="sort-indicator"></span></th>
+              </tr>
+            </thead>
+            <tbody id="review-votes-table-body" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-between px-4 py-3">
+          <div id="votes-count" class="text-xs text-gray-500">—</div>
+          <div class="flex items-center gap-2">
+            <button id="votes-prev" class="px-2 py-1 border rounded text-xs">Prev</button>
+            <span id="votes-page" class="text-xs"></span>
+            <button id="votes-next" class="px-2 py-1 border rounded text-xs">Next</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Manage User Modal -->
+  <div id="manage-user-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+        <h2 class="text-lg font-semibold">Manage User: <span id="modal-username"></span></h2>
+        <button id="close-modal-btn" class="text-2xl leading-none">&times;</button>
+      </div>
+      <div class="p-6 overflow-y-auto space-y-6">
+        <!-- Basic -->
+        <section class="space-y-3">
+          <h3 class="font-semibold">Edit User Info</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm mb-1">First Name</label>
+              <input id="modal-first-name" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950"/>
+            </div>
+            <div>
+              <label class="block text-sm mb-1">Email</label>
+              <input id="modal-email" type="email" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950"/>
+            </div>
+          </div>
+        </section>
+
+        <!-- Vehicle -->
+        <section class="space-y-3">
+          <h3 class="font-semibold">Vehicle</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm mb-1">Make</label>
+              <select id="modal-vehicle-make" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950"></select>
+            </div>
+            <div>
+              <label class="block text-sm mb-1">Model</label>
+              <select id="modal-vehicle-model" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950" disabled></select>
+            </div>
+            <div>
+              <label class="block text-sm mb-1">Year</label>
+              <select id="modal-vehicle-year" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950"></select>
+            </div>
+            <div>
+              <label class="block text-sm mb-1">Color</label>
+              <select id="modal-vehicle-color" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950"></select>
+            </div>
+          </div>
+        </section>
+
+        <!-- Bio builder -->
+        <section class="space-y-2">
+          <h3 class="font-semibold">Bio</h3>
+          <select id="modal-bio-template" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950"></select>
+          <div id="modal-bio-words-container" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div>
+        </section>
+
+        <!-- Admin controls -->
+        <section class="space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm mb-1">Set New Password</label>
+              <input id="modal-new-password" type="password" placeholder="Leave blank to keep current" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950"/>
+              <label class="mt-2 inline-flex items-center gap-2 text-sm">
+                <input type="checkbox" id="modal-show-password-toggle" class="h-4 w-4"/>
+                Show password
+              </label>
+            </div>
+            <div class="flex items-end">
+              <label class="inline-flex items-center gap-2">
+                <input type="checkbox" id="modal-is-admin" class="h-4 w-4"/>
+                Make Admin
+              </label>
+            </div>
+          </div>
+          <button id="save-user-btn" class="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">Save All Changes</button>
+          <p id="edit-user-message" class="text-sm mt-1"></p>
+        </section>
+
+        <!-- Badges -->
+        <section class="space-y-2 border-t border-gray-200 dark:border-gray-800 pt-4">
+          <h3 class="font-semibold">Manage Badges</h3>
+          <div class="flex flex-wrap items-center gap-3">
+            <select id="modal-badge-select" class="flex-grow px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950"></select>
+            <button id="award-badge-btn" class="px-3 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 whitespace-nowrap">Award Badge</button>
+            <button id="grant-all-badges-btn" class="px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 whitespace-nowrap">Grant All Badges</button>
+            <button id="remove-all-badges-btn" class="px-3 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 whitespace-nowrap">Remove All Badges</button>
+          </div>
+          <p id="award-badge-message" class="text-sm mt-1"></p>
+          <div>
+            <h4 class="font-medium mb-2">Current Badges</h4>
+            <div id="modal-user-badges" class="flex flex-wrap gap-2"></div>
+          </div>
+        </section>
+      </div>
     </div>
+  </div>
+
+  <!-- Delete User Modal -->
+  <div id="delete-user-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md">
+      <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+        <h3 class="font-semibold">Confirm Deletion</h3>
+        <button id="cancel-delete-btn" class="text-2xl leading-none">&times;</button>
+      </div>
+      <div class="p-4 space-y-3">
+        <p>This action is permanent. Enter your password to continue.</p>
+        <div>
+          <label class="block text-sm mb-1">Your Password</label>
+          <input type="password" id="admin-password-input" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950"/>
+        </div>
+        <label class="inline-flex items-center gap-2">
+          <input type="checkbox" id="confirm-delete-checkbox" class="h-4 w-4 text-red-600"/>
+          I understand this will permanently delete the user and all their data.
+        </label>
+        <p id="delete-user-error-message" class="text-sm text-red-600"></p>
+      </div>
+      <div class="flex justify-end gap-2 p-4 bg-gray-50 dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800">
+        <button id="cancel-delete-action-btn" class="px-3 py-2 rounded-md border">Cancel</button>
+        <button id="confirm-delete-action-btn" disabled class="px-3 py-2 rounded-md bg-red-600 text-white disabled:bg-red-300">Delete User</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div id="toast-container" class="fixed bottom-4 right-4 flex flex-col gap-2 z-50"></div>
+
+  <script src="/js/admin.js"></script>
 </body>
 </html>
