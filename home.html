@@ -232,7 +232,7 @@
         inset: 0;
         pointer-events: none;
         background: conic-gradient(from var(--angle, 0deg), #ff00ff, #00ffff, #00ff00, #ffff00, #ff00ff);
-        animation: spin 4s linear infinite;
+        animation: spin 3s linear infinite;
         opacity: 0.4;
         mix-blend-mode: screen;
         /* mask is set via JS to match the inline SVG silhouette */
@@ -257,7 +257,7 @@
         transform: translate(-50%, -50%) scale(0);
         background: white;
         filter: blur(.5px);
-        animation: glitter 2.5s ease-in-out infinite;
+        animation: glitter 1.5s ease-in-out infinite;
         opacity: 0;
     }
     .sparkle:nth-child(1) { --x: 22%; --y: 28%; animation-delay: .4s; }
@@ -278,7 +278,7 @@
     }
     .badge-wrap:hover .shine,
     .badge-wrap:focus-visible .shine {
-        animation-duration: 2s;
+        animation-duration: 1.5s;
     }
     .badge-wrap:hover .sparkle,
     .badge-wrap:focus-visible .sparkle {
@@ -293,9 +293,20 @@
             transform: translate(-50%, -50%) scale(0);
             opacity: 0;
         }
-        50% {
+        25% {
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
+            box-shadow: 0 0 8px 2px #0ff;
+        }
+        50% {
+            transform: translate(-50%, -50%) scale(0.5);
+            opacity: .5;
+            box-shadow: 0 0 8px 2px #f0f;
+        }
+        75% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            box-shadow: 0 0 8px 2px #ff0;
         }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -303,8 +314,8 @@
         .badge-wrap, .badge-img { transition: none !important; }
     }
     .badge-detail-tile .sparkle {
-        width: 10px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
     }
 
     /* Badge Styles */
