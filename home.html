@@ -192,7 +192,7 @@
 
     /* Shimmering Badge Styles */
     .badge-wrap {
-        --shine-speed: 8s; /* Slowed down for a more subtle effect */
+        --shine-speed: 4s; /* Faster animation */
         --tilt: 10deg;
         --lift: 8px;
         position: relative;
@@ -228,15 +228,15 @@
         inset: 0;
         pointer-events: none;
         background: linear-gradient(135deg,
-            rgba(255, 100, 100, 0.3) 0%,
-            rgba(100, 255, 100, 0.3) 25%,
-            rgba(100, 100, 255, 0.3) 50%,
-            rgba(255, 100, 255, 0.3) 75%,
-            rgba(255, 100, 100, 0.3) 100%);
+            rgba(255, 100, 100, 0.5) 0%,
+            rgba(100, 255, 100, 0.5) 25%,
+            rgba(100, 100, 255, 0.5) 50%,
+            rgba(255, 100, 255, 0.5) 75%,
+            rgba(255, 100, 100, 0.5) 100%);
         background-size: 400% 400%;
         mix-blend-mode: color-dodge;
         animation: sweep var(--shine-speed) linear infinite;
-        opacity: .8;
+        opacity: .9;
         /* mask is set via JS to match the inline SVG silhouette */
     }
     .sparkles {
@@ -253,13 +253,13 @@
         position: absolute;
         left: var(--x);
         top: var(--y);
-        width: 6px;
-        height: 6px;
+        width: 8px;
+        height: 8px;
         border-radius: 50%;
         transform: translate(-50%, -50%) scale(0);
         background: white;
         filter: blur(.5px);
-        animation: glitter 3s ease-in-out infinite;
+        animation: glitter 2s ease-in-out infinite;
         opacity: 0;
     }
     .sparkle:nth-child(1) { --x: 22%; --y: 28%; animation-delay: .2s; }
@@ -273,7 +273,7 @@
     .badge-wrap:hover,
     .badge-wrap:focus-visible {
         transform: translateY(calc(var(--lift) * -1)) rotateX(var(--tilt)) rotateY(calc(var(--tilt) * -.6));
-        filter: drop-shadow(0 28px 45px rgba(180, 100, 255, .35));
+        filter: drop-shadow(0 28px 45px rgba(180, 100, 255, .5));
     }
     .badge-wrap:hover .badge-img,
     .badge-wrap:focus-visible .badge-img {
@@ -282,7 +282,7 @@
     }
     .badge-wrap:hover .shine,
     .badge-wrap:focus-visible .shine {
-        animation-duration: 4s; /* Speed up on hover */
+        animation-duration: 2s; /* Speed up on hover */
     }
     .badge-wrap:hover .sparkle,
     .badge-wrap:focus-visible .sparkle {
@@ -301,17 +301,17 @@
         25% {
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
-            box-shadow: 0 0 8px 2px #0ff; /* Cyan */
+            box-shadow: 0 0 10px 3px #0ff; /* Cyan */
         }
         50% {
             transform: translate(-50%, -50%) scale(0.5);
             opacity: .5;
-            box-shadow: 0 0 8px 2px #f0f; /* Magenta */
+            box-shadow: 0 0 10px 3px #f0f; /* Magenta */
         }
         75% {
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
-            box-shadow: 0 0 8px 2px #ff0; /* Yellow */
+            box-shadow: 0 0 10px 3px #ff0; /* Yellow */
         }
     }
     @media (prefers-reduced-motion: reduce) {
