@@ -2186,6 +2186,7 @@ const showBadgeDetail = (badge, isUnlocked = true) => {
   const nameEl = document.getElementById('badgeDetailName');
   const descEl = document.getElementById('badgeDetailDescription');
   const imgEl = document.getElementById('badgeDetailImage'); // existing <img> in modal
+  const rarityEl = document.getElementById('badgeDetailRarity');
 
   const viewerHasBadge = currentUserBadgeIds.has(badge.badge_id);
   const useShimmer = badge.is_secret && isUnlocked; // shimmer if badge itself is secret & unlocked for the profile being viewed
@@ -2238,6 +2239,14 @@ const showBadgeDetail = (badge, isUnlocked = true) => {
     description = 'This badge is locked. Keep using PlateTraits to discover how to unlock it!';
   }
   descEl.textContent = description;
+
+  if (badge.rarity) {
+    rarityEl.textContent = `Rarity: ${badge.rarity}`;
+    rarityEl.classList.remove('hidden');
+  } else {
+    rarityEl.textContent = '';
+    rarityEl.classList.add('hidden');
+  }
 
   badgeDetailModal.classList.remove('hidden');
 };
