@@ -6,6 +6,7 @@ const mysql = require('mysql2/promise');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = 3000;
@@ -66,6 +67,18 @@ app.use(cors());
 app.use(express.json());
 app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use('/images', express.static(path.join('/var', 'www', 'platetraits', 'images')));
+
+// Set up rate limiter
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    message: { success: false, message: 'Too many requests from this IP, please try again after 15 minutes.' }
+});
+
+// Apply the rate limiter to all API routes
+app.use('/api/', apiLimiter);
 
 // Middleware to authenticate JWT tokens and check admin status
 const authenticateToken = (req, res, next) => {
@@ -377,7 +390,7 @@ app.get('/api/users/profile/:username', async (req, res) => {
 // NEW: Endpoint to get a list of all users for the admin dashboard
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
     try {
-        const [users] = await db.query('SELECT * FROM users');
+        const [users] = await db.query('SELECT id, username, first_name, email, created_at, is_admin, last_login_date, consecutive_login_days, current_vehicle_make, current_vehicle_model, current_vehicle_year, current_vehicle_color, bio FROM users');
         res.json(users);
     } catch (err) {
         console.error('❌ Failed to fetch users for admin dashboard:', err);

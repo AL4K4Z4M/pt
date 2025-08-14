@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_URL = 'https://platetraits.com/api';
+    const API_URL = '/api';
     const usersContainer = document.getElementById('usersContainer');
     const loadingUsers = document.getElementById('loadingUsers');
     const authToken = localStorage.getItem('token');

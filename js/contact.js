@@ -1,4 +1,4 @@
-const API_URL = 'https://platetraits.com/api';
+const API_URL = '/api';
 
 document.addEventListener('DOMContentLoaded', () => {
     const authToken = localStorage.getItem('token');
