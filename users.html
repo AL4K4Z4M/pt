@@ -12,7 +12,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PlateTraits - Users</title>
-    <meta name="theme-color" content="#e5e7eb">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#e5e7eb">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121212">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,8 +25,14 @@
     <script>
         // This script is placed in the head to prevent a flash of unstyled content.
         (function() {
-            document.documentElement.classList.add('light-theme');
-            document.documentElement.classList.remove('dark-theme');
+            const theme = localStorage.getItem('theme'); // Don't default to 'system'
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark-theme');
+                document.documentElement.classList.remove('light-theme');
+            } else { // Default to light
+                document.documentElement.classList.add('light-theme');
+                document.documentElement.classList.remove('dark-theme');
+            }
         })();
     </script>
 <style>

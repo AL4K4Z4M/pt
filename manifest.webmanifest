@@ -4,7 +4,16 @@
   "start_url": "/home.html",
   "display": "standalone",
   "background_color": "#e5e7eb",
-  "theme_color": "#e5e7eb",
+  "theme_color": [
+    {
+      "media": "(prefers-color-scheme: light)",
+      "color": "#e5e7eb"
+    },
+    {
+      "media": "(prefers-color-scheme: dark)",
+      "color": "#121212"
+    }
+  ],
   "description": "Rate, Review, and Explore License Plates.",
   "icons": [
     {
