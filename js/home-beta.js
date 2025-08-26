@@ -1,5 +1,6 @@
 const API_URL = 'https://platetraits.com/api';
-let allReviews = []; // Store all reviews globally
+let allReviews = [];
+let aggregatedReviews = {}; // NEW: To store aggregated data
 let authToken = localStorage.getItem('token');
 let currentUsername = localStorage.getItem('username');
 let isAuthModalInLoginMode = true;
@@ -220,51 +221,47 @@ const renderStructuredComment = (commentData) => {
     }
 };
 
-const renderReviews = (reviews) => {
+const renderReviews = (plates) => {
     const reviewsContainer = document.querySelector('.lg\\:col-span-2.space-y-8');
     if (!reviewsContainer) { return; }
     reviewsContainer.innerHTML = '';
 
-    if (reviews.length === 0) {
+    const platesToRender = Object.values(plates);
+
+    if (platesToRender.length === 0) {
         reviewsContainer.innerHTML = '<p class="text-lg text-[var(--text-secondary)]">No reviews found.</p>';
         return;
     }
 
-    reviews.forEach(review => {
+    platesToRender.forEach(plate => {
         const reviewCard = document.createElement('div');
         reviewCard.className = 'rounded-lg border border-[var(--border-color)] bg-[var(--card-background)] p-6 shadow-sm';
 
+        const firstReview = plate.allReviews[0];
+        const commentHtml = firstReview.comment ? renderStructuredComment(firstReview.comment).replace(/<[^>]*>/g, '') : 'No comment';
+        const vehicleTitle = firstReview.vehicle_make || 'Unknown Make';
+
         const ratingStars = Array(5).fill(0).map((_, i) => `
-            <svg class="h-5 w-5 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="h-5 w-5 ${i < plate.averageRating ? 'text-yellow-400' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
             </svg>
         `).join('');
 
         reviewCard.innerHTML = `
             <div class="flex items-start gap-4">
-                <img alt="${review.user_id || 'Anonymous'}" class="h-12 w-12 rounded-full object-cover" src="https://ui-avatars.com/api/?name=${review.user_id || 'A'}&background=random" />
                 <div class="flex-1">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="font-semibold text-[var(--text-primary)]">${review.user_id || 'Anonymous'}</p>
-                            <p class="text-sm text-[var(--text-secondary)]">${new Date(review.created_at).toLocaleDateString()}</p>
+                            <p class="font-semibold text-2xl text-[var(--text-primary)]">${plate.plate_number.toUpperCase()}</p>
+                            <p class="text-sm text-[var(--text-secondary)]">${vehicleTitle}</p>
                         </div>
                         <div class="flex items-center gap-1">
                             ${ratingStars}
-                            <span class="font-bold text-[var(--text-primary)]">${review.rating.toFixed(1)}</span>
+                            <span class="font-bold text-[var(--text-primary)]">${plate.averageRating.toFixed(1)}</span>
                         </div>
                     </div>
-                    <p class="mt-4 text-[var(--text-secondary)]">${review.comment ? renderStructuredComment(review.comment) : 'No comment provided.'}</p>
-                    <div class="mt-4 flex items-center gap-6 text-[var(--text-secondary)]">
-                        <button class="flex items-center gap-2 transition-colors hover:text-[var(--text-primary)]">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21H9V11l3.329-3.329a1 1 0 011.414 0l.353.353a1 1 0 010 1.414L14 10zM5 11v10H4a1 1 0 01-1-1v-8a1 1 0 011-1h1z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-                            <span>${review.upvotes}</span>
-                        </button>
-                        <button class="flex items-center gap-2 transition-colors hover:text-[var(--text-primary)]">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.738 3H15v10l-3.329 3.329a1 1 0 01-1.414 0l-.353-.353a1 1 0 010-1.414L10 14zm10-3v10h1a1 1 0 001-1v-8a1 1 0 00-1-1h-1z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-                            <span>${review.downvotes}</span>
-                        </button>
-                    </div>
+                    <p class="mt-4 text-[var(--text-secondary)] italic">"${commentHtml.substring(0, 80)}..."</p>
+                    <p class="text-xs text-right mt-2 text-[var(--text-secondary)]">${plate.reviewCount} review(s)</p>
                 </div>
             </div>
         `;
@@ -318,7 +315,21 @@ const fetchAndRenderData = async () => {
             return;
         }
         allReviews = await response.json();
-        renderReviews(allReviews);
+
+        // Aggregate the data
+        aggregatedReviews = {};
+        allReviews.forEach(review => {
+            const plate = review.plate_number.toUpperCase();
+            if (!aggregatedReviews[plate]) {
+                aggregatedReviews[plate] = { plate_number: plate, totalRating: 0, reviewCount: 0, averageRating: 0, allReviews: [] };
+            }
+            aggregatedReviews[plate].totalRating += review.rating;
+            aggregatedReviews[plate].reviewCount++;
+            aggregatedReviews[plate].averageRating = aggregatedReviews[plate].totalRating / aggregatedReviews[plate].reviewCount;
+            aggregatedReviews[plate].allReviews.push(review);
+        });
+
+        renderReviews(aggregatedReviews);
         renderTopContributors(allReviews);
     } catch (error) {
         console.error('An error occurred while fetching data:', error);
@@ -327,10 +338,13 @@ const fetchAndRenderData = async () => {
 
 const handleSearch = (event) => {
     const searchTerm = event.target.value.toLowerCase();
-    const filteredReviews = allReviews.filter(review =>
-        review.plate_number.toLowerCase().includes(searchTerm)
-    );
-    renderReviews(filteredReviews);
+    const filteredPlates = {};
+    for (const plate in aggregatedReviews) {
+        if (plate.toLowerCase().includes(searchTerm)) {
+            filteredPlates[plate] = aggregatedReviews[plate];
+        }
+    }
+    renderReviews(filteredPlates);
 };
 
 // --- INITIALIZATION ---
