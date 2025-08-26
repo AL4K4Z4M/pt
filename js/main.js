@@ -2906,11 +2906,14 @@ const updateAuthUI = () => {
     const inboxBtn = document.getElementById('inboxBtn');
 
     if (authToken) {
-        guestMenu.classList.add('hidden');
-        userInfo.classList.remove('hidden');
-        document.getElementById('usernameDisplay').textContent = currentUsername;
-        addReviewBtn.disabled = false;
-        inboxBtn.classList.remove('hidden');
+        guestMenu?.classList.add('hidden');
+        userInfo?.classList.remove('hidden');
+        const usernameDisplay = document.getElementById('usernameDisplay');
+        if (usernameDisplay) {
+            usernameDisplay.textContent = currentUsername;
+        }
+        if (addReviewBtn) addReviewBtn.disabled = false;
+        inboxBtn?.classList.remove('hidden');
 
         if (adminDashboardBtn) {
             adminDashboardBtn.style.display = isAdmin ? 'flex' : 'none';
@@ -2923,10 +2926,10 @@ const updateAuthUI = () => {
         notificationIntervalId = setInterval(fetchNotifications, 15000); // Poll every 15 seconds
 
     } else {
-        guestMenu.classList.remove('hidden');
-        userInfo.classList.add('hidden');
-        addReviewBtn.disabled = true;
-        inboxBtn.classList.add('hidden');
+        guestMenu?.classList.remove('hidden');
+        userInfo?.classList.add('hidden');
+        if (addReviewBtn) addReviewBtn.disabled = true;
+        inboxBtn?.classList.add('hidden');
         if (adminDashboardBtn) {
             adminDashboardBtn.style.display = 'none';
         }
@@ -3343,19 +3346,21 @@ function initApp() {
     // --- Welcome Modal Logic ---
     const showWelcomeModal = () => {
         const hasVisited = localStorage.getItem('hasVisited');
-        if (!hasVisited) {
+        if (!hasVisited && welcomeModal) {
             welcomeModal.classList.remove('hidden');
-            welcomeContinueBtn.disabled = true;
+            if (welcomeContinueBtn) welcomeContinueBtn.disabled = true;
         }
     };
 
-    welcomeAgreeCheckbox.addEventListener('input', () => {
-        welcomeContinueBtn.disabled = !welcomeAgreeCheckbox.checked;
+    welcomeAgreeCheckbox?.addEventListener('input', () => {
+        if (welcomeContinueBtn) {
+            welcomeContinueBtn.disabled = !welcomeAgreeCheckbox.checked;
+        }
     });
 
-    welcomeContinueBtn.addEventListener('click', () => {
+    welcomeContinueBtn?.addEventListener('click', () => {
         if (!welcomeContinueBtn.disabled) {
-            welcomeModal.classList.add('hidden');
+            welcomeModal?.classList.add('hidden');
             localStorage.setItem('hasVisited', 'true');
         }
     });
@@ -3420,29 +3425,29 @@ function initApp() {
     });
 
     const stateOptions = ['<option value="">All States</option>', ...usStates.map(state => `<option value="${state}">${state}</option>`)].join('');
-    filterStateSelect.innerHTML = stateOptions;
+    if (filterStateSelect) filterStateSelect.innerHTML = stateOptions;
     const makeOptions = ['<option value="">All Makes</option>', ...vehicleMakes.map(make => `<option value="${make}">${make}</option>`)].join('');
-    filterMakeSelect.innerHTML = makeOptions;
-    profileMakeSelect.innerHTML = makeOptions;
+    if (filterMakeSelect) filterMakeSelect.innerHTML = makeOptions;
+    if (profileMakeSelect) profileMakeSelect.innerHTML = makeOptions;
     const uniqueVehicleTypes = [...new Set(Object.values(vehicleType))].sort();
     const typeOptions = ['<option value="">All Types</option>', ...uniqueVehicleTypes.map(type => `<option value="${type}">${type}</option>`)].join('');
-    filterTypeSelect.innerHTML = typeOptions;
+    if (filterTypeSelect) filterTypeSelect.innerHTML = typeOptions;
     const allSubtypes = Object.values(vehicleSubtype).flatMap(models => Object.values(models));
     const uniqueVehicleSubtypes = [...new Set(allSubtypes)].sort();
     const subtypeOptions = ['<option value="">All Subtypes</option>', ...uniqueVehicleSubtypes.map(subtype => `<option value="${subtype}">${subtype}</option>`)].join('');
-    filterSubtypeSelect.innerHTML = subtypeOptions;
+    if (filterSubtypeSelect) filterSubtypeSelect.innerHTML = subtypeOptions;
     const traitOptions = ['<option value="">All Traits</option>', ...allTraits.map(trait => `<option value="${trait}">${trait}</option>`)].join('');
-    filterTraitSelect.innerHTML = traitOptions;
+    if (filterTraitSelect) filterTraitSelect.innerHTML = traitOptions;
     const colorOptions = ['<option value="">Select Color</option>', ...vehicleColors.map(color => `<option value="${color}">${color}</option>`)].join('');
-    profileColorSelect.innerHTML = colorOptions;
+    if (profileColorSelect) profileColorSelect.innerHTML = colorOptions;
     const yearOptions = ['<option value="">Select Year</option>'];
     const endYear = new Date().getFullYear() + 1;
     for (let year = endYear; year >= 1900; year--) {
         yearOptions.push(`<option value="${year}">${year}</option>`);
     }
-    profileYearSelect.innerHTML = yearOptions.join('');
+    if (profileYearSelect) profileYearSelect.innerHTML = yearOptions.join('');
     const bioTemplateOptions = commentBuilderData.templates.map((template, index) => `<option value="${index}">${template}</option>`).join('');
-    bioTemplateSelect.innerHTML = bioTemplateOptions;
+    if (bioTemplateSelect) bioTemplateSelect.innerHTML = bioTemplateOptions;
 
     const sortOptions = [
         { value: 'recent', text: 'Newest' },
@@ -3450,22 +3455,22 @@ function initApp() {
         { value: 'highest', text: 'Highest Rated' },
         { value: 'lowest', text: 'Lowest Rated' },
     ];
-    sortReviewsSelect.innerHTML = sortOptions.map(option => `<option value="${option.value}">${option.text}</option>`).join('');
+    if (sortReviewsSelect) sortReviewsSelect.innerHTML = sortOptions.map(option => `<option value="${option.value}">${option.text}</option>`).join('');
 
     // --- Event Listeners ---
 
     // Auth Modal
-    loginBtn.addEventListener('click', () => authModal.classList.remove('hidden'));
-    logoutBtn.addEventListener('click', handleLogout);
-    closeAuthModalBtn.addEventListener('click', () => authModal.classList.add('hidden'));
-    switchAuthModeBtn.addEventListener('click', switchAuthMode);
+    loginBtn?.addEventListener('click', () => authModal?.classList.remove('hidden'));
+    logoutBtn?.addEventListener('click', handleLogout);
+    closeAuthModalBtn?.addEventListener('click', () => authModal?.classList.add('hidden'));
+    switchAuthModeBtn?.addEventListener('click', switchAuthMode);
 
-    showPasswordToggle.addEventListener('change', () => {
+    showPasswordToggle?.addEventListener('change', () => {
         const isChecked = showPasswordToggle.checked;
-        passwordInput.type = isChecked ? 'text' : 'password';
-        confirmPasswordInput.type = isChecked ? 'text' : 'password';
+        if (passwordInput) passwordInput.type = isChecked ? 'text' : 'password';
+        if (confirmPasswordInput) confirmPasswordInput.type = isChecked ? 'text' : 'password';
     });
-    authForm.addEventListener('submit', async (e) => {
+    authForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const authMessage = document.getElementById('authMessage');
         authMessage.textContent = 'Processing...';
@@ -3531,34 +3536,34 @@ function initApp() {
             setDetailModalMode('feed'); // Reset mode
         }
     };
-    closeDetailModalBtn.addEventListener('click', () => {
+    closeDetailModalBtn?.addEventListener('click', () => {
         if (lastViewedProfile) {
             goBackToProfile();
         } else {
-            reviewDetailModal.classList.add('hidden');
+            reviewDetailModal?.classList.add('hidden');
             setDetailModalMode('feed');
         }
     });
-    prevReviewBtn.addEventListener('click', showPreviousReview);
-    nextReviewBtn.addEventListener('click', showNextReview);
-    upvoteBtn.addEventListener('click', () => handleVote('up'));
-    downvoteBtn.addEventListener('click', () => handleVote('down'));
+    prevReviewBtn?.addEventListener('click', showPreviousReview);
+    nextReviewBtn?.addEventListener('click', showNextReview);
+    upvoteBtn?.addEventListener('click', () => handleVote('up'));
+    downvoteBtn?.addEventListener('click', () => handleVote('down'));
 
     // Profile Modal
-    profileBtn.addEventListener('click', showProfileModal);
-    closeProfileModalBtn.addEventListener('click', () => profileModal.classList.add('hidden'));
-    backToProfileBtn.addEventListener('click', goBackToProfile);
+    profileBtn?.addEventListener('click', showProfileModal);
+    closeProfileModalBtn?.addEventListener('click', () => profileModal?.classList.add('hidden'));
+    backToProfileBtn?.addEventListener('click', goBackToProfile);
 
     // Inbox Modal
-    inboxBtn.addEventListener('click', () => {
-        inboxModal.classList.remove('hidden');
+    inboxBtn?.addEventListener('click', () => {
+        inboxModal?.classList.remove('hidden');
         fetchNotifications(); // Fetch latest notifications when opening
     });
-    closeInboxModalBtn.addEventListener('click', () => {
-        inboxModal.classList.add('hidden');
+    closeInboxModalBtn?.addEventListener('click', () => {
+        inboxModal?.classList.add('hidden');
     });
     // Add event delegation for inbox buttons
-    document.getElementById('inboxContainer').addEventListener('click', (e) => {
+    document.getElementById('inboxContainer')?.addEventListener('click', (e) => {
         if (e.target.id === 'markAllReadBtn') {
             markNotificationsAsRead();
         }
@@ -3572,18 +3577,18 @@ function initApp() {
     });
 
     // Badge Modals
-    closeBadgeDetailModalBtn.addEventListener('click', () => badgeDetailModal.classList.add('hidden'));
-    showAllBadgesBtn.addEventListener('click', () => allBadgesModal.classList.remove('hidden'));
-    closeAllBadgesModalBtn.addEventListener('click', () => allBadgesModal.classList.add('hidden'));
+    closeBadgeDetailModalBtn?.addEventListener('click', () => badgeDetailModal?.classList.add('hidden'));
+    showAllBadgesBtn?.addEventListener('click', () => allBadgesModal?.classList.remove('hidden'));
+    closeAllBadgesModalBtn?.addEventListener('click', () => allBadgesModal?.classList.add('hidden'));
 
     // Filters & Review Rendering
-    document.getElementById('searchPlate').addEventListener('input', () => renderReviews({ isLoadMore: false }));
-    filterStateSelect.addEventListener('change', () => renderReviews({ isLoadMore: false }));
-    filterMakeSelect.addEventListener('change', () => renderReviews({ isLoadMore: false }));
-    filterSubtypeSelect.addEventListener('change', () => renderReviews({ isLoadMore: false }));
-    filterTraitSelect.addEventListener('change', () => renderReviews({ isLoadMore: false }));
-    sortReviewsSelect.addEventListener('change', () => renderReviews({ isLoadMore: false }));
-    
+    document.getElementById('searchPlate')?.addEventListener('input', () => renderReviews({ isLoadMore: false }));
+    filterStateSelect?.addEventListener('change', () => renderReviews({ isLoadMore: false }));
+    filterMakeSelect?.addEventListener('change', () => renderReviews({ isLoadMore: false }));
+    filterSubtypeSelect?.addEventListener('change', () => renderReviews({ isLoadMore: false }));
+    filterTraitSelect?.addEventListener('change', () => renderReviews({ isLoadMore: false }));
+    sortReviewsSelect?.addEventListener('change', () => renderReviews({ isLoadMore: false }));
+
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', () => renderReviews({ isLoadMore: true }));
     }
@@ -3597,33 +3602,33 @@ function initApp() {
         });
     }
 
-    filterTypeSelect.addEventListener('change', () => {
+    filterTypeSelect?.addEventListener('change', () => {
         const selectedType = filterTypeSelect.value;
         const relevantSubtypes = selectedType ? (typesToSubtypes[selectedType] || []).sort() : uniqueVehicleSubtypes;
-        
+
         const newSubtypeOptions = ['<option value="">All Subtypes</option>', ...relevantSubtypes.map(subtype => `<option value="${subtype}">${subtype}</option>`)].join('');
-        filterSubtypeSelect.innerHTML = newSubtypeOptions;
-        
+        if (filterSubtypeSelect) filterSubtypeSelect.innerHTML = newSubtypeOptions;
+
         renderReviews({ isLoadMore: false });
     });
 
-    toggleFiltersBtn.addEventListener('click', () => {
-        filtersContainer.classList.toggle('hidden');
+    toggleFiltersBtn?.addEventListener('click', () => {
+        filtersContainer?.classList.toggle('hidden');
     });
 
     // Profile Edit
-    editProfileBtn.addEventListener('click', () => {
-        profileDisplayView.classList.add('hidden');
-        profileEditView.classList.remove('hidden');
-        editProfileBtn.classList.add('hidden');
+    editProfileBtn?.addEventListener('click', () => {
+        profileDisplayView?.classList.add('hidden');
+        profileEditView?.classList.remove('hidden');
+        editProfileBtn?.classList.add('hidden');
     });
-    cancelEditProfileBtn.addEventListener('click', () => {
-        profileDisplayView.classList.remove('hidden');
-        profileEditView.classList.add('hidden');
-        editProfileBtn.classList.remove('hidden');
-        profileEditMessage.textContent = '';
+    cancelEditProfileBtn?.addEventListener('click', () => {
+        profileDisplayView?.classList.remove('hidden');
+        profileEditView?.classList.add('hidden');
+        editProfileBtn?.classList.remove('hidden');
+        if (profileEditMessage) profileEditMessage.textContent = '';
     });
-    profileMakeSelect.addEventListener('change', () => {
+    profileMakeSelect?.addEventListener('change', () => {
         const selectedMake = profileMakeSelect.value;
         const models = vehicleModels[selectedMake] || vehicleModels['Other'];
         profileModelSelect.innerHTML = '<option value="">Select Model</option>' + models.map(model => `<option value="${model}">${model}</option>`).join('');
@@ -3659,24 +3664,26 @@ function initApp() {
             bioWordsContainer.insertAdjacentHTML('beforeend', wordSelectHtml);
         });
     };
-    bioTemplateSelect.addEventListener('change', updateBioBuilder);
-    updateBioBuilder(); // Initial population
-    saveProfileBtn.addEventListener('click', async () => {
-        const firstName = document.getElementById('profile_first_name').value;
+    bioTemplateSelect?.addEventListener('change', updateBioBuilder);
+    if (bioTemplateSelect) updateBioBuilder(); // Initial population
+    saveProfileBtn?.addEventListener('click', async () => {
+        const firstName = document.getElementById('profile_first_name')?.value || '';
         const vehicleData = {
-            make: profileMakeSelect.value,
-            model: profileModelSelect.value,
-            color: profileColorSelect.value,
-            year: profileYearSelect.value
+            make: profileMakeSelect?.value,
+            model: profileModelSelect?.value,
+            color: profileColorSelect?.value,
+            year: profileYearSelect?.value
         };
         const bioWords = Array.from(document.querySelectorAll('#bio-words-container select')).map(select => select.value);
         const bioData = {
-            template: bioTemplateSelect.value,
+            template: bioTemplateSelect?.value,
             words: bioWords
         };
 
-        profileEditMessage.textContent = 'Saving...';
-        profileEditMessage.className = 'text-center text-sm mt-4 text-gray-500';
+        if (profileEditMessage) {
+            profileEditMessage.textContent = 'Saving...';
+            profileEditMessage.className = 'text-center text-sm mt-4 text-gray-500';
+        }
 
         try {
             const response = await fetch(`${API_URL}/users/profile`, {
@@ -3689,31 +3696,35 @@ function initApp() {
             });
 
             if (!response.ok) {
-                await handleApiError(response, profileEditMessage);
+                if (profileEditMessage) await handleApiError(response, profileEditMessage);
                 return;
             }
 
-            profileEditMessage.textContent = 'Saved successfully!';
-            profileEditMessage.className = 'text-center text-sm mt-4 text-green-500';
+            if (profileEditMessage) {
+                profileEditMessage.textContent = 'Saved successfully!';
+                profileEditMessage.className = 'text-center text-sm mt-4 text-green-500';
+            }
 
             // Update the display view with new data
-            document.getElementById('profileFirstName').textContent = firstName || 'N/A';
-            document.getElementById('profileVehicle').textContent = (vehicleData.make && vehicleData.model)
+            document.getElementById('profileFirstName')?.textContent = firstName || 'N/A';
+            document.getElementById('profileVehicle')?.textContent = (vehicleData.make && vehicleData.model)
                 ? `${vehicleData.year || ''} ${vehicleData.color || ''} ${vehicleData.make} ${vehicleData.model}`.trim()
                 : 'Not specified';
-            document.getElementById('profileBio').innerHTML = renderStructuredComment(bioData);
+            document.getElementById('profileBio')?.innerHTML = renderStructuredComment(bioData);
 
             setTimeout(() => {
-                profileDisplayView.classList.remove('hidden');
-                profileEditView.classList.add('hidden');
-                editProfileBtn.classList.remove('hidden');
-                profileEditMessage.textContent = '';
+                profileDisplayView?.classList.remove('hidden');
+                profileEditView?.classList.add('hidden');
+                editProfileBtn?.classList.remove('hidden');
+                if (profileEditMessage) profileEditMessage.textContent = '';
             }, 1500);
 
         } catch (error) {
             console.error("A critical error occurred while saving the profile:", error);
-            profileEditMessage.textContent = `A critical error occurred. Please check the console.`;
-            profileEditMessage.className = 'text-center text-sm mt-4 text-red-500';
+            if (profileEditMessage) {
+                profileEditMessage.textContent = `A critical error occurred. Please check the console.`;
+                profileEditMessage.className = 'text-center text-sm mt-4 text-red-500';
+            }
         }
     });
 
