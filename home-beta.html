@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Space+Grotesk%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<title>PlateTraits</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+      :root {
+        --primary-color: #1979e6;
+        --background-color: #f8fafc;
+        --card-background: #ffffff;
+        --text-primary: #111827;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+      }
+      body {
+        font-family: 'Space Grotesk', sans-serif;
+        background-color: var(--background-color);
+        color: var(--text-primary);
+      }
+    </style>
+</head>
+<body>
+<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+<div class="flex h-full grow flex-col">
+<header class="sticky top-0 z-10 w-full border-b border-solid bg-[var(--background-color)] px-4 sm:px-10 py-4 shadow-sm">
+<div class="mx-auto flex max-w-7xl items-center justify-between">
+<div class="flex items-center gap-8">
+<a class="flex items-center gap-3 text-2xl font-bold tracking-tight text-[var(--text-primary)]" href="#">
+<svg class="h-8 w-8 text-[var(--primary-color)]" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor"></path>
+</svg>
+                PlateTraits
+              </a>
+</div>
+<div class="hidden items-center gap-8 md:flex">
+<a class="text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]" href="#">Home</a>
+<a class="text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]" href="#">About</a>
+<a class="text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]" href="#">Contact</a>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex">
+<label class="relative">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+<svg class="h-5 w-5 text-[var(--text-secondary)]" fill="currentColor" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+<path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path>
+</svg>
+</div>
+<input class="form-input h-10 w-full min-w-40 max-w-md rounded-md border border-[var(--border-color)] bg-[var(--card-background)] py-2 pl-10 pr-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:border-[var(--primary-color)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)]" placeholder="Search by plate..." type="search"/>
+</label>
+</div>
+<div class="flex gap-2">
+<button class="flex h-10 min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-md bg-[var(--primary-color)] px-4 text-sm font-bold text-white shadow-sm transition-all hover:bg-opacity-90">
+<span class="truncate">Sign Up</span>
+</button>
+<button class="flex h-10 min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-md border border-[var(--border-color)] bg-[var(--card-background)] px-4 text-sm font-bold text-[var(--text-primary)] shadow-sm transition-all hover:bg-gray-100">
+<span class="truncate">Log In</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<main class="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+<div class="mb-8">
+<h1 class="text-4xl font-bold tracking-tighter text-[var(--text-primary)] sm:text-5xl">Recent Reviews</h1>
+<p class="mt-2 text-lg text-[var(--text-secondary)]">The latest driving experiences shared by our community.</p>
+</div>
+<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+<div class="space-y-8 lg:col-span-2">
+<div class="rounded-lg border border-[var(--border-color)] bg-[var(--card-background)] p-6 shadow-sm">
+<div class="flex items-start gap-4">
+<img alt="Alex" class="h-12 w-12 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuu6CyPOP9ngQUlCIcq3ckfMzYunNC1Mirh2iDAQTJsrgGhiZvMC7a313_CJ89uLk6n9LzzS_VLt1mSdxHAWKL6cv_TNUgK5sd3mWKzBCkN4PDNKDMKBMp2fbF-k8i05JWLR-kbVPm3ghzJDaIkI8jbhNcCdsQN2s_OYsTLCQaAKmrQ0vC4YGb1jffxtN1CcVCHKVL7M9EX8VkK6uxIYg8JY9MND-l1MvfxBQEUAUWgyNvjZ8BI9pUd5V1C8MkqLFwoZt7p_h1bA"/>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<div>
+<p class="font-semibold text-[var(--text-primary)]">Alex</p>
+<p class="text-sm text-[var(--text-secondary)]">2024-01-15</p>
+</div>
+<div class="flex items-center gap-1">
+<svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<span class="font-bold text-[var(--text-primary)]">5.0</span>
+</div>
+</div>
+<p class="mt-4 text-[var(--text-secondary)]">I saw this driver help an elderly person cross the street. Very kind!</p>
+<div class="mt-4 flex items-center gap-6 text-[var(--text-secondary)]">
+<button class="flex items-center gap-2 transition-colors hover:text-[var(--text-primary)]">
+<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21H9V11l3.329-3.329a1 1 0 011.414 0l.353.353a1 1 0 010 1.414L14 10zM5 11v10H4a1 1 0 01-1-1v-8a1 1 0 011-1h1z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>10</span>
+</button>
+<button class="flex items-center gap-2 transition-colors hover:text-[var(--text-primary)]">
+<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.738 3H15v10l-3.329 3.329a1 1 0 01-1.414 0l-.353-.353a1 1 0 010-1.414L10 14zm10-3v10h1a1 1 0 001-1v-8a1 1 0 00-1-1h-1z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>2</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="rounded-lg border border-[var(--border-color)] bg-[var(--card-background)] p-6 shadow-sm">
+<div class="flex items-start gap-4">
+<img alt="Jordan" class="h-12 w-12 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo0kBJ1pTPIQdpJrLTbllp_pLHUjVmwEdt4J6L0snwbd8UA_I2mRPnnCuWO3XMazX2l8IptPIvFE4dvatJdL7tSdQ6OAxQlOkWHEa-Vg2xNFDK8fRTPmsg11I5EK1pEEd1bTBnMvvlJvKLS8Hia3xpfbBizI_AtBD-oQtbn1BJozvvRqUqYvPSsszrxYxSioqo9OZNqhn4fWKV6YMF-d33ucZTmgruIf11I0tYeLKksYm2MghRm2OZznYGRmDIO5tQRZo0ej2vgg"/>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<div>
+<p class="font-semibold text-[var(--text-primary)]">Jordan</p>
+<p class="text-sm text-[var(--text-secondary)]">2024-01-10</p>
+</div>
+<div class="flex items-center gap-1">
+<svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<span class="font-bold text-[var(--text-primary)]">4.0</span>
+</div>
+</div>
+<p class="mt-4 text-[var(--text-secondary)]">This driver was courteous and signaled properly.</p>
+<div class="mt-4 flex items-center gap-6 text-[var(--text-secondary)]">
+<button class="flex items-center gap-2 transition-colors hover:text-[var(--text-primary)]">
+<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21H9V11l3.329-3.329a1 1 0 011.414 0l.353.353a1 1 0 010 1.414L14 10zM5 11v10H4a1 1 0 01-1-1v-8a1 1 0 011-1h1z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>5</span>
+</button>
+<button class="flex items-center gap-2 transition-colors hover:text-[var(--text-primary)]">
+<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.738 3H15v10l-3.329 3.329a1 1 0 01-1.414 0l-.353-.353a1 1 0 010-1.414L10 14zm10-3v10h1a1 1 0 001-1v-8a1 1 0 00-1-1h-1z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>1</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="rounded-lg border border-[var(--border-color)] bg-[var(--card-background)] p-6 shadow-sm">
+<div class="flex items-start gap-4">
+<img alt="Taylor" class="h-12 w-12 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvs1-mRFfwy5G6AclvY_13ENlRFf_RAoB0-aEb3ZaoAWA1mWII7od35077DJj70gHvSUWikvDnZ2_DQes5o4j3sXN_Z5FAU2zsp-tMiaHhjua3DcPv9qYnAt8ZP3iT7Wlx344lIOxPkB4iqI9tc8VG8wN6L_0x4Mg5476kojQZRjCQ-0UHDxHd0NOMABpmi3UCaYyPWOzcviv8Q5JCf-Qei27_B0AYqk7kUORt5OkIr-uX6alKUObfVOeXd9DfTWj-Yk3HI69psQ"/>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<div>
+<p class="font-semibold text-[var(--text-primary)]">Taylor</p>
+<p class="text-sm text-[var(--text-secondary)]">2024-01-05</p>
+</div>
+<div class="flex items-center gap-1">
+<svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<span class="font-bold text-[var(--text-primary)]">3.0</span>
+</div>
+</div>
+<p class="mt-4 text-[var(--text-secondary)]">This driver cut me off in traffic but apologized.</p>
+<div class="mt-4 flex items-center gap-6 text-[var(--text-secondary)]">
+<button class="flex items-center gap-2 transition-colors hover:text-[var(--text-primary)]">
+<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21H9V11l3.329-3.329a1 1 0 011.414 0l.353.353a1 1 0 010 1.414L14 10zM5 11v10H4a1 1 0 01-1-1v-8a1 1 0 011-1h1z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>2</span>
+</button>
+<button class="flex items-center gap-2 transition-colors hover:text-[var(--text-primary)]">
+<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.738 3H15v10l-3.329 3.329a1 1 0 01-1.414 0l-.353-.353a1 1 0 010-1.414L10 14zm10-3v10h1a1 1 0 001-1v-8a1 1 0 00-1-1h-1z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>0</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<aside class="space-y-8 lg:col-span-1">
+<div class="rounded-lg border border-[var(--border-color)] bg-[var(--card-background)] p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-[var(--text-primary)]">Submit a Review</h3>
+<p class="mt-1 text-sm text-[var(--text-secondary)]">Spotted a good or bad driver? Share your experience.</p>
+<button class="mt-4 w-full flex h-10 items-center justify-center rounded-md bg-[var(--primary-color)] px-4 text-sm font-bold text-white shadow-sm transition-all hover:bg-opacity-90">
+                  Add New Review
+                </button>
+</div>
+<div class="rounded-lg border border-[var(--border-color)] bg-[var(--card-background)] p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-[var(--text-primary)]">Top Contributors</h3>
+<ul class="mt-4 space-y-4">
+<li class="flex items-center gap-4">
+<img alt="Alex" class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuu6CyPOP9ngQUlCIcq3ckfMzYunNC1Mirh2iDAQTJsrgGhiZvMC7a313_CJ89uLk6n9LzzS_VLt1mSdxHAWKL6cv_TNUgK5sd3mWKzBCkN4PDNKDMKBMp2fbF-k8i05JWLR-kbVPm3ghzJDaIkI8jbhNcCdsQN2s_OYsTLCQaAKmrQ0vC4YGb1jffxtN1CcVCHKVL7M9EX8VkK6uxIYg8JY9MND-l1MvfxBQEUAUWgyNvjZ8BI9pUd5V1C8MkqLFwoZt7p_h1bA"/>
+<div>
+<p class="font-semibold text-[var(--text-primary)]">Alex</p>
+<p class="text-sm text-[var(--text-secondary)]">25 Reviews</p>
+</div>
+</li>
+<li class="flex items-center gap-4">
+<img alt="Jordan" class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo0kBJ1pTPIQdpJrLTbllp_pLHUjVmwEdt4J6L0snwbd8UA_I2mRPnnCuWO3XMazX2l8IptPIvFE4dvatJdL7tSdQ6OAxQlOkWHEa-Vg2xNFDK8fRTPmsg11I5EK1pEEd1bTBnMvvlJvKLS8Hia3xpfbBizI_AtBD-oQtbn1BJozvvRqUqYvPSsszrxYxSioqo9OZNqhn4fWKV6YMF-d33ucZTmgruIf11I0tYeLKksYm2MghRm2OZznYGRmDIO5tQRZo0ej2vgg"/>
+<div>
+<p class="font-semibold text-[var(--text-primary)]">Jordan</p>
+<p class="text-sm text-[var(--text-secondary)]">18 Reviews</p>
+</div>
+</li>
+<li class="flex items-center gap-4">
+<img alt="Taylor" class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvs1-mRFfwy5G6AclvY_13ENlRFf_RAoB0-aEb3ZaoAWA1mWII7od35077DJj70gHvSUWikvDnZ2_DQes5o4j3sXN_Z5FAU2zsp-tMiaHhjua3DcPv9qYnAt8ZP3iT7Wlx344lIOxPkB4iqI9tc8VG8wN6L_0x4Mg5476kojQZRjCQ-0UHDxHd0NOMABpmi3UCaYyPWOzcviv8Q5JCf-Qei27_B0AYqk7kUORt5OkIr-uX6alKUObfVOeXd9DfTWj-Yk3HI69psQ"/>
+<div>
+<p class="font-semibold text-[var(--text-primary)]">Taylor</p>
+<p class="text-sm text-[var(--text-secondary)]">12 Reviews</p>
+</div>
+</li>
+</ul>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>

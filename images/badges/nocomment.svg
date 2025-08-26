@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 19.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1"
+	 id="svg1" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:svg="http://www.w3.org/2000/svg" sodipodi:docname="MUTCD_R16-15.svg" inkscape:version="1.3 (0e150ed, 2023-07-21)"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="-427 453.461 143.059 95.539" style="enable-background:new -427 453.461 143.059 95.539;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#FFFFFF;}
+	.st1{clip-path:url(#SVGID_2_);}
+	.st2{clip-path:url(#SVGID_4_);fill:#FFD046;}
+	.st3{clip-path:url(#SVGID_6_);}
+	.st4{clip-path:url(#SVGID_8_);}
+</style>
+<path class="st0" d="M-290.333,549h-130.025c-3.53,0-6.392-2.862-6.392-6.392v-67.097c0-3.53,2.862-6.392,6.392-6.392h130.025
+	c3.53,0,6.392,2.862,6.392,6.392v67.097C-283.941,546.138-286.803,549-290.333,549z"/>
+<sodipodi:namedview  inkscape:zoom="1" inkscape:cy="90" borderopacity="1.0" bordercolor="#666666" id="namedview1" inkscape:cx="133" pagecolor="#ffffff" inkscape:window-x="0" inkscape:window-height="431" inkscape:document-units="mm" inkscape:deskcolor="#d1d1d1" inkscape:pagecheckerboard="0" inkscape:pageopacity="0.0" inkscape:showpageshadow="2" inkscape:window-maximized="0" inkscape:window-y="23" inkscape:current-layer="layer1" inkscape:window-width="1440">
+	</sodipodi:namedview>
+<g id="layer1" transform="translate(-48.947916,-92.604164)" inkscape:label="Layer 1" inkscape:groupmode="layer">
+	<g>
+		<defs>
+			<rect id="SVGID_1_" x="-655.826" y="513.883" width="500.321" height="146.625"/>
+		</defs>
+		<clipPath id="SVGID_2_">
+			<use xlink:href="#SVGID_1_"  style="overflow:visible;"/>
+		</clipPath>
+		<path id="path229" class="st1" d="M-241.183,546.065h-130.679c-3.413,0-6.19,2.777-6.19,6.19v83.159c0,3.414,2.777,6.19,6.19,6.19
+			h130.679c3.413,0,6.19-2.776,6.19-6.19v-83.159C-234.993,548.842-237.77,546.065-241.183,546.065 M-241.183,546.315
+			c3.267,0,5.94,2.673,5.94,5.94v83.159c0,3.267-2.673,5.94-5.94,5.94h-130.679c-3.267,0-5.94-2.673-5.94-5.94v-83.159
+			c0-3.267,2.673-5.94,5.94-5.94H-241.183z"/>
+	</g>
+	<g>
+		<defs>
+			<rect id="SVGID_3_" x="-655.826" y="513.883" width="500.321" height="146.625"/>
+		</defs>
+		<clipPath id="SVGID_4_">
+			<use xlink:href="#SVGID_3_"  style="overflow:visible;"/>
+		</clipPath>
+		<path id="path231" class="st2" d="M-235.243,569.332v-17.077c0-3.267-2.673-5.94-5.94-5.94h-130.679
+			c-3.267,0-5.94,2.673-5.94,5.94v17.077"/>
+	</g>
+	<g>
+		<defs>
+			<rect id="SVGID_5_" x="-655.826" y="513.883" width="500.321" height="146.625"/>
+		</defs>
+		<clipPath id="SVGID_6_">
+			<use xlink:href="#SVGID_5_"  style="overflow:visible;"/>
+		</clipPath>
+		<path id="path233" class="st3" d="M-239.203,635.414c0,0.53-0.202,1.012-0.585,1.395c-0.383,0.383-0.865,0.585-1.395,0.585
+			h-130.679c-0.53,0-1.012-0.202-1.395-0.585c-0.383-0.383-0.585-0.865-0.585-1.395v-83.159c0-0.53,0.202-1.013,0.585-1.395
+			c0.383-0.383,0.865-0.585,1.395-0.585h130.679c0.53,0,1.012,0.202,1.395,0.585c0.383,0.382,0.585,0.865,0.585,1.395V635.414z
+			 M-238.038,549.11c-0.845-0.845-1.962-1.31-3.145-1.31h-130.679c-1.183,0-2.3,0.465-3.145,1.31
+			c-0.845,0.844-1.31,1.961-1.31,3.145v83.159c0,1.183,0.465,2.3,1.31,3.145c0.845,0.845,1.962,1.31,3.145,1.31h130.679
+			c1.183,0,2.3-0.465,3.145-1.31c0.845-0.845,1.31-1.962,1.31-3.145v-83.159C-236.728,551.071-237.193,549.954-238.038,549.11"/>
+	</g>
+	<g>
+		<defs>
+			<rect id="SVGID_7_" x="-655.826" y="513.883" width="500.321" height="146.625"/>
+		</defs>
+		<clipPath id="SVGID_8_">
+			<use xlink:href="#SVGID_7_"  style="overflow:visible;"/>
+		</clipPath>
+		<path id="path235" class="st4" d="M-237.893,570.57h-137.379v-2.475h137.379V570.57z"/>
+	</g>
+</g>
+</svg>
