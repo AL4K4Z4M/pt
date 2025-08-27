@@ -358,6 +358,13 @@
                         <button id="loginBtn" class="w-full btn btn-primary">Login/Register</button>
                     </div>
                 </div>
+                <div class="border-t border-color my-4"></div>
+                <a id="get-the-app-btn" href="/downloads/PlateTraits.apk" class="w-full flex items-center space-x-3 text-secondary hover:text-primary hover:bg-tertiary rounded-md p-2 transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    <span>Get the App</span>
+                </a>
             </div>
 
             <div class="p-4 border-t border-color space-y-4">
@@ -834,6 +841,22 @@
             });
         });
     </script>
+    <div id="app-download-banner" class="fixed bottom-0 left-0 right-0 w-full bg-secondary text-primary p-4 z-[100] shadow-lg flex items-center justify-between" style="display: none;">
+        <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            <div>
+                <p class="font-bold text-lg">Get the PlateTraits App</p>
+                <p class="text-sm text-secondary">For a better experience, download our Android app.</p>
+            </div>
+        </div>
+        <div class="flex items-center">
+            <a href="/downloads/PlateTraits.apk" class="btn btn-primary !py-2 !px-4 text-sm mr-4">Download Now</a>
+            <button id="close-banner-btn" class="text-3xl text-secondary hover:text-primary leading-none">&times;</button>
+        </div>
+    </div>
+
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

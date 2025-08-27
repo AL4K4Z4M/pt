@@ -3710,6 +3710,7 @@ function initApp() {
     if (usernameFromUrl) {
         showUserProfile(usernameFromUrl);
     }
+
 }
 
 /**
@@ -3740,4 +3741,28 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
     fetchAndDisplayStats(); // Initial fetch
     setInterval(fetchAndDisplayStats, 30000); // Refresh every 30 seconds
+
+    // --- App Download Banner Logic ---
+    const appDownloadBanner = document.getElementById('app-download-banner');
+    const getTheAppBtn = document.getElementById('get-the-app-btn');
+
+    if (window.isAndroidApp) {
+        if (appDownloadBanner) appDownloadBanner.style.display = 'none';
+        if (getTheAppBtn) getTheAppBtn.style.display = 'none';
+    } else {
+        if (appDownloadBanner) {
+            const closeBannerBtn = document.getElementById('close-banner-btn');
+            if (closeBannerBtn) {
+                const isBannerClosed = localStorage.getItem('appBannerClosed');
+                if (isBannerClosed !== 'true') {
+                    appDownloadBanner.style.display = 'flex';
+                }
+
+                closeBannerBtn.addEventListener('click', () => {
+                    appDownloadBanner.style.display = 'none';
+                    localStorage.setItem('appBannerClosed', 'true');
+                });
+            }
+        }
+    }
 });
