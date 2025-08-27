@@ -11,6 +11,8 @@
   gtag('config', 'G-8HH3ZWCF88');
 </script>
     <title>PlateTraits - Review your peers.</title>
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#e5e7eb">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121212">
     <meta property="og:title" content="PlateTraits | Rate, Review, and Explore License Plates" />
     <meta property="og:description" content="PlateTraits turns everyday license plates into community conversations. Sign up to leave reviews, share traits, and vote on feedback with other drivers." />
     <meta property="og:image" content="https://platetraits.com/images/parkinglot_cover.png" />    
@@ -29,11 +31,11 @@
     <script>
         // This script is placed in the head to prevent a flash of unstyled content.
         (function() {
-            const theme = localStorage.getItem('theme') || 'system';
-            if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            const theme = localStorage.getItem('theme'); // Don't default to 'system'
+            if (theme === 'dark') {
                 document.documentElement.classList.add('dark-theme');
                 document.documentElement.classList.remove('light-theme');
-            } else {
+            } else { // Default to light
                 document.documentElement.classList.add('light-theme');
                 document.documentElement.classList.remove('dark-theme');
             }
@@ -368,11 +370,10 @@
             </div>
             
             <div class="p-4 border-t border-color">
-                 <span class="text-sm font-medium text-secondary mb-2 block text-center">Theme</span> 
+                 <span class="text-sm font-medium text-secondary mb-2 block text-center">Theme</span>
                  <div id="theme-selector" class="flex space-x-1 bg-tertiary p-1 rounded-lg">
                     <button data-theme="light" class="theme-btn w-full">Light</button>
                     <button data-theme="dark" class="theme-btn w-full">Dark</button>
-                    <button data-theme="system" class="theme-btn w-full">System</button>
                 </div>
                 <div class="text-center mt-4 space-y-1">
                     <a href="about.html" class="text-xs text-tertiary hover:text-secondary hover:underline">About Us</a>

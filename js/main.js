@@ -3367,16 +3367,8 @@ function initApp() {
 
     const applyTheme = (theme) => {
         localStorage.setItem('theme', theme);
-
-        if (theme === 'system') {
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            document.documentElement.classList.toggle('dark-theme', systemPrefersDark);
-            document.documentElement.classList.toggle('light-theme', !systemPrefersDark);
-        } else {
-            document.documentElement.classList.toggle('dark-theme', theme === 'dark');
-            document.documentElement.classList.toggle('light-theme', theme === 'light');
-        }
-
+        document.documentElement.classList.toggle('dark-theme', theme === 'dark');
+        document.documentElement.classList.toggle('light-theme', theme === 'light');
         themeButtons.forEach(button => {
             button.classList.toggle('active', button.dataset.theme === theme);
         });
@@ -3405,19 +3397,10 @@ function initApp() {
         }
     });
 
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        const currentTheme = localStorage.getItem('theme');
-        if (currentTheme === 'system') {
-            applyTheme('system');
-        }
-    });
-
     // Initial theme is set by inline script in <head>
-    // We just need to sync the button state
-    const savedTheme = localStorage.getItem('theme') || 'system';
-    themeButtons.forEach(button => {
-        button.classList.toggle('active', button.dataset.theme === savedTheme);
-    });
+    // We just need to sync the button state and apply the theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
 
     const stateOptions = ['<option value="">All States</option>', ...usStates.map(state => `<option value="${state}">${state}</option>`)].join('');
     filterStateSelect.innerHTML = stateOptions;
