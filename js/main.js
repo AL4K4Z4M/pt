@@ -3744,18 +3744,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- App Download Banner Logic ---
     const appDownloadBanner = document.getElementById('app-download-banner');
-    if (appDownloadBanner) {
-        const closeBannerBtn = document.getElementById('close-banner-btn');
-        if (closeBannerBtn) {
-            const isBannerClosed = localStorage.getItem('appBannerClosed');
-            if (isBannerClosed !== 'true') {
-                appDownloadBanner.style.display = 'flex';
-            }
+    const getTheAppBtn = document.getElementById('get-the-app-btn');
 
-            closeBannerBtn.addEventListener('click', () => {
-                appDownloadBanner.style.display = 'none';
-                localStorage.setItem('appBannerClosed', 'true');
-            });
+    if (window.isAndroidApp) {
+        if (appDownloadBanner) appDownloadBanner.style.display = 'none';
+        if (getTheAppBtn) getTheAppBtn.style.display = 'none';
+    } else {
+        if (appDownloadBanner) {
+            const closeBannerBtn = document.getElementById('close-banner-btn');
+            if (closeBannerBtn) {
+                const isBannerClosed = localStorage.getItem('appBannerClosed');
+                if (isBannerClosed !== 'true') {
+                    appDownloadBanner.style.display = 'flex';
+                }
+
+                closeBannerBtn.addEventListener('click', () => {
+                    appDownloadBanner.style.display = 'none';
+                    localStorage.setItem('appBannerClosed', 'true');
+                });
+            }
         }
     }
 });
