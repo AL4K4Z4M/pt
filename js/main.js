@@ -3710,6 +3710,23 @@ function initApp() {
     if (usernameFromUrl) {
         showUserProfile(usernameFromUrl);
     }
+
+    // --- App Download Banner Logic ---
+    const appDownloadBanner = document.getElementById('app-download-banner');
+    const closeBannerBtn = document.getElementById('close-banner-btn');
+
+    if (appDownloadBanner && closeBannerBtn) {
+        const isBannerClosed = localStorage.getItem('appBannerClosed');
+
+        if (isBannerClosed) {
+            appDownloadBanner.style.display = 'none';
+        }
+
+        closeBannerBtn.addEventListener('click', () => {
+            appDownloadBanner.style.display = 'none';
+            localStorage.setItem('appBannerClosed', 'true');
+        });
+    }
 }
 
 /**

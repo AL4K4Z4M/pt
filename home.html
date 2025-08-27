@@ -834,6 +834,11 @@
             });
         });
     </script>
+    <div id="app-download-banner" class="fixed bottom-0 left-0 right-0 bg-secondary text-primary p-4 flex justify-between items-center z-[100] shadow-lg">
+        <p class="font-semibold text-lg">We now have an app! <a href="/downloads/PlateTraits.apk" class="text-link hover:underline">Download Here</a></p>
+        <button id="close-banner-btn" class="text-3xl text-secondary hover:text-primary leading-none">&times;</button>
+    </div>
+
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
