@@ -3711,22 +3711,6 @@ function initApp() {
         showUserProfile(usernameFromUrl);
     }
 
-    // --- App Download Banner Logic ---
-    const appDownloadBanner = document.getElementById('app-download-banner');
-    const closeBannerBtn = document.getElementById('close-banner-btn');
-
-    if (appDownloadBanner && closeBannerBtn) {
-        const isBannerClosed = localStorage.getItem('appBannerClosed');
-
-        if (isBannerClosed) {
-            appDownloadBanner.style.display = 'none';
-        }
-
-        closeBannerBtn.addEventListener('click', () => {
-            appDownloadBanner.style.display = 'none';
-            localStorage.setItem('appBannerClosed', 'true');
-        });
-    }
 }
 
 /**
@@ -3757,4 +3741,21 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
     fetchAndDisplayStats(); // Initial fetch
     setInterval(fetchAndDisplayStats, 30000); // Refresh every 30 seconds
+
+    // --- App Download Banner Logic ---
+    const appDownloadBanner = document.getElementById('app-download-banner');
+    if (appDownloadBanner) {
+        const closeBannerBtn = document.getElementById('close-banner-btn');
+        if (closeBannerBtn) {
+            const isBannerClosed = localStorage.getItem('appBannerClosed');
+            if (isBannerClosed !== 'true') {
+                appDownloadBanner.style.display = 'flex';
+            }
+
+            closeBannerBtn.addEventListener('click', () => {
+                appDownloadBanner.style.display = 'none';
+                localStorage.setItem('appBannerClosed', 'true');
+            });
+        }
+    }
 });
