@@ -1,5 +1,5 @@
-const CACHE_NAME = 'platetraits-cache-v2';
-const API_CACHE_NAME = 'platetraits-api-cache-v2';
+const CACHE_NAME = 'platetraits-cache-v3';
+const API_CACHE_NAME = 'platetraits-api-cache-v3';
 const STATIC_ASSETS = [
     '/',
     '/home.html',
