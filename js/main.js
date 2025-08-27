@@ -3196,8 +3196,24 @@ const reassignModalElements = () => {
     }
 
     addReviewBtn.addEventListener('click', () => {
-        if (authToken) reviewModal.classList.remove('hidden');
-        else authModal.classList.remove('hidden');
+        if (authToken) {
+            // Try to get location from native interface
+            if (window.Android && typeof window.Android.getUserLocation === 'function') {
+                const userState = window.Android.getUserLocation();
+                if (userState) {
+                    const incidentLocationSelect = document.getElementById('incident_location');
+                    if (incidentLocationSelect) {
+                        // Check if the state exists in the dropdown before setting it
+                        if ([...incidentLocationSelect.options].map(o => o.value).includes(userState)) {
+                            incidentLocationSelect.value = userState;
+                        }
+                    }
+                }
+            }
+            reviewModal.classList.remove('hidden');
+        } else {
+            authModal.classList.remove('hidden');
+        }
     });
     closeModalBtn.addEventListener('click', () => reviewModal.classList.add('hidden'));
 
