@@ -1216,21 +1216,27 @@ app.get('/api/review_votes', authenticateToken, requireAdmin, async (req, res) =
 });
 
 app.get('/api/downloads/apk', async (req, res) => {
+    console.log('APK download endpoint hit.');
     try {
+        console.log('Attempting to increment download count...');
         await db.query('UPDATE apk_downloads SET count = count + 1 WHERE id = 1');
+        console.log('Successfully incremented download count.');
+
         const filePath = path.join('/var', 'www', 'platetraits', 'downloads', 'PlateTraits.apk');
+        console.log(`Attempting to download file from: ${filePath}`);
+
         res.download(filePath, 'PlateTraits.apk', (err) => {
             if (err) {
-                console.error('Error downloading the file:', err);
-                // Important: Don't try to send another response if one has already been sent.
-                // The 'err' object here might indicate that headers were already sent.
+                console.error('Error sending file to user:', err);
                 if (!res.headersSent) {
                     res.status(500).send('Error downloading the file.');
                 }
+            } else {
+                console.log('File sent successfully.');
             }
         });
     } catch (err) {
-        console.error('Failed to increment download count:', err);
+        console.error('Failed to increment download count or process download:', err);
         if (!res.headersSent) {
             res.status(500).send('Failed to process download request.');
         }
