@@ -1193,6 +1193,18 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
+// NEW: Endpoint to get app download stats for the admin dashboard
+app.get('/api/admin/stats/downloads', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT count FROM apk_downloads WHERE id = 1');
+        const downloadCount = rows[0]?.count || 0;
+        res.json({ success: true, downloads: downloadCount });
+    } catch (err) {
+        console.error('❌ Failed to fetch app download stats for admin:', err);
+        res.status(500).json({ success: false, message: 'Database error while fetching app download stats.' });
+    }
+});
+
 // Endpoint to get all user_badges for the admin dashboard
 app.get('/api/user_badges', authenticateToken, requireAdmin, async (req, res) => {
     try {
