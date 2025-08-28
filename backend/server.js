@@ -24,6 +24,26 @@ const db = mysql.createPool({
     database: process.env.DB_NAME
 });
 
+// Create apk_downloads table if it doesn't exist
+(async () => {
+    try {
+        const connection = await db.getConnection();
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS apk_downloads (
+                id INT PRIMARY KEY,
+                count INT DEFAULT 0
+            )
+        `);
+        await connection.query(`
+            INSERT INTO apk_downloads (id, count) VALUES (1, 0) ON DUPLICATE KEY UPDATE id=1
+        `);
+        connection.release();
+        console.log('apk_downloads table is ready.');
+    } catch (err) {
+        console.error('Failed to create apk_downloads table:', err);
+    }
+})();
+
 const forbiddenWords = ['fuck','fuk','fck','fcuk','fuxk','phuck','phuk','shit','shyt','sht','sh1t','sh!t','asshole','azzhole','asshol','azzhol','azz','bitch','btch','b!tch','b1tch','bich','b!ch','cunt','kunt','cnt','c_nt','dick','dik','d!ck','d1ck','pussy','pssy','pussi','puzsy','pusy','nigger','nigga','nigg','nig','n!gger','n1gger','niga','n!ga','faggot','fagot','fag','f@g','f@ggot','retard','rtrd','ret@rd','r3tard','tard','whore','hor','wh0re','whor3','anal','an@l','arse','ar$e','bastard','basstard','bollocks','bollox','boner','clit','cl!t','cock','kok','kock','damn','dam','douche','douch','dyke','dike','felch','gook','handjob','hj','jizz','j!zz','kike','lesbo','lezbo','masturbate','masturb8','motherfucker','mf','mthrfckr','pedo','p3do','penis','pen!s','porn','prn','rape','r@pe','scrotum','slut','slutt','sl_t','smegma','sperm','tits','titt','t!ts','twat','tw@t','vagina','vag!na','wank','w@nk','wetback','nazi','naz!','n@zi','heil','h3il','hitler','h!tler','kkk','whitepower','whtpowr','whitepwr','supremacy','suprem@cy','islamist','jihadist','j!hadist','terrorist','terr0rist','communist','socialist','fascist','anarchist','antifa','zionist','racist','r@cist','sexist','s3xist','homophobe','homophob','transphobe','transphob','bigot','feminazi','mra','incel','sjw','pc','politicallycorrect','wokeism','cancelculture','triggered','triggred','safespace','microaggression','mansplain','manspread','whitesplaining','privilege','toxic','fragile','cis','hetero','cisgender','heteronormative','patriarchy','misogyny','misandry','bomb','bom','b0mb','kill','k!ll','k1ll','murder','murd3r','gang','g@ng','mafia','m@fia','crip','cr!p','blood','bl00d','terror','terr0r','explode','expl0de','shoot','sh00t','stab','st@b','gun','gn','knife','kn!fe','assault','ass@ult','execution','electricchair','gaschamber','lethalinjection','firingsquad','guillotine','lynch','hang','burn','brn','acid','ac!d','poison','p0ison','torture','t0rture','mutilate','mut!late','dismember','decapitate','drug','drg','coke','cok','heroin','her0in','meth','m3th','weed','w33d','we3d','drunk','drnk','dui','pot','high','stoned','alcoholic','junkie','junky','crackhead','stolen','st0len','illegal','ill3gal','contraband','smuggle','bribe','corrupt','criminal','felon','convict','prisoner','jail','prison','cop','police','pol!ce','pig','acab','idiot','id!ot','moron','m0ron','dumb','dum','stupid','stup!d','loser','l0ser','failure','useless','worthless','ugly','ugli','fat','f@t','skinny','short','tall','bald','hairy','smelly','dirty','gross','disgusting','filthy','nasty','sick','disease','cancer','aids','hiv','covid','c0vid','virus','v!rus','plague','epidemic','quarantine','mask','vaccine','v@ccine','jab','antivax','ant!vax','sheeple','normie','npc','boomer','zoomer','millennial','genz','okboomer','karen','chad','stacy','becky','brad','thot','simp','incel','virgin','cuck','soyboy','69','420','sex','s3x','s_x','naked','nak3d','nude','nud3','cult','sect','conspiracy','qanon','plandemic','hoax','fake','false','liar','cheat','fraud','scam','rip-off','ripoff','master','dom','sub','bdsm','fetish','kink','hentai','lolicon','shotacon','necrophilia','suicide','suic!de','selfharm','selfh@rm','cutting','cutt!ng','starve','anorexia','bulimia','proana','promia','thinspo'];
 
 // Vehicle data required for badge logic
@@ -1192,6 +1212,28 @@ app.get('/api/review_votes', authenticateToken, requireAdmin, async (req, res) =
     } catch (err) {
         console.error('❌ Failed to fetch review_votes for admin dashboard:', err);
         res.status(500).json({ success: false, message: 'Database error while fetching review_votes.' });
+    }
+});
+
+app.get('/api/downloads/apk', async (req, res) => {
+    try {
+        await db.query('UPDATE apk_downloads SET count = count + 1 WHERE id = 1');
+        const filePath = path.join('/var', 'www', 'platetraits', 'downloads', 'PlateTraits.apk');
+        res.download(filePath, 'PlateTraits.apk', (err) => {
+            if (err) {
+                console.error('Error downloading the file:', err);
+                // Important: Don't try to send another response if one has already been sent.
+                // The 'err' object here might indicate that headers were already sent.
+                if (!res.headersSent) {
+                    res.status(500).send('Error downloading the file.');
+                }
+            }
+        });
+    } catch (err) {
+        console.error('Failed to increment download count:', err);
+        if (!res.headersSent) {
+            res.status(500).send('Failed to process download request.');
+        }
     }
 });
 
