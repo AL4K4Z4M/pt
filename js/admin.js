@@ -44,6 +44,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     badges: [],
     userBadges: [],
     reviewVotes: [],
+    downloads: 0,
     usernameMap: {},
     filters: {
       username: localStorage.getItem('filter_username') || '',
@@ -85,6 +86,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
       totalBadges: byId('total-badges'),
       totalUserBadges: byId('total-user-badges'),
       totalVotes: byId('total-votes'),
+      totalDownloads: byId('total-downloads'),
     },
     // filter
     filterInput: byId('user-filter'),
@@ -311,12 +313,13 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     showLoadingRows(els.reviewsBody, 8);
     showLoadingRows(els.votesBody, 5);
 
-    const [users, reviews, badges, userBadges, reviewVotes] = await Promise.all([
+    const [users, reviews, badges, userBadges, reviewVotes, downloadsStats] = await Promise.all([
       fetchJSON(`${API_URL}/users`),
       fetchJSON(`${API_URL}/admin/reviews`),
       fetchJSON(`${API_URL}/admin/badges`),
       fetchJSON(`${API_URL}/user_badges`),
-      fetchJSON(`${API_URL}/review_votes`)
+      fetchJSON(`${API_URL}/review_votes`),
+      fetchJSON(`${API_URL}/admin/stats/downloads`)
     ]);
 
     state.users = users;
@@ -324,6 +327,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     state.badges = badges;
     state.userBadges = userBadges;
     state.reviewVotes = reviewVotes;
+    state.downloads = downloadsStats.downloads;
 
     state.usernameMap = {};
     for (const u of users) state.usernameMap[u.id] = u.username;
@@ -352,6 +356,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     els.stats.totalBadges.textContent = state.badges.length;
     els.stats.totalUserBadges.textContent = state.userBadges.length;
     els.stats.totalVotes.textContent = state.reviewVotes.length;
+    els.stats.totalDownloads.textContent = state.downloads;
   };
 
   const renderUsers = () => {
