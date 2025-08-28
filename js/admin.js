@@ -142,6 +142,10 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     // charts
     chartUsers: byId('chart-users'),
     chartRatings: byId('chart-ratings'),
+    chartReviewsOverTime: byId('chart-reviews-over-time'),
+    chartVotesOverTime: byId('chart-votes-over-time'),
+    chartTopBadges: byId('chart-top-badges'),
+    chartTopContributors: byId('chart-top-contributors'),
     rangeButtons: byId('range-buttons'),
     // modals
     modal: byId('manage-user-modal'),
@@ -1024,31 +1028,30 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
       start.setDate(start.getDate() - (parseInt(range,10)-1));
       start.setHours(0,0,0,0);
     }
-
     const dayKey = d => { const t = new Date(d); t.setHours(0,0,0,0); return t.getTime(); };
-    const counts = new Map();
-    for (const u of state.users) {
-      const d = new Date(u.created_at);
-      if (range==='all' || d >= start) counts.set(dayKey(d), (counts.get(dayKey(d))||0)+1);
-    }
-    const labels=[], data=[];
-    const earliest = state.users.length
-      ? state.users.reduce((a,b)=> new Date(a.created_at) < new Date(b.created_at) ? a : b).created_at
-      : now;
+    const earliest = state.users.length ? state.users.reduce((a,b)=> new Date(a.created_at) < new Date(b.created_at) ? a : b).created_at : now;
     const begin = range==='all' ? dayKey(earliest) : dayKey(start);
     const end = dayKey(now);
+    const labels = [];
     for (let t=begin; t<=end; t += 86400000) {
       labels.push(new Date(t).toLocaleDateString());
-      data.push(counts.get(t)||0);
     }
 
+    // Chart 1: New Users
+    const userCounts = new Map();
+    for (const u of state.users) {
+      const d = new Date(u.created_at);
+      if (range==='all' || d >= start) userCounts.set(dayKey(d), (userCounts.get(dayKey(d))||0)+1);
+    }
+    const userData = labels.map(l => userCounts.get(dayKey(new Date(l))) || 0);
     if (state.charts.users) state.charts.users.destroy();
     state.charts.users = new Chart(els.chartUsers.getContext('2d'), {
       type:'line',
-      data:{ labels, datasets:[{ label:'New Users', data }]},
+      data:{ labels, datasets:[{ label:'New Users', data: userData, borderColor: '#3b82f6', tension: 0.1 }]},
       options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true }}, plugins:{ legend:{ display:false } } }
     });
 
+    // Chart 2: Ratings Distribution
     const buckets = {1:0,2:0,3:0,4:0,5:0};
     for (const r of state.reviews) {
       const d = new Date(r.created_at);
@@ -1058,10 +1061,84 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     if (state.charts.ratings) state.charts.ratings.destroy();
     state.charts.ratings = new Chart(els.chartRatings.getContext('2d'), {
       type:'bar',
-      data:{ labels:rlabels, datasets:[{ label:'Reviews', data:rdata }]},
+      data:{ labels:rlabels.map(s=>s+' Star'), datasets:[{ label:'Reviews', data:rdata, backgroundColor: '#8b5cf6' }]},
       options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true }}, plugins:{ legend:{ display:false } } }
     });
 
+    // Chart 3: Reviews Over Time
+    const reviewCounts = new Map();
+    for (const r of state.reviews) {
+        const d = new Date(r.created_at);
+        if (range === 'all' || d >= start) reviewCounts.set(dayKey(d), (reviewCounts.get(dayKey(d)) || 0) + 1);
+    }
+    const reviewData = labels.map(l => reviewCounts.get(dayKey(new Date(l))) || 0);
+    if (state.charts.reviewsOverTime) state.charts.reviewsOverTime.destroy();
+    state.charts.reviewsOverTime = new Chart(els.chartReviewsOverTime.getContext('2d'), {
+        type: 'line',
+        data: { labels, datasets: [{ label: 'Reviews', data: reviewData, borderColor: '#10b981', tension: 0.1 }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+    });
+
+    // Chart 4: Votes Over Time
+    const voteCounts = { up: new Map(), down: new Map() };
+    for (const v of state.reviewVotes) {
+        const d = new Date(v.created_at);
+        if (range === 'all' || d >= start) {
+            const map = voteCounts[v.vote_type];
+            if (map) map.set(dayKey(d), (map.get(dayKey(d)) || 0) + 1);
+        }
+    }
+    const upvoteData = labels.map(l => voteCounts.up.get(dayKey(new Date(l))) || 0);
+    const downvoteData = labels.map(l => voteCounts.down.get(dayKey(new Date(l))) || 0);
+    if (state.charts.votesOverTime) state.charts.votesOverTime.destroy();
+    state.charts.votesOverTime = new Chart(els.chartVotesOverTime.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                { label: 'Upvotes', data: upvoteData, borderColor: '#22c55e', tension: 0.1 },
+                { label: 'Downvotes', data: downvoteData, borderColor: '#ef4444', tension: 0.1 }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: true } } }
+    });
+
+    // Chart 5: Top 10 Most Awarded Badges
+    const badgeNameMap = state.badges.reduce((acc, b) => { acc[b.badge_id] = b.name; return acc; }, {});
+    const badgeCounts = state.userBadges.reduce((acc, ub) => {
+        acc[ub.badge_id] = (acc[ub.badge_id] || 0) + 1;
+        return acc;
+    }, {});
+    const topBadges = Object.entries(badgeCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 10);
+    const topBadgeLabels = topBadges.map(([id]) => badgeNameMap[id] || `ID: ${id}`);
+    const topBadgeData = topBadges.map(([, count]) => count);
+    if (state.charts.topBadges) state.charts.topBadges.destroy();
+    state.charts.topBadges = new Chart(els.chartTopBadges.getContext('2d'), {
+        type: 'bar',
+        data: { labels: topBadgeLabels, datasets: [{ label: 'Times Awarded', data: topBadgeData, backgroundColor: '#f97316' }] },
+        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+    });
+
+    // Chart 6: Top 10 Contributors (by Reviews)
+    const contributorCounts = state.reviews.reduce((acc, r) => {
+        acc[r.user_id] = (acc[r.user_id] || 0) + 1;
+        return acc;
+    }, {});
+    const topContributors = Object.entries(contributorCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 10);
+    const topContributorLabels = topContributors.map(([id]) => state.usernameMap[id] || `User ID: ${id}`);
+    const topContributorData = topContributors.map(([, count]) => count);
+    if (state.charts.topContributors) state.charts.topContributors.destroy();
+    state.charts.topContributors = new Chart(els.chartTopContributors.getContext('2d'), {
+        type: 'bar',
+        data: { labels: topContributorLabels, datasets: [{ label: 'Reviews Submitted', data: topContributorData, backgroundColor: '#0ea5e9' }] },
+        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+    });
+
+    // Update range buttons UI
     qsa('#range-buttons button').forEach(b=>{
       b.classList.toggle('bg-blue-600', b.dataset.range===state.chartRange);
       b.classList.toggle('text-white', b.dataset.range===state.chartRange);

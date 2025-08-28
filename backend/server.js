@@ -84,8 +84,9 @@ const isElectric = (make, model) => {
 
 app.use(cors());
 app.use(express.json());
-app.use('/js', express.static(path.join(__dirname, 'js')));
-app.use('/images', express.static(path.join('/var', 'www', 'platetraits', 'images')));
+
+// Serve static files from the project root (one level up from 'backend')
+app.use(express.static(path.join(__dirname, '..')));
 
 // Middleware to authenticate JWT tokens and check admin status
 const authenticateToken = (req, res, next) => {
@@ -107,18 +108,6 @@ const requireAdmin = (req, res, next) => {
     }
     next();
 };
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'home.html'));
-});
-
-app.get('/welcome', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-app.get('/contact', (req, res) => {
-    res.sendFile(path.join(__dirname, 'contact.html'));
-});
 
 // Endpoint for user registration
 app.post('/api/users/register', async (req, res) => {
