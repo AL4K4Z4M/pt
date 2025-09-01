@@ -124,6 +124,7 @@
         <button class="tab-button px-4 py-2 text-sm border-b-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-800" data-tab="badges">Badges</button>
         <button class="tab-button px-4 py-2 text-sm border-b-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-800" data-tab="reviews">Reviews</button>
         <button class="tab-button px-4 py-2 text-sm border-b-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-800" data-tab="votes">Votes</button>
+        <button class="tab-button px-4 py-2 text-sm border-b-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-800" data-tab="bans">Bans</button>
       </nav>
     </div>
 
@@ -155,6 +156,31 @@
       </div>
     </section>
 
+    <!-- Bans -->
+    <section id="bans" class="tab-content space-y-4">
+      <div class="panel rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+          <h2 class="text-lg font-semibold">Banned Users</h2>
+        </div>
+        <div class="overflow-auto max-h-[60vh]">
+          <table class="min-w-full text-sm" id="bans-table">
+            <thead class="sticky bg-gray-100 dark:bg-gray-800/60">
+              <tr>
+                <th class="px-4 py-2 text-left">ID</th>
+                <th class="px-4 py-2 text-left">Email</th>
+                <th class="px-4 py-2 text-left">IP Address</th>
+                <th class="px-4 py-2 text-left">Banned At</th>
+              </tr>
+            </thead>
+            <tbody id="bans-table-body" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-between px-4 py-3">
+          <div id="bans-count" class="text-xs text-gray-500">—</div>
+        </div>
+      </div>
+    </section>
+
     <!-- Users -->
     <section id="user-management" class="tab-content space-y-4">
       <div class="panel rounded-xl overflow-hidden bg-white dark:bg-gray-900">
@@ -177,6 +203,7 @@
                 <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="username" data-table="users">Username<span class="sort-indicator"></span></th>
                 <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="first_name" data-table="users">First Name<span class="sort-indicator"></span></th>
                 <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="email" data-table="users">Email<span class="sort-indicator"></span></th>
+                <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="last_ip" data-table="users">Last IP<span class="sort-indicator"></span></th>
                 <th class="px-4 py-2 text-left sortable cursor-pointer" data-sort-key="created_at" data-table="users">Created<span class="sort-indicator"></span></th>
                 <th class="px-4 py-2 text-right">Actions</th>
               </tr>

@@ -265,6 +265,17 @@ app.post('/api/admin/users/:id/ban', authenticateToken, requireAdmin, async (req
     }
 });
 
+// NEW: Endpoint to get all banned users for the admin dashboard
+app.get('/api/admin/banned-users', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const [bannedUsers] = await db.query('SELECT * FROM banned_users ORDER BY banned_at DESC');
+        res.json(bannedUsers);
+    } catch (err) {
+        console.error('❌ Failed to fetch banned users for admin dashboard:', err);
+        res.status(500).json({ success: false, message: 'Database error while fetching banned users.' });
+    }
+});
+
 // Endpoint for user login
 app.post('/api/users/login', async (req, res) => {
     const { username, password } = req.body;
