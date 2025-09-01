@@ -281,7 +281,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
   const escapeHtml = (str) => (str==null ? '' : String(str).replace(/[&<>"'`=\/]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'}[s])));
 
   // ---------- DARK & DENSITY ----------
-  const darkPref = localStorage.getItem('dark') ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? '1' : '0');
+  const darkPref = localStorage.getItem('dark') ?? '0';
   if (darkPref==='1') document.documentElement.classList.add('dark');
 
   function applyDensity(){
