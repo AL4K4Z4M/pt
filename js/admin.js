@@ -44,6 +44,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     badges: [],
     userBadges: [],
     reviewVotes: [],
+    bannedUsers: [],
     downloads: 0,
     usernameMap: {},
     filters: {
@@ -139,6 +140,9 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     votesNext: byId('votes-next'),
     votesPageSize: byId('votes-page-size'),
     exportVotes: byId('export-votes'),
+    // bans
+    bansBody: byId('bans-table-body'),
+    bansCount: byId('bans-count'),
     // charts
     chartUsers: byId('chart-users'),
     chartRatings: byId('chart-ratings'),
@@ -307,18 +311,20 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
   };
 
   const fetchAll = async () => {
-    showLoadingRows(els.usersBody, 6);
+    showLoadingRows(els.usersBody, 7); // Increased column count
     showLoadingRows(els.badgesBody, 3);
     showLoadingRows(els.userBadgesBody, 4);
     showLoadingRows(els.reviewsBody, 8);
     showLoadingRows(els.votesBody, 5);
+    showLoadingRows(els.bansBody, 4);
 
-    const [users, reviews, badges, userBadges, reviewVotes, downloadsStats] = await Promise.all([
+    const [users, reviews, badges, userBadges, reviewVotes, bannedUsers, downloadsStats] = await Promise.all([
       fetchJSON(`${API_URL}/users`),
       fetchJSON(`${API_URL}/admin/reviews`),
       fetchJSON(`${API_URL}/admin/badges`),
       fetchJSON(`${API_URL}/user_badges`),
       fetchJSON(`${API_URL}/review_votes`),
+      fetchJSON(`${API_URL}/admin/banned-users`),
       fetchJSON(`${API_URL}/admin/stats/downloads`)
     ]);
 
@@ -327,6 +333,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     state.badges = badges;
     state.userBadges = userBadges;
     state.reviewVotes = reviewVotes;
+    state.bannedUsers = bannedUsers;
     state.downloads = downloadsStats.downloads;
 
     state.usernameMap = {};
@@ -362,7 +369,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
   const renderUsers = () => {
     let rows = state.users.filter(u =>
       usernamePartialMatch(u.username) &&
-      (globalMatch(u.username) || globalMatch(u.first_name) || globalMatch(u.email))
+      (globalMatch(u.username) || globalMatch(u.first_name) || globalMatch(u.email) || globalMatch(u.last_ip))
     );
     rows = sortData(rows, state.sort.users.key, state.sort.users.direction);
 
@@ -394,10 +401,12 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
           <td class="px-4 py-2">${escapeHtml(u.username)}</td>
           <td class="px-4 py-2">${escapeHtml(u.first_name||'')}</td>
           <td class="px-4 py-2">${escapeHtml(u.email||'')}</td>
+          <td class="px-4 py-2">${escapeHtml(u.last_ip || 'N/A')}</td>
           <td class="px-4 py-2">${fmtDate(u.created_at)}</td>
           <td class="px-4 py-2 text-right whitespace-nowrap">
             <button class="text-blue-600 hover:underline manage-user-btn" data-id="${u.id}">Manage</button>
             <button class="ml-3 text-gray-700 dark:text-gray-300 hover:underline quick-select-btn" data-id="${u.id}">Select</button>
+            <button class="ml-3 text-orange-600 hover:underline ban-user-btn" data-id="${u.id}" data-username="${escapeHtml(u.username)}">Ban</button>
             <button class="ml-3 text-red-600 hover:underline delete-user-btn" data-id="${u.id}" data-username="${escapeHtml(u.username)}">Delete</button>
           </td>`;
         els.usersBody.appendChild(tr);
@@ -511,6 +520,20 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     els.votesPage.textContent = `Page ${state.paging.votes.page} / ${Math.max(1,Math.ceil(total/size))}`;
   };
 
+  const renderBans = () => {
+    const rows = state.bannedUsers; // No sorting/paging for now
+    els.bansBody.innerHTML = rows.length
+      ? rows.map(b => `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+          <td class="px-4 py-2">${b.id}</td>
+          <td class="px-4 py-2">${escapeHtml(b.email)}</td>
+          <td class="px-4 py-2">${escapeHtml(b.ip_address || 'N/A')}</td>
+          <td class="px-4 py-2">${fmtDateTime(b.banned_at)}</td>
+        </tr>`).join('')
+      : `<tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">No banned users found.</td></tr>`;
+
+    els.bansCount.textContent = `${rows.length} banned user(s)`;
+  };
+
   const renderSelection = () => {
     els.selectedChips.innerHTML = '';
     const ids = [...state.selectedUserIds];
@@ -540,6 +563,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     renderUserBadges();
     renderReviews();
     renderVotes();
+    renderBans();
     updateSortIndicators();
     renderAutocomplete();
     renderSelection();
@@ -662,9 +686,24 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     const manageBtn = e.target.closest('.manage-user-btn');
     const delBtn = e.target.closest('.delete-user-btn');
     const selectBtn = e.target.closest('.quick-select-btn');
+    const banBtn = e.target.closest('.ban-user-btn');
     if (manageBtn) openManageUserModal(Number(manageBtn.dataset.id));
     if (delBtn) openDeleteUserModal(Number(delBtn.dataset.id), delBtn.dataset.username);
     if (selectBtn) { addSelectedUser(Number(selectBtn.dataset.id)); }
+    if (banBtn) {
+      const userId = Number(banBtn.dataset.id);
+      const username = banBtn.dataset.username;
+      if (confirm(`Are you sure you want to ban user "${username}"? This will block their email and last known IP address.`)) {
+        fetchJSON(`${API_URL}/admin/users/${userId}/ban`, { method: 'POST' })
+          .then(response => {
+            toast(response.message || `User ${username} has been banned.`, 'success');
+          })
+          .catch(err => {
+            toast(`Failed to ban user: ${err.message}`, 'error');
+            console.error(err);
+          });
+      }
+    }
   });
 
   // Reviews actions
