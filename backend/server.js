@@ -7,6 +7,15 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+const getClientIp = (req) => {
+    const forwardedIpsStr = req.headers['x-forwarded-for'];
+    if (forwardedIpsStr) {
+        const forwardedIps = forwardedIpsStr.split(',');
+        return forwardedIps[0].trim();
+    }
+    return req.ip;
+};
+
 const app = express();
 const PORT = 3000;
 
@@ -165,7 +174,7 @@ app.post('/api/users/register', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Username, first name, email, and password are required.' });
     }
 
-    const clientIp = req.ip;
+    const clientIp = getClientIp(req);
     try {
         const [bannedRows] = await db.query(
             'SELECT id FROM banned_users WHERE email = ? OR ip_address = ?',
@@ -290,7 +299,7 @@ app.post('/api/users/login', async (req, res) => {
         if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
 
         // Check if the user's email or IP is on the ban list
-        const clientIp = req.ip;
+        const clientIp = getClientIp(req);
         const [bannedRows] = await db.query(
             'SELECT id FROM banned_users WHERE email = ? OR (ip_address IS NOT NULL AND ip_address = ?)',
             [user.email, clientIp]
@@ -309,7 +318,7 @@ app.post('/api/users/login', async (req, res) => {
             (async () => {
                 try {
                     // Log the user's IP address. Assumes `last_ip` column exists in `users` table.
-                    const clientIp = req.ip;
+                    const clientIp = getClientIp(req);
                     if (clientIp && clientIp !== user.last_ip) {
                         await db.query('UPDATE users SET last_ip = ? WHERE id = ?', [clientIp, user.id]);
                     }
