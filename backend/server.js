@@ -67,6 +67,7 @@ const db = mysql.createPool({
             CREATE TABLE IF NOT EXISTS banned_users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 email VARCHAR(255) UNIQUE,
+                nickname VARCHAR(255),
                 reason TEXT,
                 banned_by_admin_id INT,
                 banned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -104,6 +105,12 @@ const db = mysql.createPool({
             console.log('Adding "banned_by_admin_id" column to "banned_users" table...');
             await connection.query('ALTER TABLE banned_users ADD COLUMN banned_by_admin_id INT NULL DEFAULT NULL');
             console.log('"banned_by_admin_id" column added successfully.');
+        }
+
+        if (!columnNames.includes('nickname')) {
+            console.log('Adding "nickname" column to "banned_users" table...');
+            await connection.query('ALTER TABLE banned_users ADD COLUMN nickname VARCHAR(255) NULL DEFAULT NULL');
+            console.log('"nickname" column added successfully.');
         }
 
         connection.release();
@@ -285,7 +292,7 @@ app.post('/api/users/register', async (req, res) => {
 // NEW: Endpoint for an admin to ban a user
 app.post('/api/admin/users/:id/ban', authenticateToken, requireAdmin, async (req, res) => {
     const { id } = req.params;
-    const { reason } = req.body;
+    const { reason, nickname } = req.body;
     const adminId = req.user.userId;
 
     if (!reason) {
@@ -304,10 +311,10 @@ app.post('/api/admin/users/:id/ban', authenticateToken, requireAdmin, async (req
             return res.status(400).json({ success: false, message: 'User has no email address to ban.' });
         }
 
-        // Add user's email, reason, and banning admin's ID to the ban list.
+        // Add user's email, reason, nickname, and banning admin's ID to the ban list.
         await db.query(
-            'INSERT IGNORE INTO banned_users (email, reason, banned_by_admin_id) VALUES (?, ?, ?)',
-            [user.email, reason, adminId]
+            'INSERT IGNORE INTO banned_users (email, reason, nickname, banned_by_admin_id) VALUES (?, ?, ?, ?)',
+            [user.email, reason, nickname || null, adminId]
         );
 
         res.json({ success: true, message: 'User has been banned successfully.' });
@@ -325,6 +332,7 @@ app.get('/api/admin/banned-users', authenticateToken, requireAdmin, async (req, 
             SELECT
                 bu.id,
                 bu.email,
+                bu.nickname,
                 bu.reason,
                 bu.banned_at,
                 a.username AS banned_by_admin
