@@ -158,6 +158,27 @@
 
     <!-- Bans -->
     <section id="bans" class="tab-content space-y-4">
+      <!-- Add New Ban Form -->
+      <div class="panel rounded-xl bg-white dark:bg-gray-900 p-4">
+        <h3 class="text-lg font-semibold mb-3">Ban a New User</h3>
+        <form id="add-ban-form" class="space-y-4">
+          <div>
+            <label for="ban-email" class="block text-sm font-medium">Email</label>
+            <input type="email" id="ban-email" required class="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950">
+          </div>
+          <div>
+            <label for="ban-nickname" class="block text-sm font-medium">Nickname (Optional)</label>
+            <input type="text" id="ban-nickname" class="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950">
+          </div>
+          <div>
+            <label for="ban-reason" class="block text-sm font-medium">Reason</label>
+            <textarea id="ban-reason" required rows="2" class="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950"></textarea>
+          </div>
+          <div>
+            <button type="submit" class="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700">Add Ban</button>
+          </div>
+        </form>
+      </div>
       <div class="panel rounded-xl overflow-hidden bg-white dark:bg-gray-900">
         <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
           <h2 class="text-lg font-semibold">Banned Users</h2>
@@ -168,7 +189,9 @@
               <tr>
                 <th class="px-4 py-2 text-left">ID</th>
                 <th class="px-4 py-2 text-left">Email</th>
-                <th class="px-4 py-2 text-left">IP Address</th>
+                <th class="px-4 py-2 text-left">Nickname</th>
+                <th class="px-4 py-2 text-left">Reason</th>
+                <th class="px-4 py-2 text-left">Banned By</th>
                 <th class="px-4 py-2 text-left">Banned At</th>
               </tr>
             </thead>
