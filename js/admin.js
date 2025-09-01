@@ -316,7 +316,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     showLoadingRows(els.userBadgesBody, 4);
     showLoadingRows(els.reviewsBody, 8);
     showLoadingRows(els.votesBody, 5);
-    showLoadingRows(els.bansBody, 4);
+    showLoadingRows(els.bansBody, 6);
 
     const [users, reviews, badges, userBadges, reviewVotes, bannedUsers, downloadsStats] = await Promise.all([
       fetchJSON(`${API_URL}/users`),
