@@ -223,7 +223,7 @@ app.post('/api/users/register', async (req, res) => {
         );
 
         if (bannedRows.length > 0) {
-            return res.status(403).json({ success: false, message: 'This email or IP address has been banned.' });
+            return res.status(403).json({ success: false, message: 'This email or IP address has been banned.', banned: true });
         }
     } catch (err) {
         console.error('❌ Ban check failed during registration:', err);
@@ -371,7 +371,7 @@ app.post('/api/users/login', async (req, res) => {
         );
 
         if (bannedRows.length > 0) {
-            return res.status(403).json({ success: false, message: 'This account or IP address has been banned.' });
+            return res.status(403).json({ success: false, message: 'This account or IP address has been banned.', banned: true });
         }
 
         const match = await bcrypt.compare(password, user.password);
