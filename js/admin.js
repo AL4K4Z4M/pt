@@ -143,6 +143,10 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     // bans
     bansBody: byId('bans-table-body'),
     bansCount: byId('bans-count'),
+    manualBanEmail: byId('manual-ban-email'),
+    manualBanIp: byId('manual-ban-ip'),
+    manualBanBtn: byId('manual-ban-btn'),
+    manualBanMsg: byId('manual-ban-message'),
     // charts
     chartUsers: byId('chart-users'),
     chartRatings: byId('chart-ratings'),
@@ -634,6 +638,45 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
   document.addEventListener('click', (e)=>{
     if (!els.filterInput.contains(e.target) && !els.suggestions.contains(e.target)) {
       els.suggestions.classList.add('hidden');
+    }
+  });
+
+  // Manual ban action
+  els.manualBanBtn.addEventListener('click', async () => {
+    const email = els.manualBanEmail.value.trim();
+    const ip_address = els.manualBanIp.value.trim();
+
+    if (!email && !ip_address) {
+      els.manualBanMsg.textContent = 'At least one field is required.';
+      els.manualBanMsg.className = 'text-sm mt-1 inline-block ml-3 text-red-600';
+      return;
+    }
+
+    els.manualBanMsg.textContent = 'Applying ban...';
+    els.manualBanMsg.className = 'text-sm mt-1 inline-block ml-3 text-gray-500';
+
+    try {
+      const body = {};
+      if (email) body.email = email;
+      if (ip_address) body.ip_address = ip_address;
+
+      const response = await fetchJSON(`${API_URL}/admin/bans`, {
+        method: 'POST',
+        body: JSON.stringify(body)
+      });
+
+      els.manualBanMsg.textContent = response.message || 'Ban applied successfully.';
+      els.manualBanMsg.className = 'text-sm mt-1 inline-block ml-3 text-green-600';
+      els.manualBanEmail.value = '';
+      els.manualBanIp.value = '';
+
+      // Refresh the list of banned users
+      state.bannedUsers = await fetchJSON(`${API_URL}/admin/banned-users`);
+      renderBans();
+
+    } catch (err) {
+      els.manualBanMsg.textContent = `Error: ${err.message}`;
+      els.manualBanMsg.className = 'text-sm mt-1 inline-block ml-3 text-red-600';
     }
   });
 
