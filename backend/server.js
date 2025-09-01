@@ -99,6 +99,38 @@ const db = mysql.createPool({
     }
 })();
 
+// Migration: Add nickname, reason, and banned_by_admin_id to banned_users table
+(async () => {
+    try {
+        const connection = await db.getConnection();
+        const columnNames = ['nickname', 'reason', 'banned_by_admin_id'];
+        for (const columnName of columnNames) {
+            const [columns] = await connection.query(
+                `SELECT * FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'banned_users' AND column_name = ?`,
+                [columnName]
+            );
+            if (columns.length === 0) {
+                console.log(`Adding "${columnName}" column to "banned_users" table...`);
+                let query;
+                if (columnName === 'nickname') {
+                    query = 'ALTER TABLE banned_users ADD COLUMN nickname VARCHAR(255) NULL DEFAULT NULL AFTER ip_address';
+                } else if (columnName === 'reason') {
+                    query = 'ALTER TABLE banned_users ADD COLUMN reason TEXT NULL DEFAULT NULL AFTER nickname';
+                } else if (columnName === 'banned_by_admin_id') {
+                    query = 'ALTER TABLE banned_users ADD COLUMN banned_by_admin_id INT NULL DEFAULT NULL AFTER reason';
+                }
+                if (query) {
+                    await connection.query(query);
+                    console.log(`"${columnName}" column added successfully.`);
+                }
+            }
+        }
+        connection.release();
+    } catch (err) {
+        console.error('Failed to run migration for new banned_users columns:', err);
+    }
+})();
+
 const forbiddenWords = ['fuck','fuk','fck','fcuk','fuxk','phuck','phuk','shit','shyt','sht','sh1t','sh!t','asshole','azzhole','asshol','azzhol','azz','bitch','btch','b!tch','b1tch','bich','b!ch','cunt','kunt','cnt','c_nt','dick','dik','d!ck','d1ck','pussy','pssy','pussi','puzsy','pusy','nigger','nigga','nigg','nig','n!gger','n1gger','niga','n!ga','faggot','fagot','fag','f@g','f@ggot','retard','rtrd','ret@rd','r3tard','tard','whore','hor','wh0re','whor3','anal','an@l','arse','ar$e','bastard','basstard','bollocks','bollox','boner','clit','cl!t','cock','kok','kock','damn','dam','douche','douch','dyke','dike','felch','gook','handjob','hj','jizz','j!zz','kike','lesbo','lezbo','masturbate','masturb8','motherfucker','mf','mthrfckr','pedo','p3do','penis','pen!s','porn','prn','rape','r@pe','scrotum','slut','slutt','sl_t','smegma','sperm','tits','titt','t!ts','twat','tw@t','vagina','vag!na','wank','w@nk','wetback','nazi','naz!','n@zi','heil','h3il','hitler','h!tler','kkk','whitepower','whtpowr','whitepwr','supremacy','suprem@cy','islamist','jihadist','j!hadist','terrorist','terr0rist','communist','socialist','fascist','anarchist','antifa','zionist','racist','r@cist','sexist','s3xist','homophobe','homophob','transphobe','transphob','bigot','feminazi','mra','incel','sjw','pc','politicallycorrect','wokeism','cancelculture','triggered','triggred','safespace','microaggression','mansplain','manspread','whitesplaining','privilege','toxic','fragile','cis','hetero','cisgender','heteronormative','patriarchy','misogyny','misandry','bomb','bom','b0mb','kill','k!ll','k1ll','murder','murd3r','gang','g@ng','mafia','m@fia','crip','cr!p','blood','bl00d','terror','terr0r','explode','expl0de','shoot','sh00t','stab','st@b','gun','gn','knife','kn!fe','assault','ass@ult','execution','electricchair','gaschamber','lethalinjection','firingsquad','guillotine','lynch','hang','burn','brn','acid','ac!d','poison','p0ison','torture','t0rture','mutilate','mut!late','dismember','decapitate','drug','drg','coke','cok','heroin','her0in','meth','m3th','weed','w33d','we3d','drunk','drnk','dui','pot','high','stoned','alcoholic','junkie','junky','crackhead','stolen','st0len','illegal','ill3gal','contraband','smuggle','bribe','corrupt','criminal','felon','convict','prisoner','jail','prison','cop','police','pol!ce','pig','acab','idiot','id!ot','moron','m0ron','dumb','dum','stupid','stup!d','loser','l0ser','failure','useless','worthless','ugly','ugli','fat','f@t','skinny','short','tall','bald','hairy','smelly','dirty','gross','disgusting','filthy','nasty','sick','disease','cancer','aids','hiv','covid','c0vid','virus','v!rus','plague','epidemic','quarantine','mask','vaccine','v@ccine','jab','antivax','ant!vax','sheeple','normie','npc','boomer','zoomer','millennial','genz','okboomer','karen','chad','stacy','becky','brad','thot','simp','incel','virgin','cuck','soyboy','69','420','sex','s3x','s_x','naked','nak3d','nude','nud3','cult','sect','conspiracy','qanon','plandemic','hoax','fake','false','liar','cheat','fraud','scam','rip-off','ripoff','master','dom','sub','bdsm','fetish','kink','hentai','lolicon','shotacon','necrophilia','suicide','suic!de','selfharm','selfh@rm','cutting','cutt!ng','starve','anorexia','bulimia','proana','promia','thinspo'];
 
 // Vehicle data required for badge logic
@@ -191,7 +223,7 @@ app.post('/api/users/register', async (req, res) => {
         );
 
         if (bannedRows.length > 0) {
-            return res.status(403).json({ success: false, message: 'This email or IP address has been banned.' });
+            return res.status(403).json({ success: false, message: 'This email or IP address has been banned.', banned: true });
         }
     } catch (err) {
         console.error('❌ Ban check failed during registration:', err);
@@ -255,24 +287,26 @@ app.post('/api/users/register', async (req, res) => {
 // NEW: Endpoint for an admin to ban a user
 app.post('/api/admin/users/:id/ban', authenticateToken, requireAdmin, async (req, res) => {
     const { id } = req.params;
+    const { reason } = req.body;
+    const adminId = req.user.userId;
 
     try {
-        const [userRows] = await db.query('SELECT email, last_ip FROM users WHERE id = ?', [id]);
+        const [userRows] = await db.query('SELECT username, email, last_ip FROM users WHERE id = ?', [id]);
         const user = userRows[0];
 
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found.' });
         }
 
-        if (!user.email) {
-            return res.status(400).json({ success: false, message: 'User has no email address to ban.' });
+        if (!user.email && !user.last_ip) {
+            return res.status(400).json({ success: false, message: 'User has no email address or IP to ban.' });
         }
 
         // Add user's email and IP to the ban list.
         // Using INSERT IGNORE to prevent errors if the email is already in the banned list (due to UNIQUE constraint).
         await db.query(
-            'INSERT IGNORE INTO banned_users (email, ip_address) VALUES (?, ?)',
-            [user.email, user.last_ip]
+            'INSERT IGNORE INTO banned_users (email, ip_address, nickname, reason, banned_by_admin_id) VALUES (?, ?, ?, ?, ?)',
+            [user.email, user.last_ip, user.username, reason || null, adminId]
         );
 
         res.json({ success: true, message: 'User has been banned successfully.' });
@@ -296,7 +330,8 @@ app.get('/api/admin/banned-users', authenticateToken, requireAdmin, async (req, 
 
 // NEW: Endpoint for an admin to manually ban a user by email/IP
 app.post('/api/admin/bans', authenticateToken, requireAdmin, async (req, res) => {
-    const { email, ip_address } = req.body;
+    const { email, ip_address, nickname, reason } = req.body;
+    const adminId = req.user.userId;
 
     if (!email && !ip_address) {
         return res.status(400).json({ success: false, message: 'Email or IP address is required.' });
@@ -305,13 +340,73 @@ app.post('/api/admin/bans', authenticateToken, requireAdmin, async (req, res) =>
     try {
         // Using INSERT IGNORE to prevent errors if the email/IP is already in the banned list.
         await db.query(
-            'INSERT IGNORE INTO banned_users (email, ip_address) VALUES (?, ?)',
-            [email || null, ip_address || null]
+            'INSERT IGNORE INTO banned_users (email, ip_address, nickname, reason, banned_by_admin_id) VALUES (?, ?, ?, ?, ?)',
+            [email || null, ip_address || null, nickname || null, reason || null, adminId]
         );
         res.json({ success: true, message: 'Ban applied successfully.' });
     } catch (err) {
         console.error('❌ Failed to manually add a ban:', err);
         res.status(500).json({ success: false, message: 'Database error during the banning process.', details: err.message });
+    }
+});
+
+// Endpoint for an admin to update a ban
+app.put('/api/admin/bans/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { email, ip_address, nickname, reason } = req.body;
+
+    let updateFields = [];
+    let queryParams = [];
+
+    if (email !== undefined) {
+        updateFields.push('email = ?');
+        queryParams.push(email);
+    }
+    if (ip_address !== undefined) {
+        updateFields.push('ip_address = ?');
+        queryParams.push(ip_address);
+    }
+    if (nickname !== undefined) {
+        updateFields.push('nickname = ?');
+        queryParams.push(nickname);
+    }
+    if (reason !== undefined) {
+        updateFields.push('reason = ?');
+        queryParams.push(reason);
+    }
+
+    if (updateFields.length === 0) {
+        return res.status(400).json({ success: false, message: 'No fields to update provided.' });
+    }
+
+    queryParams.push(id);
+    const queryString = `UPDATE banned_users SET ${updateFields.join(', ')} WHERE id = ?`;
+
+    try {
+        const [result] = await db.query(queryString, queryParams);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Ban not found.' });
+        }
+        res.json({ success: true, message: 'Ban updated successfully.' });
+    } catch (err) {
+        console.error(`❌ Failed to update ban ${id}:`, err);
+        res.status(500).json({ success: false, message: 'Database error while updating ban.', details: err.message });
+    }
+});
+
+// Endpoint for an admin to remove a ban
+app.delete('/api/admin/bans/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [result] = await db.query('DELETE FROM banned_users WHERE id = ?', [id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Ban not found.' });
+        }
+        res.json({ success: true, message: 'Ban removed successfully.' });
+    } catch (err) {
+        console.error(`❌ Failed to remove ban ${id}:`, err);
+        res.status(500).json({ success: false, message: 'Database error while removing ban.', details: err.message });
     }
 });
 
@@ -336,7 +431,7 @@ app.post('/api/users/login', async (req, res) => {
         );
 
         if (bannedRows.length > 0) {
-            return res.status(403).json({ success: false, message: 'This account or IP address has been banned.' });
+            return res.status(403).json({ success: false, message: 'This account or IP address has been banned.', banned: true });
         }
 
         const match = await bcrypt.compare(password, user.password);

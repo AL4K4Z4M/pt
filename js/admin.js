@@ -145,6 +145,8 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     bansCount: byId('bans-count'),
     manualBanEmail: byId('manual-ban-email'),
     manualBanIp: byId('manual-ban-ip'),
+    manualBanNickname: byId('manual-ban-nickname'),
+    manualBanReason: byId('manual-ban-reason'),
     manualBanBtn: byId('manual-ban-btn'),
     manualBanMsg: byId('manual-ban-message'),
     // charts
@@ -182,6 +184,17 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     delCheckbox: byId('confirm-delete-checkbox'),
     delPassword: byId('admin-password-input'),
     delError: byId('delete-user-error-message'),
+    // edit ban modal
+    editBanModal: byId('edit-ban-modal'),
+    closeEditBanModalBtn: byId('close-edit-ban-modal-btn'),
+    cancelEditBanBtn: byId('cancel-edit-ban-btn'),
+    saveBanChangesBtn: byId('save-ban-changes-btn'),
+    editBanId: byId('edit-ban-id'),
+    editBanNickname: byId('edit-ban-nickname'),
+    editBanEmail: byId('edit-ban-email'),
+    editBanIp: byId('edit-ban-ip'),
+    editBanReason: byId('edit-ban-reason'),
+    editBanErrorMsg: byId('edit-ban-error-message'),
     // toast + bulk labels
     toast: byId('toast-container'),
     bulkBadgeSelect: byId('bulk-badge-select'),
@@ -527,13 +540,20 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
   const renderBans = () => {
     const rows = state.bannedUsers; // No sorting/paging for now
     els.bansBody.innerHTML = rows.length
-      ? rows.map(b => `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+      ? rows.map(b => `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800" data-ban-id="${b.id}">
           <td class="px-4 py-2">${b.id}</td>
+          <td class="px-4 py-2">${escapeHtml(b.nickname)}</td>
           <td class="px-4 py-2">${escapeHtml(b.email)}</td>
           <td class="px-4 py-2">${escapeHtml(b.ip_address || 'N/A')}</td>
+          <td class="px-4 py-2">${escapeHtml(b.reason)}</td>
+          <td class="px-4 py-2">${escapeHtml(state.usernameMap[b.banned_by_admin_id] || b.banned_by_admin_id)}</td>
           <td class="px-4 py-2">${fmtDateTime(b.banned_at)}</td>
+          <td class="px-4 py-2 text-right whitespace-nowrap">
+            <button class="text-blue-600 hover:underline edit-ban-btn" data-id="${b.id}">Edit</button>
+            <button class="ml-3 text-red-600 hover:underline remove-ban-btn" data-id="${b.id}">Remove</button>
+          </td>
         </tr>`).join('')
-      : `<tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">No banned users found.</td></tr>`;
+      : `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No banned users found.</td></tr>`;
 
     els.bansCount.textContent = `${rows.length} banned user(s)`;
   };
@@ -645,6 +665,8 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
   els.manualBanBtn.addEventListener('click', async () => {
     const email = els.manualBanEmail.value.trim();
     const ip_address = els.manualBanIp.value.trim();
+    const nickname = els.manualBanNickname.value.trim();
+    const reason = els.manualBanReason.value.trim();
 
     if (!email && !ip_address) {
       els.manualBanMsg.textContent = 'At least one field is required.';
@@ -656,9 +678,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     els.manualBanMsg.className = 'text-sm mt-1 inline-block ml-3 text-gray-500';
 
     try {
-      const body = {};
-      if (email) body.email = email;
-      if (ip_address) body.ip_address = ip_address;
+      const body = { email, ip_address, nickname, reason };
 
       const response = await fetchJSON(`${API_URL}/admin/bans`, {
         method: 'POST',
@@ -669,6 +689,8 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
       els.manualBanMsg.className = 'text-sm mt-1 inline-block ml-3 text-green-600';
       els.manualBanEmail.value = '';
       els.manualBanIp.value = '';
+      els.manualBanNickname.value = '';
+      els.manualBanReason.value = '';
 
       // Refresh the list of banned users
       state.bannedUsers = await fetchJSON(`${API_URL}/admin/banned-users`);
@@ -736,15 +758,24 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     if (banBtn) {
       const userId = Number(banBtn.dataset.id);
       const username = banBtn.dataset.username;
-      if (confirm(`Are you sure you want to ban user "${username}"? This will block their email and last known IP address.`)) {
-        fetchJSON(`${API_URL}/admin/users/${userId}/ban`, { method: 'POST' })
-          .then(response => {
-            toast(response.message || `User ${username} has been banned.`, 'success');
-          })
-          .catch(err => {
-            toast(`Failed to ban user: ${err.message}`, 'error');
-            console.error(err);
-          });
+      const reason = prompt(`Enter a reason for banning "${username}". This will be visible to other admins. (Optional)`);
+
+      // Proceed if the user didn't cancel the prompt
+      if (reason !== null) {
+        fetchJSON(`${API_URL}/admin/users/${userId}/ban`, {
+          method: 'POST',
+          body: JSON.stringify({ reason: reason })
+        })
+        .then(async response => {
+          toast(response.message || `User ${username} has been banned.`, 'success');
+          // Refresh the ban list
+          state.bannedUsers = await fetchJSON(`${API_URL}/admin/banned-users`);
+          renderBans();
+        })
+        .catch(err => {
+          toast(`Failed to ban user: ${err.message}`, 'error');
+          console.error(err);
+        });
       }
     }
   });
@@ -770,6 +801,78 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
   // Bulk review delete
   byId('reviews-check-all').addEventListener('change', ()=>{
     qsa('.review-check').forEach(cb=>{ cb.checked = byId('reviews-check-all').checked; });
+  });
+
+  // Ban actions
+  els.bansBody.addEventListener('click', (e) => {
+    const editBtn = e.target.closest('.edit-ban-btn');
+    const removeBtn = e.target.closest('.remove-ban-btn');
+
+    if (editBtn) {
+      const banId = Number(editBtn.dataset.id);
+      const ban = state.bannedUsers.find(b => b.id === banId);
+      if (ban) {
+        openEditBanModal(ban);
+      }
+    }
+
+    if (removeBtn) {
+      const banId = Number(removeBtn.dataset.id);
+      if (confirm(`Are you sure you want to remove ban #${banId}? This cannot be undone.`)) {
+        fetchJSON(`${API_URL}/admin/bans/${banId}`, { method: 'DELETE' })
+          .then(async () => {
+            toast(`Ban #${banId} removed.`, 'success');
+            state.bannedUsers = await fetchJSON(`${API_URL}/admin/banned-users`);
+            renderBans();
+          })
+          .catch(err => {
+            toast(`Failed to remove ban: ${err.message}`, 'error');
+            console.error(err);
+          });
+      }
+    }
+  });
+
+  function openEditBanModal(ban) {
+    els.editBanId.value = ban.id;
+    els.editBanNickname.value = ban.nickname || '';
+    els.editBanEmail.value = ban.email || '';
+    els.editBanIp.value = ban.ip_address || '';
+    els.editBanReason.value = ban.reason || '';
+    els.editBanErrorMsg.textContent = '';
+    els.editBanModal.classList.remove('hidden');
+    els.editBanModal.classList.add('flex');
+  }
+
+  function closeEditBanModal() {
+    els.editBanModal.classList.add('hidden');
+    els.editBanModal.classList.remove('flex');
+  }
+
+  els.closeEditBanModalBtn.addEventListener('click', closeEditBanModal);
+  els.cancelEditBanBtn.addEventListener('click', closeEditBanModal);
+
+  els.saveBanChangesBtn.addEventListener('click', async () => {
+    const banId = els.editBanId.value;
+    const body = {
+      nickname: els.editBanNickname.value,
+      email: els.editBanEmail.value,
+      ip_address: els.editBanIp.value,
+      reason: els.editBanReason.value
+    };
+
+    try {
+      await fetchJSON(`${API_URL}/admin/bans/${banId}`, {
+        method: 'PUT',
+        body: JSON.stringify(body)
+      });
+      toast('Ban updated successfully.', 'success');
+      closeEditBanModal();
+      state.bannedUsers = await fetchJSON(`${API_URL}/admin/banned-users`);
+      renderBans();
+    } catch (err) {
+      els.editBanErrorMsg.textContent = `Error: ${err.message}`;
+    }
   });
   els.bulkDeleteReviews.addEventListener('click', async ()=>{
     const ids = qsa('.review-check:checked').map(cb=>Number(cb.dataset.id));

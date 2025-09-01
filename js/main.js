@@ -3483,12 +3483,18 @@ function initApp() {
                 body: JSON.stringify(data),
             });
 
+            const result = await response.json();
+
             if (!response.ok) {
-                await handleApiError(response, authMessage);
+                if (result.banned) {
+                    window.location.href = '/banned.html';
+                    return;
+                }
+                authMessage.textContent = result.message || 'An unknown error occurred.';
+                authMessage.className = 'text-center text-destructive';
                 return;
             }
 
-            const result = await response.json();
             if (isAuthModalInLoginMode) {
                 authToken = result.accessToken;
                 currentUsername = result.username;
