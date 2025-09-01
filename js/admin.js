@@ -145,6 +145,8 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     bansCount: byId('bans-count'),
     manualBanEmail: byId('manual-ban-email'),
     manualBanIp: byId('manual-ban-ip'),
+    manualBanNickname: byId('manual-ban-nickname'),
+    manualBanReason: byId('manual-ban-reason'),
     manualBanBtn: byId('manual-ban-btn'),
     manualBanMsg: byId('manual-ban-message'),
     // charts
@@ -529,11 +531,14 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     els.bansBody.innerHTML = rows.length
       ? rows.map(b => `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
           <td class="px-4 py-2">${b.id}</td>
+          <td class="px-4 py-2">${escapeHtml(b.nickname)}</td>
           <td class="px-4 py-2">${escapeHtml(b.email)}</td>
           <td class="px-4 py-2">${escapeHtml(b.ip_address || 'N/A')}</td>
+          <td class="px-4 py-2">${escapeHtml(b.reason)}</td>
+          <td class="px-4 py-2">${escapeHtml(state.usernameMap[b.banned_by_admin_id] || b.banned_by_admin_id)}</td>
           <td class="px-4 py-2">${fmtDateTime(b.banned_at)}</td>
         </tr>`).join('')
-      : `<tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">No banned users found.</td></tr>`;
+      : `<tr><td colspan="7" class="px-4 py-6 text-center text-gray-500">No banned users found.</td></tr>`;
 
     els.bansCount.textContent = `${rows.length} banned user(s)`;
   };
@@ -645,6 +650,8 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
   els.manualBanBtn.addEventListener('click', async () => {
     const email = els.manualBanEmail.value.trim();
     const ip_address = els.manualBanIp.value.trim();
+    const nickname = els.manualBanNickname.value.trim();
+    const reason = els.manualBanReason.value.trim();
 
     if (!email && !ip_address) {
       els.manualBanMsg.textContent = 'At least one field is required.';
@@ -656,9 +663,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     els.manualBanMsg.className = 'text-sm mt-1 inline-block ml-3 text-gray-500';
 
     try {
-      const body = {};
-      if (email) body.email = email;
-      if (ip_address) body.ip_address = ip_address;
+      const body = { email, ip_address, nickname, reason };
 
       const response = await fetchJSON(`${API_URL}/admin/bans`, {
         method: 'POST',
@@ -669,6 +674,8 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
       els.manualBanMsg.className = 'text-sm mt-1 inline-block ml-3 text-green-600';
       els.manualBanEmail.value = '';
       els.manualBanIp.value = '';
+      els.manualBanNickname.value = '';
+      els.manualBanReason.value = '';
 
       // Refresh the list of banned users
       state.bannedUsers = await fetchJSON(`${API_URL}/admin/banned-users`);
@@ -736,15 +743,24 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     if (banBtn) {
       const userId = Number(banBtn.dataset.id);
       const username = banBtn.dataset.username;
-      if (confirm(`Are you sure you want to ban user "${username}"? This will block their email and last known IP address.`)) {
-        fetchJSON(`${API_URL}/admin/users/${userId}/ban`, { method: 'POST' })
-          .then(response => {
-            toast(response.message || `User ${username} has been banned.`, 'success');
-          })
-          .catch(err => {
-            toast(`Failed to ban user: ${err.message}`, 'error');
-            console.error(err);
-          });
+      const reason = prompt(`Enter a reason for banning "${username}". This will be visible to other admins. (Optional)`);
+
+      // Proceed if the user didn't cancel the prompt
+      if (reason !== null) {
+        fetchJSON(`${API_URL}/admin/users/${userId}/ban`, {
+          method: 'POST',
+          body: JSON.stringify({ reason: reason })
+        })
+        .then(async response => {
+          toast(response.message || `User ${username} has been banned.`, 'success');
+          // Refresh the ban list
+          state.bannedUsers = await fetchJSON(`${API_URL}/admin/banned-users`);
+          renderBans();
+        })
+        .catch(err => {
+          toast(`Failed to ban user: ${err.message}`, 'error');
+          console.error(err);
+        });
       }
     }
   });
