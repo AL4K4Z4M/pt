@@ -67,7 +67,8 @@ const db = mysql.createPool({
             CREATE TABLE IF NOT EXISTS banned_users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 email VARCHAR(255) UNIQUE,
-                ip_address VARCHAR(45),
+                reason TEXT,
+                banned_by_admin_id INT,
                 banned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -75,6 +76,39 @@ const db = mysql.createPool({
         console.log('banned_users table is ready.');
     } catch (err) {
         console.error('Failed to create banned_users table:', err);
+    }
+})();
+
+// Migration: Update banned_users table for new ban context
+(async () => {
+    try {
+        const connection = await db.getConnection();
+        const [columns] = await connection.query(
+            `SELECT COLUMN_NAME FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'banned_users'`
+        );
+        const columnNames = columns.map(c => c.COLUMN_NAME);
+
+        if (columnNames.includes('ip_address')) {
+            console.log('Dropping "ip_address" column from "banned_users" table...');
+            await connection.query('ALTER TABLE banned_users DROP COLUMN ip_address');
+            console.log('"ip_address" column dropped successfully.');
+        }
+
+        if (!columnNames.includes('reason')) {
+            console.log('Adding "reason" column to "banned_users" table...');
+            await connection.query('ALTER TABLE banned_users ADD COLUMN reason TEXT NULL DEFAULT NULL');
+            console.log('"reason" column added successfully.');
+        }
+
+        if (!columnNames.includes('banned_by_admin_id')) {
+            console.log('Adding "banned_by_admin_id" column to "banned_users" table...');
+            await connection.query('ALTER TABLE banned_users ADD COLUMN banned_by_admin_id INT NULL DEFAULT NULL');
+            console.log('"banned_by_admin_id" column added successfully.');
+        }
+
+        connection.release();
+    } catch (err) {
+        console.error('Failed to run migration for banned_users table:', err);
     }
 })();
 
@@ -180,15 +214,14 @@ app.post('/api/users/register', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Username, first name, email, and password are required.' });
     }
 
-    const clientIp = getClientIp(req);
     try {
         const [bannedRows] = await db.query(
-            'SELECT id FROM banned_users WHERE email = ? OR ip_address = ?',
-            [email, clientIp]
+            'SELECT id FROM banned_users WHERE email = ?',
+            [email]
         );
 
         if (bannedRows.length > 0) {
-            return res.status(403).json({ success: false, message: 'This email or IP address has been banned.' });
+            return res.status(403).json({ success: false, message: 'This email address has been banned.' });
         }
     } catch (err) {
         console.error('❌ Ban check failed during registration:', err);
@@ -252,9 +285,15 @@ app.post('/api/users/register', async (req, res) => {
 // NEW: Endpoint for an admin to ban a user
 app.post('/api/admin/users/:id/ban', authenticateToken, requireAdmin, async (req, res) => {
     const { id } = req.params;
+    const { reason } = req.body;
+    const adminId = req.user.userId;
+
+    if (!reason) {
+        return res.status(400).json({ success: false, message: 'A reason is required to ban a user.' });
+    }
 
     try {
-        const [userRows] = await db.query('SELECT email, last_ip FROM users WHERE id = ?', [id]);
+        const [userRows] = await db.query('SELECT email FROM users WHERE id = ?', [id]);
         const user = userRows[0];
 
         if (!user) {
@@ -265,11 +304,10 @@ app.post('/api/admin/users/:id/ban', authenticateToken, requireAdmin, async (req
             return res.status(400).json({ success: false, message: 'User has no email address to ban.' });
         }
 
-        // Add user's email and IP to the ban list.
-        // Using INSERT IGNORE to prevent errors if the email is already in the banned list (due to UNIQUE constraint).
+        // Add user's email, reason, and banning admin's ID to the ban list.
         await db.query(
-            'INSERT IGNORE INTO banned_users (email, ip_address) VALUES (?, ?)',
-            [user.email, user.last_ip]
+            'INSERT IGNORE INTO banned_users (email, reason, banned_by_admin_id) VALUES (?, ?, ?)',
+            [user.email, reason, adminId]
         );
 
         res.json({ success: true, message: 'User has been banned successfully.' });
@@ -283,7 +321,21 @@ app.post('/api/admin/users/:id/ban', authenticateToken, requireAdmin, async (req
 // NEW: Endpoint to get all banned users for the admin dashboard
 app.get('/api/admin/banned-users', authenticateToken, requireAdmin, async (req, res) => {
     try {
-        const [bannedUsers] = await db.query('SELECT * FROM banned_users ORDER BY banned_at DESC');
+        const query = `
+            SELECT
+                bu.id,
+                bu.email,
+                bu.reason,
+                bu.banned_at,
+                a.username AS banned_by_admin
+            FROM
+                banned_users bu
+            LEFT JOIN
+                users a ON bu.banned_by_admin_id = a.id
+            ORDER BY
+                bu.banned_at DESC
+        `;
+        const [bannedUsers] = await db.query(query);
         res.json(bannedUsers);
     } catch (err) {
         console.error('❌ Failed to fetch banned users for admin dashboard:', err);
@@ -304,15 +356,14 @@ app.post('/api/users/login', async (req, res) => {
         const user = rows[0];
         if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
 
-        // Check if the user's email or IP is on the ban list
-        const clientIp = getClientIp(req);
+        // Check if the user's email is on the ban list
         const [bannedRows] = await db.query(
-            'SELECT id FROM banned_users WHERE email = ? OR (ip_address IS NOT NULL AND ip_address = ?)',
-            [user.email, clientIp]
+            'SELECT id FROM banned_users WHERE email = ?',
+            [user.email]
         );
 
         if (bannedRows.length > 0) {
-            return res.status(403).json({ success: false, message: 'This account or IP address has been banned.' });
+            return res.status(403).json({ success: false, message: 'This account has been banned.' });
         }
 
         const match = await bcrypt.compare(password, user.password);
