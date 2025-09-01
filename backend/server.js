@@ -294,6 +294,27 @@ app.get('/api/admin/banned-users', authenticateToken, requireAdmin, async (req, 
     }
 });
 
+// NEW: Endpoint for an admin to manually ban a user by email/IP
+app.post('/api/admin/bans', authenticateToken, requireAdmin, async (req, res) => {
+    const { email, ip_address } = req.body;
+
+    if (!email && !ip_address) {
+        return res.status(400).json({ success: false, message: 'Email or IP address is required.' });
+    }
+
+    try {
+        // Using INSERT IGNORE to prevent errors if the email/IP is already in the banned list.
+        await db.query(
+            'INSERT IGNORE INTO banned_users (email, ip_address) VALUES (?, ?)',
+            [email || null, ip_address || null]
+        );
+        res.json({ success: true, message: 'Ban applied successfully.' });
+    } catch (err) {
+        console.error('❌ Failed to manually add a ban:', err);
+        res.status(500).json({ success: false, message: 'Database error during the banning process.', details: err.message });
+    }
+});
+
 // Endpoint for user login
 app.post('/api/users/login', async (req, res) => {
     const { username, password } = req.body;
