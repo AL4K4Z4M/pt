@@ -350,6 +350,66 @@ app.post('/api/admin/bans', authenticateToken, requireAdmin, async (req, res) =>
     }
 });
 
+// Endpoint for an admin to update a ban
+app.put('/api/admin/bans/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { email, ip_address, nickname, reason } = req.body;
+
+    let updateFields = [];
+    let queryParams = [];
+
+    if (email !== undefined) {
+        updateFields.push('email = ?');
+        queryParams.push(email);
+    }
+    if (ip_address !== undefined) {
+        updateFields.push('ip_address = ?');
+        queryParams.push(ip_address);
+    }
+    if (nickname !== undefined) {
+        updateFields.push('nickname = ?');
+        queryParams.push(nickname);
+    }
+    if (reason !== undefined) {
+        updateFields.push('reason = ?');
+        queryParams.push(reason);
+    }
+
+    if (updateFields.length === 0) {
+        return res.status(400).json({ success: false, message: 'No fields to update provided.' });
+    }
+
+    queryParams.push(id);
+    const queryString = `UPDATE banned_users SET ${updateFields.join(', ')} WHERE id = ?`;
+
+    try {
+        const [result] = await db.query(queryString, queryParams);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Ban not found.' });
+        }
+        res.json({ success: true, message: 'Ban updated successfully.' });
+    } catch (err) {
+        console.error(`❌ Failed to update ban ${id}:`, err);
+        res.status(500).json({ success: false, message: 'Database error while updating ban.', details: err.message });
+    }
+});
+
+// Endpoint for an admin to remove a ban
+app.delete('/api/admin/bans/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [result] = await db.query('DELETE FROM banned_users WHERE id = ?', [id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Ban not found.' });
+        }
+        res.json({ success: true, message: 'Ban removed successfully.' });
+    } catch (err) {
+        console.error(`❌ Failed to remove ban ${id}:`, err);
+        res.status(500).json({ success: false, message: 'Database error while removing ban.', details: err.message });
+    }
+});
+
 // Endpoint for user login
 app.post('/api/users/login', async (req, res) => {
     const { username, password } = req.body;
