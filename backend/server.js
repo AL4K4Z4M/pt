@@ -44,6 +44,43 @@ const db = mysql.createPool({
     }
 })();
 
+// Create banned_users table if it doesn't exist
+(async () => {
+    try {
+        const connection = await db.getConnection();
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS banned_users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                email VARCHAR(255) UNIQUE,
+                ip_address VARCHAR(45),
+                banned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        connection.release();
+        console.log('banned_users table is ready.');
+    } catch (err) {
+        console.error('Failed to create banned_users table:', err);
+    }
+})();
+
+// Migration: Add last_ip column to users table if it doesn't exist
+(async () => {
+    try {
+        const connection = await db.getConnection();
+        const [columns] = await connection.query(
+            `SELECT * FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'last_ip'`
+        );
+        if (columns.length === 0) {
+            console.log('Adding "last_ip" column to "users" table...');
+            await connection.query('ALTER TABLE users ADD COLUMN last_ip VARCHAR(45) NULL DEFAULT NULL');
+            console.log('"last_ip" column added successfully.');
+        }
+        connection.release();
+    } catch (err) {
+        console.error('Failed to run migration for last_ip column:', err);
+    }
+})();
+
 const forbiddenWords = ['fuck','fuk','fck','fcuk','fuxk','phuck','phuk','shit','shyt','sht','sh1t','sh!t','asshole','azzhole','asshol','azzhol','azz','bitch','btch','b!tch','b1tch','bich','b!ch','cunt','kunt','cnt','c_nt','dick','dik','d!ck','d1ck','pussy','pssy','pussi','puzsy','pusy','nigger','nigga','nigg','nig','n!gger','n1gger','niga','n!ga','faggot','fagot','fag','f@g','f@ggot','retard','rtrd','ret@rd','r3tard','tard','whore','hor','wh0re','whor3','anal','an@l','arse','ar$e','bastard','basstard','bollocks','bollox','boner','clit','cl!t','cock','kok','kock','damn','dam','douche','douch','dyke','dike','felch','gook','handjob','hj','jizz','j!zz','kike','lesbo','lezbo','masturbate','masturb8','motherfucker','mf','mthrfckr','pedo','p3do','penis','pen!s','porn','prn','rape','r@pe','scrotum','slut','slutt','sl_t','smegma','sperm','tits','titt','t!ts','twat','tw@t','vagina','vag!na','wank','w@nk','wetback','nazi','naz!','n@zi','heil','h3il','hitler','h!tler','kkk','whitepower','whtpowr','whitepwr','supremacy','suprem@cy','islamist','jihadist','j!hadist','terrorist','terr0rist','communist','socialist','fascist','anarchist','antifa','zionist','racist','r@cist','sexist','s3xist','homophobe','homophob','transphobe','transphob','bigot','feminazi','mra','incel','sjw','pc','politicallycorrect','wokeism','cancelculture','triggered','triggred','safespace','microaggression','mansplain','manspread','whitesplaining','privilege','toxic','fragile','cis','hetero','cisgender','heteronormative','patriarchy','misogyny','misandry','bomb','bom','b0mb','kill','k!ll','k1ll','murder','murd3r','gang','g@ng','mafia','m@fia','crip','cr!p','blood','bl00d','terror','terr0r','explode','expl0de','shoot','sh00t','stab','st@b','gun','gn','knife','kn!fe','assault','ass@ult','execution','electricchair','gaschamber','lethalinjection','firingsquad','guillotine','lynch','hang','burn','brn','acid','ac!d','poison','p0ison','torture','t0rture','mutilate','mut!late','dismember','decapitate','drug','drg','coke','cok','heroin','her0in','meth','m3th','weed','w33d','we3d','drunk','drnk','dui','pot','high','stoned','alcoholic','junkie','junky','crackhead','stolen','st0len','illegal','ill3gal','contraband','smuggle','bribe','corrupt','criminal','felon','convict','prisoner','jail','prison','cop','police','pol!ce','pig','acab','idiot','id!ot','moron','m0ron','dumb','dum','stupid','stup!d','loser','l0ser','failure','useless','worthless','ugly','ugli','fat','f@t','skinny','short','tall','bald','hairy','smelly','dirty','gross','disgusting','filthy','nasty','sick','disease','cancer','aids','hiv','covid','c0vid','virus','v!rus','plague','epidemic','quarantine','mask','vaccine','v@ccine','jab','antivax','ant!vax','sheeple','normie','npc','boomer','zoomer','millennial','genz','okboomer','karen','chad','stacy','becky','brad','thot','simp','incel','virgin','cuck','soyboy','69','420','sex','s3x','s_x','naked','nak3d','nude','nud3','cult','sect','conspiracy','qanon','plandemic','hoax','fake','false','liar','cheat','fraud','scam','rip-off','ripoff','master','dom','sub','bdsm','fetish','kink','hentai','lolicon','shotacon','necrophilia','suicide','suic!de','selfharm','selfh@rm','cutting','cutt!ng','starve','anorexia','bulimia','proana','promia','thinspo'];
 
 // Vehicle data required for badge logic
@@ -83,6 +120,7 @@ const isElectric = (make, model) => {
 };
 
 app.use(cors());
+app.set('trust proxy', 1); // Trust first proxy
 app.use(express.json());
 app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use('/images', express.static(path.join('/var', 'www', 'platetraits', 'images')));
@@ -125,6 +163,21 @@ app.post('/api/users/register', async (req, res) => {
     const { username, first_name, email, password } = req.body;
     if (!username || !email || !password || !first_name) {
         return res.status(400).json({ success: false, message: 'Username, first name, email, and password are required.' });
+    }
+
+    const clientIp = req.ip;
+    try {
+        const [bannedRows] = await db.query(
+            'SELECT id FROM banned_users WHERE email = ? OR ip_address = ?',
+            [email, clientIp]
+        );
+
+        if (bannedRows.length > 0) {
+            return res.status(403).json({ success: false, message: 'This email or IP address has been banned.' });
+        }
+    } catch (err) {
+        console.error('❌ Ban check failed during registration:', err);
+        return res.status(500).json({ error: 'Server error during registration.', details: err.message });
     }
 
     const connection = await db.getConnection();
@@ -181,6 +234,37 @@ app.post('/api/users/register', async (req, res) => {
     }
 });
 
+// NEW: Endpoint for an admin to ban a user
+app.post('/api/admin/users/:id/ban', authenticateToken, requireAdmin, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [userRows] = await db.query('SELECT email, last_ip FROM users WHERE id = ?', [id]);
+        const user = userRows[0];
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found.' });
+        }
+
+        if (!user.email) {
+            return res.status(400).json({ success: false, message: 'User has no email address to ban.' });
+        }
+
+        // Add user's email and IP to the ban list.
+        // Using INSERT IGNORE to prevent errors if the email is already in the banned list (due to UNIQUE constraint).
+        await db.query(
+            'INSERT IGNORE INTO banned_users (email, ip_address) VALUES (?, ?)',
+            [user.email, user.last_ip]
+        );
+
+        res.json({ success: true, message: 'User has been banned successfully.' });
+
+    } catch (err) {
+        console.error(`❌ Failed to ban user ${id}:`, err);
+        res.status(500).json({ success: false, message: 'Database error during the banning process.', details: err.message });
+    }
+});
+
 // Endpoint for user login
 app.post('/api/users/login', async (req, res) => {
     const { username, password } = req.body;
@@ -188,20 +272,37 @@ app.post('/api/users/login', async (req, res) => {
 
     try {
         const [rows] = await db.query(
-            'SELECT id, username, password, is_admin, last_login_date, consecutive_login_days FROM users WHERE username = ?',
+            'SELECT id, username, password, is_admin, last_login_date, consecutive_login_days, last_ip FROM users WHERE username = ?',
             [username]
         );
         const user = rows[0];
         if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+
+        // Check if the user's email or IP is on the ban list
+        const clientIp = req.ip;
+        const [bannedRows] = await db.query(
+            'SELECT id FROM banned_users WHERE email = ? OR (ip_address IS NOT NULL AND ip_address = ?)',
+            [user.email, clientIp]
+        );
+
+        if (bannedRows.length > 0) {
+            return res.status(403).json({ success: false, message: 'This account or IP address has been banned.' });
+        }
 
         const match = await bcrypt.compare(password, user.password);
         if (match) {
             const accessToken = jwt.sign({ userId: user.id, username: user.username, isAdmin: user.is_admin }, process.env.JWT_SECRET, { expiresIn: '24h' });
             res.json({ success: true, accessToken: accessToken, username: user.username, isAdmin: user.is_admin });
 
-            // Asynchronous badge logic post-response
+            // Asynchronous badge and IP logging logic post-response
             (async () => {
                 try {
+                    // Log the user's IP address. Assumes `last_ip` column exists in `users` table.
+                    const clientIp = req.ip;
+                    if (clientIp && clientIp !== user.last_ip) {
+                        await db.query('UPDATE users SET last_ip = ? WHERE id = ?', [clientIp, user.id]);
+                    }
+
                     const awardBadge = async (userId, badgeId) => {
                         const [result] = await db.query('INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)', [userId, badgeId]);
                         if (result.affectedRows > 0) {

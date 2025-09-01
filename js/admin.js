@@ -398,6 +398,7 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
           <td class="px-4 py-2 text-right whitespace-nowrap">
             <button class="text-blue-600 hover:underline manage-user-btn" data-id="${u.id}">Manage</button>
             <button class="ml-3 text-gray-700 dark:text-gray-300 hover:underline quick-select-btn" data-id="${u.id}">Select</button>
+            <button class="ml-3 text-orange-600 hover:underline ban-user-btn" data-id="${u.id}" data-username="${escapeHtml(u.username)}">Ban</button>
             <button class="ml-3 text-red-600 hover:underline delete-user-btn" data-id="${u.id}" data-username="${escapeHtml(u.username)}">Delete</button>
           </td>`;
         els.usersBody.appendChild(tr);
@@ -662,9 +663,24 @@ const vehicleSubtype = {"Acura":{"ILX":"Sedan","Integra":"Sedan","MDX":"SUV","NS
     const manageBtn = e.target.closest('.manage-user-btn');
     const delBtn = e.target.closest('.delete-user-btn');
     const selectBtn = e.target.closest('.quick-select-btn');
+    const banBtn = e.target.closest('.ban-user-btn');
     if (manageBtn) openManageUserModal(Number(manageBtn.dataset.id));
     if (delBtn) openDeleteUserModal(Number(delBtn.dataset.id), delBtn.dataset.username);
     if (selectBtn) { addSelectedUser(Number(selectBtn.dataset.id)); }
+    if (banBtn) {
+      const userId = Number(banBtn.dataset.id);
+      const username = banBtn.dataset.username;
+      if (confirm(`Are you sure you want to ban user "${username}"? This will block their email and last known IP address.`)) {
+        fetchJSON(`${API_URL}/admin/users/${userId}/ban`, { method: 'POST' })
+          .then(response => {
+            toast(response.message || `User ${username} has been banned.`, 'success');
+          })
+          .catch(err => {
+            toast(`Failed to ban user: ${err.message}`, 'error');
+            console.error(err);
+          });
+      }
+    }
   });
 
   // Reviews actions
