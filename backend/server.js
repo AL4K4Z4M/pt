@@ -13,6 +13,12 @@ const getClientIp = (req) => {
         const forwardedIps = forwardedIpsStr.split(',');
         return forwardedIps[0].trim();
     }
+    if (req.headers['x-real-ip']) {
+        return req.headers['x-real-ip'];
+    }
+    if (req.headers['cf-connecting-ip']) {
+        return req.headers['cf-connecting-ip'];
+    }
     return req.ip;
 };
 
