@@ -351,6 +351,32 @@ app.get('/api/admin/banned-users', authenticateToken, requireAdmin, async (req, 
     }
 });
 
+// NEW: Endpoint for an admin to add a new banned user directly
+app.post('/api/admin/banned-users', authenticateToken, requireAdmin, async (req, res) => {
+    const { email, reason, nickname } = req.body;
+    const adminId = req.user.userId;
+
+    if (!email || !reason) {
+        return res.status(400).json({ success: false, message: 'Email and reason are required to ban a user.' });
+    }
+
+    try {
+        await db.query(
+            'INSERT IGNORE INTO banned_users (email, reason, nickname, banned_by_admin_id) VALUES (?, ?, ?, ?)',
+            [email, reason, nickname || null, adminId]
+        );
+
+        res.status(201).json({ success: true, message: 'User has been added to the ban list successfully.' });
+
+    } catch (err) {
+        console.error(`❌ Failed to add new banned user:`, err);
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ success: false, message: 'This email address is already banned.' });
+        }
+        res.status(500).json({ success: false, message: 'Database error during the banning process.', details: err.message });
+    }
+});
+
 // Endpoint for user login
 app.post('/api/users/login', async (req, res) => {
     const { username, password } = req.body;
